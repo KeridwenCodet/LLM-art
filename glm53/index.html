@@ -1,1 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phosphene — light, dreaming of itself</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:wght@300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
+<script>p5.disableFriendlyErrors = true;</script>
+<style>
+  html, body { margin:0; padding:0; overflow:hidden; background:#05060c; height:100%; }
+  canvas { display:block; }
+  #hud { position:fixed; inset:0; pointer-events:none; opacity:0; animation:fadein 2.4s ease .6s forwards; }
+  @keyframes fadein { to { opacity:1; } }
+  .title { position:absolute; left:34px; bottom:54px; font-family:'Cormorant Garamond', Georgia, serif; font-weight:300; font-size:26px; letter-spacing:.42em; color:#e8e4f2; text-shadow:0 0 10px rgba(190,170,255,.30); }
+  .sub { position:absolute; left:35px; bottom:32px; font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-weight:300; font-size:15px; letter-spacing:.14em; color:#8f8aa8; }
+  .hint { position:absolute; left:35px; bottom:13px; font-family:'IBM Plex Mono', monospace; font-size:9.5px; letter-spacing:.12em; color:#5a5670; }
+  .sig { position:absolute; right:34px; bottom:13px; font-family:'IBM Plex Mono', monospace; font-size:9.5px; letter-spacing:.12em; color:#5a5670; }
+</style>
+</head>
+<body>
+<div id="hud">
+  <div class="title">PHOSPHENE</div>
+  <div class="sub">light, dreaming of itself</div>
+  <div class="hint">move — swirl the current &nbsp;·&nbsp; click — send a pulse &nbsp;·&nbsp; s — save &nbsp;·&nbsp; g — gif &nbsp;·&nbsp; r — reseed &nbsp;·&nbsp; space — pause</div>
+  <div class="sig">woven by glm-5.3 · hermes</div>
+</div>
+<script>
+// ============================================================
+//  PHOSPHENE — light, dreaming of itself
+//  Thousands of luminous threads orbit a breathing rose curve.
+//  Keplerian shear (inner orbits faster) stretches them into
+//  silk. Dual-timescale trails: a crisp fast layer + a slow
+//  halo layer, both composited additively over a deep indigo
+//  field. The cursor is a vortex; a click sends a shockwave.
+// ============================================================
 
+const CONFIG = {
+  seed: 20260829,
+  fadeFast: 4,     // % per frame (HSB-100 scale)
+  fadeSlow: 1.6,
+  iridSpan: 150,   // degrees of rainbow wrapped around one orbit
+  goldRate: 0.06   // fraction of golden "ember" threads
+};
+
+let fastT, slowT, bgL, haloG, grain = [];
+let parts = [], waves = [];
+let tt = 0, frame = 0, R, CX, CY, seedHue = 210;
+let paused = false, mx = -9999, my = -9999, mouseActive = false;
+
+function setup() {
+  pixelDensity(1);
+  createCanvas(windowWidth, windowHeight);
+  makeBg();
+  makeHalo();
+  makeGrain();
+  reseed(CONFIG.seed);
+  frameRate(60);
+}
+
+function reseed(s) {
+  randomSeed(s);
+  noiseSeed((floor(s * 31) % 9973) || 1);
+  seedHue = random(360);
+  R = min(width, height) * 0.30;
+  CX = width / 2;
+  CY = height * 0.47;
+  waves = [];
+  buildLayers();
+  parts = [];
+  const n = constrain(floor((width * height) / 850), 500, 2800);
+  for (let i = 0; i < n; i++) parts.push(new P());
+  warm();
+}
+
+function buildLayers() {
+  if (fastT) fastT.remove();
+  if (slowT) slowT.remove();
+  fastT = createGraphics(width, height);
+  fastT.colorMode(HSB, 360, 100, 100, 100);
+  fastT.noStroke();
+  slowT = createGraphics(width, height);
+  slowT.colorMode(HSB, 360, 100, 100, 100);
+  slowT.noStroke();
+}
+
+function warm() {
+  // brief warm-up so the very first visible frame already breathes
+  for (let i = 0; i < 16; i++) { step(0.016); paintTrails(); }
+}
+
+// ---------- the living rose curve ----------
+function curveR(a) {
+  const breathe = 1 + 0.05 * Math.sin(tt * 0.5);
+  return R * breathe
+       * (1 + 0.22 * Math.sin(3 * a + tt * 0.7))
+       * (1 + 0.07 * Math.sin(5 * a - tt * 0.4));
+}
+
+// ---------- particles ----------
+class P {
+  constructor() {
+    this.a  = random(TWO_PI);       // orbital angle
+    this.ao = random(TWO_PI);       // personal phase (hue, shimmer)
+    this.wob = random(0.55, 1.45);  // radial wander → ribbon thickness
+    this.spd = random(0.7, 1.3);
+    this.gold = random() < CONFIG.goldRate;
+    this.bri = random(62, 96);
+    this.sat = random(55, 92);
+    const rad = R * this.wob;
+    this.x = CX + Math.cos(this.a) * rad + random(-30, 30);
+    this.y = CY + Math.sin(this.a) * rad + random(-30, 30);
+    this.px = this.x; this.py = this.y;
+    this.vx = 0; this.vy = 0;
+  }
+}
+
+// ---------- physics ----------
+function step(dt) {
+  tt += dt * 0.35;
+  const damp = Math.exp(-3.4 * dt);
+  const turb = 300;
+
+  for (const p of parts) {
+    p.px = p.x; p.py = p.y;
+
+    // spring toward its own point on the rose
+    const rad = curveR(p.a) * p.wob * (1 + 0.12 * noise(p.ao * 3, tt * 0.9));
+    const tx = CX + Math.cos(p.a) * rad;
+    const ty = CY + Math.sin(p.a) * rad;
+    let ax = (tx - p.x) * 3.4;
+    let ay = (ty - p.y) * 3.4;
+
+    // curl-ish turbulence — the threads wander, never sit still
+    const ns = 0.0016;
+    const nAng = (noise(p.x * ns, p.y * ns, tt * 0.6) - 0.5) * TAU * 2.6;
+    ax += Math.cos(nAng) * turb * p.spd;
+    ay += Math.sin(nAng) * turb * p.spd;
+
+    // the cursor is a vortex: swirl + gentle pull
+    if (mouseActive) {
+      const dx = p.x - mx, dy = p.y - my;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < 67600 && d2 > 1) {           // 260px lens
+        const d = Math.sqrt(d2);
+        const f = 1 - d / 260;
+        ax += (-dy / d) * f * f * 1100 + (mx - p.x) / d * f * 260;
+        ay += ( dx / d) * f * f * 1100 + (my - p.y) / d * f * 260;
+      }
+    }
+
+    // shockwaves: a radial kick as the ring front passes through
+    for (const w of waves) {
+      const dcx = p.x - CX, dcy = p.y - CY;
+      const dd = Math.sqrt(dcx * dcx + dcy * dcy) || 1;
+      const band = Math.abs(dd - w.r);
+      if (band < 52) {
+        const k = 1 - band / 52;
+        const kick = k * k * 1600;
+        ax += (dcx / dd) * kick;
+        ay += (dcy / dd) * kick;
+      }
+    }
+
+    p.vx = (p.vx + ax * dt) * damp;
+    p.vy = (p.vy + ay * dt) * damp;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+
+    // Keplerian shear: inner threads orbit faster → silk spirals
+    p.a += dt * 0.38 * p.spd * Math.pow(R / Math.max(rad, 20), 1.15);
+  }
+
+  for (let i = waves.length - 1; i >= 0; i--) {
+    waves[i].r += waves[i].v * dt;
+    if (waves[i].r > Math.max(width, height) * 1.2) waves.splice(i, 1);
+  }
+}
+
+// ---------- trails (dual timescale) ----------
+function paintTrails() {
+  fastT.noStroke(); fastT.fill(0, 0, 0, CONFIG.fadeFast); fastT.rect(0, 0, width, height);
+  slowT.noStroke(); slowT.fill(0, 0, 0, CONFIG.fadeSlow); slowT.rect(0, 0, width, height);
+
+  const baseHue = (seedHue + frame * 0.012) % 360; // the whole palette drifts, glacially
+  fastT.strokeWeight(1.1);
+  slowT.strokeWeight(3.4);
+
+  for (const p of parts) {
+    let h, s, b;
+    if (p.gold) {
+      h = 42; s = 52; b = 100;
+    } else {
+      h = (baseHue + ((p.a % TAU) / TAU) * CONFIG.iridSpan + p.ao * 0.18) % 360;
+      s = p.sat;
+      b = p.bri * (0.7 + 0.3 * noise(p.ao * 3, tt * 2.2)); // shimmer
+    }
+    fastT.stroke(h, s, b, 55);
+    fastT.line(p.px, p.py, p.x, p.y);
+    slowT.stroke(h, s * 0.85, b * 0.9, 15);
+    slowT.line(p.px, p.py, p.x, p.y);
+  }
+}
+
+// ---------- render ----------
+function draw() {
+  if (paused) return;
+  frame++;
+  const dt = min((deltaTime || 16.6) / 1000, 0.05);
+  step(dt);
+  paintTrails();
+
+  image(bgL, 0, 0);
+
+  blendMode(ADD);
+  image(slowT, 0, 0);   // halo layer
+  image(fastT, 0, 0);   // crisp threads
+  drawAureole();
+  drawWaves();
+  if (mouseActive) { tint(255, 42); image(haloG, mx - 160, my - 160); noTint(); }
+  blendMode(BLEND);
+
+  tint(255, 14);        // film grain, breathing between four plates
+  image(grain[frame % 4], 0, 0, width, height);
+  noTint();
+}
+
+function drawAureole() {
+  // a whisper of geometry under the chaos: one thin ring,
+  // three gold ticks rotating with the rose's lobes
+  noFill();
+  stroke(255, 244, 224, 22);
+  strokeWeight(1);
+  circle(CX, CY, R * 2);
+  for (let i = 0; i < 3; i++) {
+    const a = -tt * 0.7 + (i * TAU) / 3;
+    stroke(255, 212, 150, 70);
+    strokeWeight(1.4);
+    line(CX + Math.cos(a) * R * 1.22, CY + Math.sin(a) * R * 1.22,
+         CX + Math.cos(a) * R * 1.28, CY + Math.sin(a) * R * 1.28);
+  }
+}
+
+function drawWaves() {
+  noFill();
+  const maxR = Math.max(width, height) * 1.2;
+  for (const w of waves) {
+    const life = 1 - w.r / maxR;
+    stroke(205, 225, 255, 150 * life * life);
+    strokeWeight(1.6);
+    circle(CX, CY, w.r * 2);
+  }
+}
+
+// ---------- static layers ----------
+function makeBg() {
+  if (bgL) bgL.remove();
+  bgL = createGraphics(width, height);
+  bgL.loadPixels();
+  const cx = width / 2, cy = height * 0.47;
+  const maxD = Math.sqrt(Math.pow(Math.max(cx, width - cx), 2) + Math.pow(Math.max(cy, height - cy), 2));
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const d = Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)) / maxD;
+      const e = Math.pow(d, 0.9);
+      const dith = (random(100) - 50) * 0.06;   // kill banding
+      const idx = 4 * (y * width + x);
+      bgL.pixels[idx]     = lerp(20, 4, e) + dith;
+      bgL.pixels[idx + 1] = lerp(24, 5, e) + dith;
+      bgL.pixels[idx + 2] = lerp(46, 12, e) + dith;
+      bgL.pixels[idx + 3] = 255;
+    }
+  }
+  bgL.updatePixels();
+  bgL.noStroke();
+  const nStars = floor((width * height) / 12000);
+  for (let i = 0; i < nStars; i++) {
+    bgL.fill(255, 255, 255, random(6, 34));
+    bgL.circle(random(width), random(height), random(0.4, 1.6));
+  }
+}
+
+function makeHalo() {
+  haloG = createGraphics(320, 320);
+  haloG.loadPixels();
+  for (let y = 0; y < 320; y++) {
+    for (let x = 0; x < 320; x++) {
+      const d = Math.sqrt((x - 160) * (x - 160) + (y - 160) * (y - 160)) / 160;
+      let a = Math.max(0, 1 - d);
+      a = a * a * a * 230;
+      const idx = 4 * (y * 320 + x);
+      haloG.pixels[idx] = 200; haloG.pixels[idx + 1] = 215;
+      haloG.pixels[idx + 2] = 255; haloG.pixels[idx + 3] = a;
+    }
+  }
+  haloG.updatePixels();
+}
+
+function makeGrain() {
+  for (const g of grain) g.remove();
+  grain = [];
+  const gw = ceil(width / 2), gh = ceil(height / 2);
+  for (let k = 0; k < 4; k++) {
+    const g = createGraphics(gw, gh);
+    g.noStroke();
+    for (let i = 0; i < 900; i++) {
+      g.fill(255, 255, 255, random(10, 80));
+      g.circle(random(gw), random(gh), random(0.4, 1.3));
+    }
+    grain.push(g);
+  }
+}
+
+// ---------- interaction ----------
+function mouseMoved() { mx = mouseX; my = mouseY; mouseActive = true; }
+function mousePressed() {
+  mx = mouseX; my = mouseY; mouseActive = true;
+  waves.push({ r: 24, v: 520 });
+}
+function touchMoved() { mx = mouseX; my = mouseY; mouseActive = true; return false; }
+function touchStarted() { mousePressed(); return false; }
+
+function keyPressed() {
+  if (key === 's' || key === 'S') saveCanvas('phosphene', 'png');
+  else if (key === 'g' || key === 'G') saveGif('phosphene', 5);
+  else if (key === 'r' || key === 'R') reseed(floor(random(99999)));
+  else if (key === ' ' || keyCode === 32) paused = !paused;
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  R = min(width, height) * 0.30;
+  CX = width / 2;
+  CY = height * 0.47;
+  makeBg();
+  makeGrain();
+  buildLayers();
+  warm();
+}
+</script>
+</body>
+</html>
