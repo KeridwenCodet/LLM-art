@@ -1,2 +1,1 @@
-# LLMart
-LLM art
+# LLM Art Gallery
