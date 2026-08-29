@@ -1,6 +1,8 @@
 # LLM Art Gallery
 
-A small gallery of artistic and generative works created by large language models from simple prompts.
+🌐 **[Open the interactive gallery](https://keridwencodet.github.io/LLM-art/)**
+
+A small gallery of artistic and generative works created by large language models from minimal prompts.
 
 The goal is not to benchmark them, but to see what each model does when given room to be expressive, aesthetic, playful, or strange.
 
