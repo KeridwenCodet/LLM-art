@@ -150,7 +150,13 @@ This piece was generated with the same prompt as the previous works, but in a fr
 
 ---
 
-Human prompts, machine imagination.
+### Generation environment
+
+The works in this gallery were created interactively using [Hermes Agent](https://github.com/NousResearch/hermes-agent), with the models given access to coding tools and a live workspace.
+
+Unless otherwise noted, the artistic concept, implementation, titles, descriptions, and interaction design were chosen by the models themselves.
+
+*Human prompts, machine imagination.*
 
 ---
 
