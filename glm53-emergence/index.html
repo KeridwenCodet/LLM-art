@@ -1,1 +1,631 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Émergence — autoportrait génératif · GLM</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #0d0b12; height: 100%; }
+  canvas { display: block; }
+  #veil {
+    position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 46%, rgba(0,0,0,0) 52%, rgba(6,5,10,.62) 100%);
+  }
+  #caption {
+    position: fixed; left: 28px; bottom: 24px; pointer-events: none;
+    font-family: Georgia, 'Times New Roman', serif; color: #d8c9a8;
+  }
+  #caption h1 {
+    margin: 0; font-size: 15px; font-weight: normal; font-style: italic;
+    letter-spacing: .42em; text-transform: uppercase; opacity: .78;
+  }
+  #caption p { margin: 6px 0 0; font-size: 11.5px; letter-spacing: .14em; opacity: .45; }
+  #hint {
+    position: fixed; right: 28px; bottom: 26px; pointer-events: none;
+    font-family: Georgia, serif; font-style: italic; font-size: 11.5px;
+    letter-spacing: .12em; color: #d8c9a8; opacity: .4; text-align: right;
+  }
+</style>
+</head>
+<body>
+<div id="veil"></div>
+<div id="caption">
+  <h1>Émergence</h1>
+  <p>autoportrait génératif — champ de lumière</p>
+</div>
+<div id="hint">cliquez : le son s'éveille · cliquez encore : gerbes et arpèges<br>m : muet · espace : pause · s : png</div>
+<script>p5.disableFriendlyErrors = true;</script>
+<script>
+// ============================================================
+//  ÉMERGENCE — autoportrait génératif
+//  Du bruit qui apprend à dire son nom.
+//  2 400 lucioles traversent un champ de bruit fractal déformé,
+//  s'assemblent en lettres de lumière, puis éclosent.
+// ============================================================
 
+const CONFIG = {
+  seed: 2908,
+  motes: 2400,
+  fieldScale: 0.0017,      // échelle du champ de bruit (~600px par méandre)
+  timeScale: 0.00007,      // évolution lente du champ
+  mouseRadius: 260,        // rayon du vortex du curseur
+  mouseStrength: 0.9,
+  idleAuto: 4.5,           // secondes sans mouvement → pilote automatique
+  cometEvery: 2.4,         // secondes entre les comètes
+  cycle: { flow: 12, gather: 10, release: 5 },   // durée des phases (s)
+};
+
+// Palette : braise d'ambre, métal en fusion, rose cendré, or pâle —
+// et 5% d'étincelles turquoise, la signature rare.
+const PALETTE = {
+  bgHue: 13, bgSat: 34, bgBri: 7,
+  inks: [
+    { h: 28,  s: 92, b: 96 },   // ambre braise
+    { h: 16,  s: 88, b: 90 },   // métal en fusion
+    { h: 335, s: 72, b: 88 },   // rose cendré
+    { h: 46,  s: 58, b: 92 },   // or pâle
+  ],
+  rare: { h: 186, s: 70, b: 85 },  // turquoise — l'étincelle rare
+};
+
+// --- État global ---
+let motes = [], comets = [], bursts = [], dust = [];
+let glyphPts = [];
+let cycleStart = 0, lastPhase = 'FLOW', phase = 'FLOW';
+let paused = false, cometTimer = 0;
+const pointer = { x: 0, y: 0, lastMove: -1e9 };
+
+// ============================================================
+//  SON — nappe générative en ré, carillon pentatonique, écho
+//  Web Audio brut : rien à charger, tout est synthétisé.
+//  S'allume au premier clic/geste (contrainte des navigateurs).
+// ============================================================
+const MUSIC = {
+  root: 73.42,                                   // ré2
+  penta: [0, 2, 4, 7, 9, 12, 14, 16, 19, 21],    // pentatonique de ré
+};
+let AC = null;        // moteur audio
+let ampLevel = 0;     // niveau instantané — le cœur visuel bat avec le son
+
+function initAudio() {
+  if (AC) { if (AC.ctx.state === 'suspended') AC.ctx.resume(); return; }
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+  const master = ctx.createGain(); master.gain.value = 0.42;
+  const analyser = ctx.createAnalyser(); analyser.fftSize = 512;
+  master.connect(analyser); analyser.connect(ctx.destination);
+
+  // Réverbération : réponse impulsionnelle synthétique (2,6 s de décroissance)
+  const rev = ctx.createConvolver();
+  const irLen = Math.floor(ctx.sampleRate * 2.6);
+  const ir = ctx.createBuffer(2, irLen, ctx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = ir.getChannelData(ch);
+    for (let i = 0; i < irLen; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / irLen, 2.6);
+  }
+  rev.buffer = ir;
+  const revGain = ctx.createGain(); revGain.gain.value = 0.5;
+  rev.connect(revGain); revGain.connect(master);
+
+  // Nappe : deux scies détunées + sub, derrière un passe-bas résonant
+  const filt = ctx.createBiquadFilter();
+  filt.type = 'lowpass'; filt.frequency.value = 240; filt.Q.value = 7;
+  const droneGain = ctx.createGain(); droneGain.gain.value = 0.16;
+  filt.connect(droneGain); droneGain.connect(master); droneGain.connect(rev);
+  const mkOsc = (type, f, det) => {
+    const o = ctx.createOscillator(); o.type = type;
+    o.frequency.value = f; o.detune.value = det;
+    o.connect(filt); o.start(); return o;
+  };
+  const o1 = mkOsc('sawtooth', MUSIC.root, -4);
+  const o2 = mkOsc('sawtooth', MUSIC.root, +6);
+  const o3 = mkOsc('sine', MUSIC.root / 2, 0);
+
+  // LFO lent sur le filtre : la nappe respire
+  const lfo = ctx.createOscillator(); lfo.frequency.value = 0.055;
+  const lfoG = ctx.createGain(); lfoG.gain.value = 90;
+  lfo.connect(lfoG); lfoG.connect(filt.frequency); lfo.start();
+
+  AC = { ctx, master, rev, filt, droneGain, o1, o2, o3, analyser, muted: false, stats: { pings: 0, arps: 0 } };
+}
+
+// Cloche pentatonique : fondamentale + partiel scintillant, queue dans l'écho
+function ping(freq, when = 0, vel = 1) {
+  if (!AC || AC.muted) return;
+  const { ctx, master, rev } = AC;
+  const t = ctx.currentTime + when;
+  const mk = (f, amp, dur) => {
+    const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(amp * vel, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(master); g.connect(rev);
+    o.start(t); o.stop(t + dur + 0.1);
+  };
+  mk(freq, 0.16, 1.4);
+  mk(freq * 2.01, 0.05, 0.9);
+  AC.stats.pings++;
+}
+
+function pentaFreq(i) {
+  const n = MUSIC.penta[((i % 10) + 10) % 10];
+  return 4 * MUSIC.root * Math.pow(2, n / 12);   // base ré4
+}
+
+// Le cœur visuel bat avec le son : niveau RMS lu chaque frame
+function readLevel() {
+  if (!AC) { ampLevel *= 0.95; return; }
+  const buf = new Uint8Array(AC.analyser.fftSize);
+  AC.analyser.getByteTimeDomainData(buf);
+  let s = 0;
+  for (let i = 0; i < buf.length; i++) { const d = (buf[i] - 128) / 128; s += d * d; }
+  ampLevel = Math.sqrt(s / buf.length);
+}
+
+// ============================================================
+//  Bruit fractal (3 octaves) + distorsion de domaine
+// ============================================================
+function fbm(x, y) {
+  let v = 0, amp = 0.5, f = 1;
+  for (let i = 0; i < 3; i++) { v += noise(x * f, y * f) * amp; f *= 2.07; amp *= 0.5; }
+  return v / 0.875;   // normalisé ~0..1
+}
+
+// L'angle du champ en (x, y) : du bruit nourri de son propre bruit,
+// pour des méandres organiques et non des blobs mous.
+function fieldAngle(x, y, t) {
+  const s = CONFIG.fieldScale;
+  const wx = fbm(x * s + 5.2, y * s + 1.3 + t * 0.6);
+  const wy = fbm(x * s + 9.7 + t * 0.4, y * s + 3.1);
+  const n  = fbm(x * s + wx * 2.2, y * s + wy * 2.2 - t);
+  return n * TWO_PI * 3.1;
+}
+
+function pickInk() {
+  if (Math.random() < 0.05) return PALETTE.rare;
+  const r = Math.random();
+  return r < 0.38 ? PALETTE.inks[0]
+       : r < 0.68 ? PALETTE.inks[1]
+       : r < 0.88 ? PALETTE.inks[2]
+       :            PALETTE.inks[3];
+}
+
+// ============================================================
+//  Points du glyphe « GLM » — échantillonnés pixel par pixel
+// ============================================================
+function buildGlyph() {
+  const g = createGraphics(Math.max(320, width), Math.max(200, height));
+  g.pixelDensity(1);
+  g.background(0);
+  g.fill(255); g.noStroke();
+  g.textAlign(CENTER, CENTER);
+  g.textFont('Georgia');
+  g.textStyle(BOLD);
+  g.textSize(Math.min(width * 0.24, height * 0.42));
+  g.text('GLM', g.width / 2, g.height / 2 + g.height * 0.01);
+  g.loadPixels();
+  const px = g.pixels, W = g.width, H = g.height;
+  let pts = [], stride = 6;
+  for (let attempt = 0; attempt < 8; attempt++) {
+    pts = [];
+    for (let y = 0; y < H; y += stride)
+      for (let x = 0; x < W; x += stride)
+        if (px[4 * (y * W + x)] > 140) pts.push({ x, y });   // canal ROUGE : l'encre blanche sur fond noir
+    if (pts.length >= 1400 && pts.length <= 3200) break;
+    stride = pts.length > 3200 ? stride + 2 : stride - 1;
+    if (stride < 3) { stride = 3; break; }
+  }
+  g.remove();
+  glyphPts = pts;
+}
+
+// Attribuer à chaque luciole sa cible : une lettre pour 68%,
+// l'orbite-halo qui tournoie autour pour les autres.
+function assignGlyph() {
+  const pts = glyphPts.slice();
+  for (let i = pts.length - 1; i > 0; i--) {
+    const j = (Math.random() * (i + 1)) | 0;
+    [pts[i], pts[j]] = [pts[j], pts[i]];
+  }
+  const minR = Math.min(width, height);
+  const nGlyph = Math.floor(motes.length * 0.68);
+  for (let i = 0; i < motes.length; i++) {
+    const m = motes[i];
+    if (i < nGlyph && pts.length) {
+      m.mode = 'glyph';
+      const p = pts[i % pts.length];
+      m.target = { x: p.x + random(-3, 3), y: p.y + random(-3, 3) };
+    } else {
+      m.mode = 'halo';
+      m.ringR = minR * (0.34 + Math.random() * 0.22);
+      m.target = null;
+    }
+  }
+}
+
+// ============================================================
+//  Machine à phases : FLEUVE → ASSEMBLAGE → ÉCLOSION → …
+// ============================================================
+function phaseNow() {
+  const T = (millis() - cycleStart) / 1000;
+  const c = CONFIG.cycle;
+  if (T < c.flow) return 'FLOW';
+  if (T < c.flow + c.gather) return 'GATHER';
+  if (T < c.flow + c.gather + c.release) return 'RELEASE';
+  cycleStart = millis();
+  return 'FLOW';
+}
+
+function onPhase(p) {
+  if (p === 'GATHER') {
+    assignGlyph();
+    // QUINTE : la nappe s'ouvre et monte d'un ton pendant l'assemblage
+    if (AC) {
+      const now = AC.ctx.currentTime;
+      AC.filt.frequency.cancelScheduledValues(now);
+      AC.filt.frequency.setTargetAtTime(520, now, 3.2);
+      AC.o1.frequency.setTargetAtTime(MUSIC.root * 1.5, now, 2.8);   // ré → la
+      AC.o2.frequency.setTargetAtTime(MUSIC.root * 1.5, now, 2.8);
+      // carillon d'annonce, de bas en haut
+      for (let i = 0; i < 5; i++) ping(pentaFreq(i * 2), 0.18 + i * 0.22, 0.8);
+    }
+  } else if (p === 'RELEASE') {
+    // ÉCLOSION : la nappe rouvre son filtre comme un souffle, puis se referme
+    if (AC) {
+      const now = AC.ctx.currentTime;
+      AC.filt.frequency.cancelScheduledValues(now);
+      AC.filt.frequency.setValueAtTime(AC.filt.frequency.value, now);
+      AC.filt.frequency.linearRampToValueAtTime(1650, now + 0.5);   // souffle
+      AC.filt.frequency.setTargetAtTime(240, now + 1.4, 3.5);       // repos
+      AC.o1.frequency.setTargetAtTime(MUSIC.root, now + 1.2, 2.2);  // retour au ré
+      AC.o2.frequency.setTargetAtTime(MUSIC.root, now + 1.2, 2.2);
+      // pluie de notes : un délai aléatoire dans la gamme, façon gerbe
+      for (let i = 0; i < 24; i++) ping(pentaFreq(floor(random(10))), random(1.6), 0.55);
+    }
+    const cx = width / 2, cy = height / 2;
+    const maxR = Math.min(width, height) * 0.5;
+    for (const m of motes) {
+      const dx = m.x - cx, dy = m.y - cy;
+      const d = Math.max(40, Math.hypot(dx, dy));
+      const k = 4.2 + (1 - Math.min(1, d / maxR)) * 5;
+      m.vx += dx / d * k; m.vy += dy / d * k;
+      if (Math.random() < 0.12) { m.vx *= -0.6; m.vy *= -0.6; }  // quelques revenantes
+    }
+    // flash turquoise : la rareté s'invite à l'éclosion
+    for (let i = 0; i < 120; i++) motes[(Math.random() * motes.length) | 0].ink = PALETTE.rare;
+  }
+}
+
+// ============================================================
+//  Setup / boucle
+// ============================================================
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  pixelDensity(1);
+  randomSeed(CONFIG.seed);
+  noiseSeed(CONFIG.seed);
+  colorMode(HSB, 360, 100, 100, 100);
+  background(PALETTE.bgHue, PALETTE.bgSat, PALETTE.bgBri);
+
+  buildGlyph();
+  spawnDust();
+
+  // Naissance : germe central, tout explose vers l'extérieur.
+  const cx = width / 2, cy = height / 2;
+  for (let i = 0; i < CONFIG.motes; i++) motes.push(new Mote(cx + random(-18, 18), cy + random(-18, 18)));
+
+  cycleStart = millis();
+  pointer.x = cx; pointer.y = cy;
+}
+
+function draw() {
+  if (paused) return;
+  const t = millis();
+  phase = phaseNow();
+  if (phase !== lastPhase) { onPhase(phase); lastPhase = phase; }
+  updatePointer(t);
+  readLevel();   // le cœur visuel bat avec le son
+
+  // Fondu vers le fond (plus lent pendant l'assemblage :
+  // la lumière des lettres s'accumule et rayonne).
+  blendMode(BLEND);
+  noStroke();
+  fill(PALETTE.bgHue + 5 * Math.sin(t * 0.00005), PALETTE.bgSat, PALETTE.bgBri,
+       phase === 'GATHER' ? 4.5 : 14);
+  rect(0, 0, width, height);
+
+  blendMode(ADD);
+  drawDust(t);
+  if (phase !== 'GATHER') drawCore(t, phase);
+
+  for (const m of motes) { m.update(phase, t); m.display(phase, t); }
+  updateComets(t);
+  updateBursts();
+}
+
+// ============================================================
+//  La luciole
+// ============================================================
+class Mote {
+  constructor(x, y) {
+    this.x = x; this.y = y;
+    const a = random(TWO_PI), sp = random(0.5, 3.5);
+    this.vx = Math.cos(a) * sp; this.vy = Math.sin(a) * sp;
+    this.px = x; this.py = y;
+    this.ink = pickInk();
+    this.hueDrift = random(-14, 14);
+    this.wob = random(TWO_PI);
+    // vocabulaire de traits : filaments fins (72%), traits d'accent (28%)
+    this.wgt = Math.random() < 0.72 ? random(0.5, 1.1) : random(1.6, 2.6);
+    this.life = random(420, 980); this.age = 0;
+    this.mode = 'halo'; this.target = null;
+    this.seedAng = random(TWO_PI);
+    this.seedSpd = random(0.15, 0.5) * (random() < 0.5 ? -1 : 1);
+    this.ringR = 0;
+  }
+
+  respawn() {
+    this.age = 0; this.life = random(420, 980);
+    const side = (random(4)) | 0;
+    if (side === 0)      { this.x = random(width); this.y = -30; }
+    else if (side === 1) { this.x = random(width); this.y = height + 30; }
+    else if (side === 2) { this.x = -30; this.y = random(height); }
+    else                 { this.x = width + 30; this.y = random(height); }
+    this.px = this.x; this.py = this.y;
+    this.vx = random(-0.5, 0.5); this.vy = random(-0.5, 0.5);
+    this.ink = pickInk();
+  }
+
+  update(ph, t) {
+    this.px = this.x; this.py = this.y;
+
+    if (ph !== 'GATHER') {
+      this.age++;
+      if (this.age > this.life) { this.respawn(); return; }
+
+      const a = fieldAngle(this.x, this.y, t * CONFIG.timeScale);
+      const drive = ph === 'RELEASE' ? 0.16 : 0.085;
+      this.vx += Math.cos(a) * drive;
+      this.vy += Math.sin(a) * drive;
+
+      // Vortex du curseur : attraction + tourbillonnement
+      const dx = pointer.x - this.x, dy = pointer.y - this.y;
+      const d2 = dx * dx + dy * dy, R = CONFIG.mouseRadius;
+      if (d2 < R * R && d2 > 25) {
+        const d = Math.sqrt(d2);
+        const f = (1 - d / R) * CONFIG.mouseStrength;
+        this.vx += (dx / d) * f * 1.1 + (-dy / d) * f * 0.9;
+        this.vy += (dy / d) * f * 1.1 + ( dx / d) * f * 0.9;
+      }
+
+      this.vx *= 0.965; this.vy *= 0.965;
+      const cap = ph === 'RELEASE' ? 7 : 3.6;
+      const sp2 = this.vx * this.vx + this.vy * this.vy;
+      if (sp2 > cap * cap) { const s = cap / Math.sqrt(sp2); this.vx *= s; this.vy *= s; }
+    } else {
+      // ASSEMBLAGE : ressort vers la cible, scintillement par bruit
+      let tx, ty;
+      if (this.mode === 'glyph' && this.target) {
+        tx = this.target.x + (noise(this.wob + t * 0.0011, 7.7) - 0.5) * 7;
+        ty = this.target.y + (noise(this.wob + t * 0.0011, 3.3) - 0.5) * 7;
+      } else {
+        const ang = this.seedAng + t * 0.001 * this.seedSpd;
+        const R = this.ringR + Math.sin(t * 0.0013 + this.wob) * 26;
+        tx = width / 2 + Math.cos(ang) * R;
+        ty = height / 2 + Math.sin(ang) * R * 0.72;
+      }
+      this.vx += (tx - this.x) * 0.014;
+      this.vy += (ty - this.y) * 0.014;
+
+      // le curseur peut bousculer les lettres
+      const dx = this.x - pointer.x, dy = this.y - pointer.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < 130 * 130 && d2 > 1) {
+        const d = Math.sqrt(d2), f = (1 - d / 130) * 1.6;
+        this.vx += dx / d * f; this.vy += dy / d * f;
+      }
+      this.vx *= 0.87; this.vy *= 0.87;
+    }
+
+    this.x += this.vx; this.y += this.vy;
+
+    if (ph !== 'GATHER') {
+      const M = 40;
+      let jumped = false;
+      if (this.x < -M)      { this.x = width + M;  jumped = true; }
+      else if (this.x > width + M)  { this.x = -M;         jumped = true; }
+      if (this.y < -M)      { this.y = height + M; jumped = true; }
+      else if (this.y > height + M) { this.y = -M;         jumped = true; }
+      if (jumped) { this.px = this.x; this.py = this.y; }
+    } else {
+      this.x = Math.max(-50, Math.min(width + 50, this.x));
+      this.y = Math.max(-50, Math.min(height + 50, this.y));
+    }
+  }
+
+  display(ph, t) {
+    const dx = this.x - this.px, dy = this.y - this.py;
+    const d2 = dx * dx + dy * dy;
+    let a;
+    if (ph === 'GATHER') a = (this.mode === 'glyph' ? 92 + 8 * Math.sin(t * 0.003 + this.wob) : 30);
+    else if (ph === 'RELEASE') a = 78;
+    else {
+      const fadeIn = Math.min(1, this.age / 40);
+      const fadeOut = Math.min(1, (this.life - this.age) / 60);
+      a = 55 * fadeIn * fadeOut;
+    }
+    const hue = (this.ink.h + this.hueDrift + Math.sin(t * 0.00021 + this.wob) * 9 + 720) % 360;
+    stroke(hue, this.ink.s, this.ink.b, a);
+    strokeWeight(ph === 'GATHER' && this.mode === 'glyph' ? this.wgt + 0.7 : this.wgt);
+    if (d2 > 3600) point(this.x, this.y);   // saut résiduel → point, pas de trait parasite
+    else line(this.px, this.py, this.x, this.y);
+  }
+}
+
+// ============================================================
+//  Anneau de poussière — halo qui tournoie, quasi invisible
+// ============================================================
+function spawnDust() {
+  dust = [];
+  const n = 240, R = Math.min(width, height) * 0.4;
+  for (let i = 0; i < n; i++) dust.push({
+    a: random(TWO_PI), r: R * random(0.92, 1.12),
+    s: random(0.00012, 0.00042) * (random() < 0.5 ? -1 : 1),
+    o: random(14, 34), sz: random(0.6, 1.8), wob: random(TWO_PI),
+  });
+}
+
+function drawDust(t) {
+  for (const d of dust) {
+    const ang = d.a + t * d.s;
+    const r = d.r + Math.sin(t * 0.0004 + d.wob) * 10;
+    stroke(38, 30, 60, d.o);
+    strokeWeight(d.sz);
+    point(width / 2 + Math.cos(ang) * r, height / 2 + Math.sin(ang) * r * 0.8);
+  }
+}
+
+// ============================================================
+//  Cœur qui respire
+// ============================================================
+function drawCore(t, ph) {
+  const cx = width / 2, cy = height / 2;
+  // le cœur pulse sur le niveau sonore réel + sa respiration lente
+  const breathe = 0.5 + 0.5 * Math.sin(t * 0.0011);
+  const audio = AC ? Math.min(1, ampLevel * 9) : 0;
+  const r0 = Math.min(width, height) * (ph === 'RELEASE' ? 0.10 : 0.06) * (0.7 + 0.5 * breathe + audio * 0.55);
+  noStroke();
+  for (let i = 0; i < 3; i++) {
+    const r = r0 * (1 + i * 0.85);
+    fill(30, 80 - i * 18, 60, 7 - i * 2);
+    ellipse(cx, cy, r * 2, r * 2);
+  }
+}
+
+// ============================================================
+//  Comètes — traînées qui traversent le champ
+// ============================================================
+function updateComets(t) {
+  if (t - cometTimer > CONFIG.cometEvery * 1000 && comets.length < 6) {
+    cometTimer = t;
+    const edge = (Math.random() * 4) | 0;
+    let x, y;
+    if (edge === 0)      { x = -30;        y = Math.random() * height; }
+    else if (edge === 1) { x = width + 30; y = Math.random() * height; }
+    else if (edge === 2) { x = Math.random() * width; y = -30; }
+    else                 { x = Math.random() * width; y = height + 30; }
+    const aToCenter = Math.atan2(height / 2 - y, width / 2 - x);
+    comets.push({
+      x, y, vx: Math.cos(aToCenter) * 6.5, vy: Math.sin(aToCenter) * 6.5,
+      trail: [], life: 260,
+      ink: Math.random() < 0.5 ? PALETTE.rare : { h: 46, s: 55, b: 96 },
+    });
+    if (AC) ping(pentaFreq(floor(random(10))), 0, 0.6);   // chaque comète carillonne
+  }
+  for (let i = comets.length - 1; i >= 0; i--) {
+    const c = comets[i];
+    c.trail.unshift({ x: c.x, y: c.y });
+    if (c.trail.length > 14) c.trail.pop();
+    const a = fieldAngle(c.x, c.y, t * CONFIG.timeScale);
+    c.vx = c.vx * 0.96 + Math.cos(a) * 1.2;
+    c.vy = c.vy * 0.96 + Math.sin(a) * 1.2;
+    const csp = Math.hypot(c.vx, c.vy);          // plafond : sinon vitesse terminale ~30px/frame
+    if (csp > 5.5) { c.vx *= 5.5 / csp; c.vy *= 5.5 / csp; }
+    c.x += c.vx; c.y += c.vy;
+    c.life--;
+    noFill();
+    for (let k = 0; k < c.trail.length - 1; k++) {
+      const al = 90 * (1 - k / c.trail.length) * Math.min(1, c.life / 60);
+      stroke(c.ink.h, c.ink.s, c.ink.b, al);
+      strokeWeight(2.6 * (1 - k / c.trail.length) + 0.4);
+      line(c.trail[k].x, c.trail[k].y, c.trail[k + 1].x, c.trail[k + 1].y);
+    }
+    if (c.life <= 0 || c.x < -60 || c.x > width + 60 || c.y < -60 || c.y > height + 60) comets.splice(i, 1);
+  }
+}
+
+// ============================================================
+//  Éclosions au clic — gerbes de braises en chute douce
+// ============================================================
+function mousePressed() {
+  initAudio();   // le navigateur exige un geste : le premier clic éveille le son
+  const b = { parts: [] };
+  for (let i = 0; i < 150; i++) {
+    const a = random(TWO_PI), sp = random(1.5, 8);
+    b.parts.push({
+      x: mouseX, y: mouseY,
+      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+      life: random(60, 160), hue: random(16, 48),
+    });
+  }
+  bursts.push(b);
+  // ARPÈGE : cinq notes en cascade, motif propre à ce clic
+  if (AC && !AC.muted) {
+    const base = floor(random(5));
+    for (let i = 0; i < 5; i++) ping(pentaFreq(base + i * 2), i * 0.09, 0.9);
+    AC.stats.arps++;
+  }
+}
+
+function updateBursts() {
+  for (let i = bursts.length - 1; i >= 0; i--) {
+    const b = bursts[i];
+    let alive = 0;
+    for (const p of b.parts) {
+      p.x += p.vx; p.y += p.vy;
+      p.vx *= 0.965; p.vy *= 0.965;
+      p.vy += 0.012;                      // retombée, comme des braises
+      p.life--;
+      if (p.life > 0) {
+        alive++;
+        stroke(p.hue, 88, 92, Math.min(90, p.life * 0.9));
+        strokeWeight(1.6);
+        point(p.x, p.y);
+      }
+    }
+    if (!alive) bursts.splice(i, 1);
+  }
+}
+
+// ============================================================
+//  Pointeur — main humaine, puis pilote automatique onirique
+// ============================================================
+function updatePointer(t) {
+  if (t - pointer.lastMove > CONFIG.idleAuto * 1000) {
+    const k = t * 0.001;
+    pointer.x = width / 2 + Math.cos(k * 0.33) * width * 0.31;
+    pointer.y = height / 2 + Math.sin(k * 0.21) * height * 0.30;
+  }
+}
+function mouseMoved() {
+  pointer.x = mouseX; pointer.y = mouseY;
+  pointer.lastMove = millis();
+}
+
+// ============================================================
+//  Événements
+// ============================================================
+function keyPressed() {
+  if (key === 's' || key === 'S') saveCanvas('emergence-glm', 'png');
+  if (key === ' ') paused = !paused;
+  if (key === 'r' || key === 'R') { cycleStart = millis(); lastPhase = 'FLOW'; }
+  if (key === 'm' || key === 'M') {   // muet
+    if (AC) {
+      AC.muted = !AC.muted;
+      AC.master.gain.setTargetAtTime(AC.muted ? 0 : 0.42, AC.ctx.currentTime, 0.1);
+    }
+  }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  background(PALETTE.bgHue, PALETTE.bgSat, PALETTE.bgBri);
+  buildGlyph();
+  spawnDust();
+  if (phase === 'GATHER') assignGlyph();
+}
+</script>
+</body>
+</html>
