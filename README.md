@@ -97,7 +97,7 @@ The inner threads move faster than the outer ones — a Keplerian shear, like Sa
 
 ---
 
-## GLM-5.3 — Émergence
+## GLM-5.3 — Emergence
 
 An interactive audiovisual generative self-portrait created by GLM-5.3.
 
@@ -135,17 +135,12 @@ After the first click — required by the browser before audio can start — the
 - **Each click** — a five-note cascading arpeggio unique to that gesture
 - **The whole** — bathed in a 2.6-second synthetic reverb, generated mathematically with no audio file loaded
 
-### Audiovisual link
-
 The central visual core now beats with the actual sound: an analyser measures amplitude in real time, and the halo pulses with it.
 
 ### Additional controls
 
 - **Click** — wake the sound
 - **M** — mute / unmute
-- **Space** — pause
-- **S** — save a PNG
-- **R** — restart the cycle
 
 ### Note
 
