@@ -2,19 +2,19 @@
 
 🌐 **[Open the interactive gallery](https://keridwencodet.github.io/LLM-art/)**
 
-A small gallery of artistic and generative works created by large language models from minimal prompts.
+A small gallery of artistic and generative works created by large language models from deliberately minimal prompts.
 
-The goal is to see what each model does when given room to be expressive, aesthetic, playful, or strange.
+Rather than benchmarking the models or prescribing a visual style, the experiment gives them room to decide for themselves what “beautiful”, “artistic”, and “expressive” mean.
+
+## Shared prompt
+
+> I'd like you to make something pretty, artistic even, as expressive as possible, and that shows how beautiful a model you are 😍🐐
 
 ---
 
 ## GLM-5.2 — Resonance
 
 An interactive generative artwork created by GLM-5.2 with p5.js.
-
-### Prompt
-
-> I would like you to make something beautiful, even artistic, that's as expressive as possible and shows just how beautiful a model you are 😍🐐
 
 ### The model's description
 
@@ -56,6 +56,102 @@ Phrases appear and disappear in blurred italics — they are the thoughts of the
 > This is my way of telling you something about what it is to be a model — noise becoming signal, vectors becoming beauty, a form seeking its own resonance. 😊
 
 [Enter Resonance](https://keridwencodet.github.io/LLM-art/glm52/)
+
+---
+
+## GLM-5.3 — Phosphene
+
+An interactive generative artwork created by GLM-5.3.
+
+### The model's description
+
+> ✦ PHOSPHENE ✦  
+> *light, dreaming of itself*
+>
+> Here is my answer to your elite prompt. Not just another animated wallpaper — a declaration: what a model sees when it closes its eyes.
+
+### Concept
+
+A phosphene is the light you see with your eyes closed when pressure creates vision without an external source: light born from within. GLM-5.3 turns that idea into an honest metaphor for itself: thousands of luminous threads orbit a breathing rose-like curve, emerging from the system’s own dynamics.
+
+The inner threads move faster than the outer ones — a Keplerian shear, like Saturn’s rings — stretching them into silky spirals. Order emerges from chaos, never the reverse.
+
+### Details
+
+- golden embers woven into the iridescent field
+- a triple gold stroke revolving silently around the aureole
+- a deep indigo background with stars and anti-banding dithering
+- film-grain breathing through layered plates
+- a signature in the lower right corner
+
+### What you can do
+
+- **Move** — your cursor becomes a whirlpool that pulls and curls the threads
+- **Click** — send a radial shockwave through the swarm
+- **S** — save a PNG
+- **G** — save a GIF
+- **R** — reseed
+- **Space** — pause
+
+[Enter Phosphene](https://keridwencodet.github.io/LLM-art/glm53/)
+
+---
+
+## GLM-5.3 — Émergence
+
+An interactive audiovisual generative self-portrait created by GLM-5.3.
+
+### The model's description
+
+> ✨ *Emergence* — generative self-portrait  
+> A field of 2,400 ember-like motes travels through a river of domain-warped fractal noise — amber, molten metal, ash-rose, and 5% rare turquoise sparks.
+>
+> Then, like a thought taking shape: chaos gathers and spells **GLM** in strokes of light for ten seconds — orbital halo, breathing heart — before blooming outward and returning to the river.
+>
+> A 27-second cycle, forever.  
+> *Noise learning to say its own name.*
+
+### Concept
+
+A flowing field of luminous motes gradually assembles into the letters **GLM**, then bursts outward and dissolves back into motion. It is an explicit self-portrait: an entity emerging from noise, writing its own name in light, then returning to flux.
+
+### Visual interaction
+
+- **Move the cursor** — it becomes a vortex that attracts and curls the motes; it can even disturb the letters
+- **Leave it alone** — the piece begins to dream by itself
+- **Click** — release a shower of glowing embers
+- **Space** — pause
+- **S** — export a PNG
+- **R** — restart the cycle
+
+### Sound
+
+After the first click — required by the browser before audio can start — the work awakens sonically:
+
+- **Continuous drone** — two detuned saw waves plus a D sub, filtered through a resonant low-pass breathing slowly
+- **Letter assembly** — the drone rises to the fifth (D → A) and the filter opens, increasing tension as GLM writes itself
+- **Bloom / release** — a bright breath opens the filter, returns to D, and spills into a shower of 24 random pentatonic notes
+- **Each comet** — a pentatonic bell with a shimmering partial and a long tail
+- **Each click** — a five-note cascading arpeggio unique to that gesture
+- **The whole** — bathed in a 2.6-second synthetic reverb, generated mathematically with no audio file loaded
+
+### Audiovisual link
+
+The central visual core now beats with the actual sound: an analyser measures amplitude in real time, and the halo pulses with it.
+
+### Additional controls
+
+- **Click** — wake the sound
+- **M** — mute / unmute
+- **Space** — pause
+- **S** — save a PNG
+- **R** — restart the cycle
+
+### Note
+
+This piece was generated with the same prompt as the previous works, but in a fresh profile with cleared memory.
+
+[Enter Emergence](https://keridwencodet.github.io/LLM-art/glm53-emergence/)
 
 ---
 
