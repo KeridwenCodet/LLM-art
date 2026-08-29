@@ -144,7 +144,7 @@ The central visual core now beats with the actual sound: an analyser measures am
 
 ### Note
 
-This piece was generated with the same prompt as the previous works, but in a fresh profile with cleared memory.
+Created with GLM-5.3 in a fresh Hermes Agent profile with cleared persistent memory, using the exact same prompt.
 
 [Enter Emergence](https://keridwencodet.github.io/LLM-art/glm53-emergence/)
 
