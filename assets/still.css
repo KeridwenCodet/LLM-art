@@ -40,13 +40,17 @@ main {
   min-height: 100vh;
   display: grid;
   grid-template-columns: auto minmax(0, 26em);
-  align-items: center;
+  align-items: start;
   justify-content: center;
   gap: clamp(32px, 6vw, 96px);
   padding: 64px 16px;
 }
 
-figure { margin: 0; }
+figure {
+  margin: 0;
+  position: sticky;
+  top: 64px;
+}
 
 figure img {
   display: block;
@@ -134,6 +138,8 @@ summary:hover { color: var(--text); }
     justify-items: center;
     padding-top: 72px;
   }
+
+  figure { position: static; }
 
   figure img { max-height: none; }
 
