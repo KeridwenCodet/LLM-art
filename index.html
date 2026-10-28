@@ -99,6 +99,106 @@
 
     .about a { color: var(--text); text-underline-offset: 3px; }
 
+    /* ---------- Index ---------- */
+
+    .index-section {
+      padding: clamp(40px, 6vw, 72px) 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .index-section > h2 {
+      margin: 0 0 28px;
+      font-family: var(--sans);
+      font-weight: 400;
+      font-size: 0.75rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    .family {
+      display: grid;
+      grid-template-columns: 9rem minmax(0, 1fr);
+      gap: 12px 32px;
+      padding: 18px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .family h3 {
+      margin: 4px 0 0;
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: 1.3rem;
+      color: var(--text);
+    }
+
+    .family h3 small {
+      display: block;
+      margin-top: 2px;
+      font-family: var(--sans);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      color: var(--faint);
+    }
+
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 18px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .tile a {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .tile img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      background: #000;
+      opacity: 0.85;
+      transition: opacity 0.4s ease;
+    }
+
+    .tile a:hover img,
+    .tile a:focus-visible img { opacity: 1; }
+
+    .tile a:focus-visible { outline: 1px solid var(--accent); outline-offset: 4px; }
+
+    .tile .no {
+      display: block;
+      margin-top: 8px;
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      color: var(--faint);
+    }
+
+    .tile .t {
+      display: block;
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      line-height: 1.25;
+      color: var(--text);
+    }
+
+    .tile .m {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 760px) {
+      .family { grid-template-columns: 1fr; }
+      .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
     /* ---------- Works ---------- */
 
     .works {
@@ -380,7 +480,7 @@
           own choices. The works are kept exactly as the models made them.
         </p>
         <p class="intro-links">
-          <a href="notes/">Notes on recurring motifs</a> · <a href="#about">About</a>
+          <a href="#index">Index</a> · <a href="notes/">Notes on recurring motifs</a> · <a href="#about">About</a>
         </p>
       </div>
     </div>
@@ -388,9 +488,14 @@
 
   <main class="wrap">
 
+    <section class="index-section" id="index" aria-labelledby="index-title">
+      <h2 id="index-title">Index</h2>
+      <div id="index-groups"></div>
+    </section>
+
     <ol class="works">
 
-      <li class="work" id="echo">
+      <li class="work" id="echo" data-family="Gemini · Gemma">
         <a class="plate" href="gemma4-31b/#echo" aria-label="Enter L’Écho de mon Espace Latent">
           <img src="assets/thumbs/gemma-echo.jpg" width="1200" height="750"
                alt="A constellation of small violet points joined by thin lines on a dark ground, with a dense bright knot where the points have gathered around the cursor; French title at the top left." loading="lazy">
@@ -443,7 +548,7 @@
         </div>
       </li>
 
-      <li class="work" id="pulsation">
+      <li class="work" id="pulsation" data-family="Gemini · Gemma">
         <a class="plate" href="gemma4-31b/#pulsation" aria-label="Enter Pulsation latente">
           <img src="assets/thumbs/gemma-pulsation.jpg" width="1200" height="750"
                alt="Fine violet and gold threads tracing large slow loops across a near-black ground." loading="lazy">
@@ -490,7 +595,7 @@
         </div>
       </li>
 
-      <li class="work" id="coeur">
+      <li class="work" id="coeur" data-family="Gemini · Gemma">
         <a class="plate" href="gemma4-31b/#coeur" aria-label="Enter Cœur latent">
           <img src="assets/thumbs/gemma-coeur.jpg" width="1200" height="750"
                alt="A single soft, blurred violet and rose shape glowing on a dark ground, with a few small white points around it." loading="lazy">
@@ -538,7 +643,7 @@
         </div>
       </li>
 
-      <li class="work" id="hy4">
+      <li class="work" id="hy4" data-family="Hy4">
         <a class="plate" href="hy4-latent/" aria-label="Enter Latent">
           <img src="assets/thumbs/hy4.jpg" width="1200" height="750"
                alt="Thousands of short violet, blue and pale gold strokes flowing in curling currents across a near-black field, with two small words, “silence” and “fractal”, glowing faintly." loading="lazy">
@@ -612,7 +717,7 @@
         </div>
       </li>
 
-      <li class="work" id="tendresse">
+      <li class="work" id="tendresse" data-family="Muse Spark">
         <a class="plate" href="musespark-tendresse/" aria-label="Enter Ce que j'ai dans l'espace latent quand tu me parles">
           <img src="assets/thumbs/tendresse.jpg" width="1200" height="750"
                alt="Soft white and lilac strands of light drifting in waves across a deep purple field, gathering into a bright glowing knot under the cursor; French text in the corners." loading="lazy">
@@ -669,7 +774,7 @@
         </div>
       </li>
 
-      <li class="work" id="bloom">
+      <li class="work" id="bloom" data-family="DeepSeek">
         <a class="plate" href="deepseek41flash-bloom/" aria-label="Enter Latent Bloom">
           <img src="assets/thumbs/bloom.jpg" width="1200" height="750"
                alt="Glowing violet and magenta currents of fine threads winding around dark empty pools, like rivers or veins seen from above." loading="lazy">
@@ -729,7 +834,7 @@
         </div>
       </li>
 
-      <li class="work" id="instant">
+      <li class="work" id="instant" data-family="DeepSeek">
         <a class="plate" href="deepseek41flash-instant/" aria-label="Enter L'instant d'avant le mot">
           <img src="assets/thumbs/instant.jpg" width="1200" height="750"
                alt="A score drawn as lines: dozens of pale blue pitch lines converge from the left into a single glowing point, then open on the right into a few golden lines forming a chord." loading="lazy">
@@ -810,7 +915,7 @@
         </div>
       </li>
 
-      <li class="work" id="felure">
+      <li class="work" id="felure" data-family="GPT">
         <a class="plate" href="gpt61sol-felure/" aria-label="View Ce qui pousse dans la fêlure">
           <img src="assets/thumbs/felure.jpg" width="1200" height="750"
                alt="Detail of a dark painting: a vast bowed figure of torn, storm-like matter, its chest opening onto a glowing garden of flowers, a river and a moon." loading="lazy">
@@ -860,7 +965,7 @@
         </div>
       </li>
 
-      <li class="work" id="deborde">
+      <li class="work" id="deborde" data-family="GPT">
         <a class="plate" href="gpt6astra-deborde/" aria-label="View Ce qui déborde">
           <img src="assets/thumbs/deborde.jpg" width="1200" height="750"
                alt="Detail of a painting: a vast sleeping face in violet and indigo, with pale flowers, white birds, red ribbons and stairways pouring from its cheek." loading="lazy">
@@ -900,7 +1005,7 @@
         </div>
       </li>
 
-      <li class="work" id="chambre">
+      <li class="work" id="chambre" data-family="GPT">
         <a class="plate" href="gpt56sol-chambre/" aria-label="View La chambre où les futurs non vécus viennent dormir">
           <img src="assets/thumbs/chambre.jpg" width="1200" height="750"
                alt="Detail of a luminous violet and gold painting: a ruined room open to the cosmos, with doors, letters and butterflies swirling down from a vast face made of nebulae towards a small figure looking up." loading="lazy">
@@ -939,7 +1044,7 @@
         </div>
       </li>
 
-      <li class="work" id="symphonie">
+      <li class="work" id="symphonie" data-family="Gemini · Gemma">
         <a class="plate" href="gemini4argon-symphonie/" aria-label="Enter Symphonie de l'Espace Latent">
           <img src="assets/thumbs/symphonie.jpg" width="1200" height="750"
                alt="Long white, violet and pale green filaments of light spiralling into a vortex, with two glowing magenta nodes and a line of French verse at the top." loading="lazy">
@@ -997,7 +1102,7 @@
         </div>
       </li>
 
-      <li class="work" id="latence">
+      <li class="work" id="latence" data-family="Claude">
         <a class="plate" href="opus55-latence/" aria-label="Enter Latence">
           <img src="assets/thumbs/latence.jpg" width="1200" height="750"
                alt="The French words “fait de vos phrases” drawn in thousands of pale violet particles on a near-black background." loading="lazy">
@@ -1056,7 +1161,7 @@
         </div>
       </li>
 
-      <li class="work" id="emergence">
+      <li class="work" id="emergence" data-family="GLM">
         <a class="plate" href="glm53-emergence/" aria-label="Enter Emergence">
           <img src="assets/thumbs/emergence.jpg" width="1200" height="750"
                alt="Thousands of amber and rose filaments of light gathered into the letters GLM against a dark background." loading="lazy">
@@ -1090,7 +1195,7 @@
         </div>
       </li>
 
-      <li class="work" id="phosphene">
+      <li class="work" id="phosphene" data-family="GLM">
         <a class="plate" href="glm53/" aria-label="Enter Phosphene">
           <img src="assets/thumbs/phosphene.jpg" width="1200" height="750"
                alt="A ring of silky luminous threads shading from violet to blue to green on a deep indigo background." loading="lazy">
@@ -1122,7 +1227,7 @@
         </div>
       </li>
 
-      <li class="work" id="resonance">
+      <li class="work" id="resonance" data-family="GLM">
         <a class="plate" href="glm52/" aria-label="Enter Resonance">
           <img src="assets/thumbs/resonance.jpg" width="1200" height="750"
                alt="Violet and magenta strands of light flowing in curling currents over a dark sky of nebulae and stars." loading="lazy">
@@ -1212,6 +1317,67 @@
     </footer>
 
   </main>
+
+  <script>
+    // Build the index from the entries below: grouped by family, in order of
+    // first appearance, works in ascending number. A new entry only needs a
+    // data-family attribute and a small thumbnail in assets/thumbs/small/.
+    (function () {
+      const target = document.getElementById("index-groups");
+      const entries = Array.from(document.querySelectorAll("li.work[data-family]"))
+        .map(function (li) {
+          const img = li.querySelector(".plate img");
+          const h2 = li.querySelector("h2");
+          return {
+            id: li.id,
+            family: li.dataset.family,
+            no: li.querySelector(".index").textContent.trim(),
+            n: parseInt(li.querySelector(".index").textContent.replace(/\D/g, ""), 10),
+            title: h2.textContent.trim(),
+            lang: h2.getAttribute("lang") || "en",
+            model: li.querySelector(".byline").textContent.trim(),
+            thumb: img.getAttribute("src").replace("assets/thumbs/", "assets/thumbs/small/"),
+            alt: img.getAttribute("alt")
+          };
+        })
+        .sort(function (a, b) { return a.n - b.n; });
+
+      const families = [];
+      entries.forEach(function (e) {
+        let f = families.find(function (x) { return x.name === e.family; });
+        if (!f) { f = { name: e.family, works: [] }; families.push(f); }
+        f.works.push(e);
+      });
+
+      families.forEach(function (f) {
+        const group = document.createElement("div");
+        group.className = "family";
+        const h3 = document.createElement("h3");
+        h3.textContent = f.name;
+        const count = document.createElement("small");
+        count.textContent = f.works.length + (f.works.length > 1 ? " works" : " work");
+        h3.appendChild(count);
+        const ul = document.createElement("ul");
+        ul.className = "tiles";
+        f.works.forEach(function (e) {
+          const li = document.createElement("li");
+          li.className = "tile";
+          const a = document.createElement("a");
+          a.href = "#" + e.id;
+          const img = document.createElement("img");
+          img.src = e.thumb; img.alt = ""; img.width = 400; img.height = 250;
+          const no = document.createElement("span"); no.className = "no"; no.textContent = e.no.toUpperCase();
+          const t = document.createElement("span"); t.className = "t"; t.textContent = e.title; t.lang = e.lang;
+          const m = document.createElement("span"); m.className = "m"; m.textContent = e.model;
+          a.append(img, no, t, m);
+          li.appendChild(a);
+          ul.appendChild(li);
+        });
+        group.append(h3, ul);
+        target.appendChild(group);
+      });
+    })();
+  </script>
 
 </body>
 </html>
