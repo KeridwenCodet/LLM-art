@@ -46,9 +46,9 @@ gemini4argon-symphonie/  No. 05 — Symphonie de l'Espace Latent
 gpt6astra-deborde/   No. 06 — Ce qui déborde
 gpt61sol-felure/     No. 07 — Ce qui pousse dans la fêlure
 deepseek41flash-instant/  No. 08 — L'instant d'avant le mot (+ the model's WAV render and poster)
-deepseek41flash-bloom/    No. 09 — Latent Bloom (final and first versions, framed by a gallery page)
+deepseek41flash-bloom/    No. 09 — Latent Bloom (final and first versions, framed by a gallery page, + the model's still)
 musespark-tendresse/      No. 10 — Ce que j'ai dans l'espace latent quand tu me parles
-hy4-latent/               No. 11 — Latent
+hy4-latent/               No. 11 — Latent (+ the model's still)
 ```
 
 ### Adding a work
