@@ -24,7 +24,7 @@ Each work's notes, interaction controls and the model's own description are on t
 
 ## Conservation
 
-- Each work lives in its own folder as the single `index.html` the model produced, with no human edits, including the occasional harmless bug. Works made as claude.ai artifacts are kept as the page claude.ai serves. Still images (`image.webp`) are shown on a simple presentation page written for the gallery.
+- Each work lives in its own folder as the single `index.html` the model produced, with no human edits, including the occasional harmless bug. Works made as claude.ai artifacts are kept as the page claude.ai serves. Still images (`image.png`, the original files) are shown on a simple presentation page written for the gallery.
 - The gallery previews in `assets/thumbs/` are unretouched screenshots of the running pieces, or crops of still images.
 - The gallery page (`index.html`) and this README were written by language models.
 
