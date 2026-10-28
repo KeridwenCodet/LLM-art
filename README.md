@@ -31,12 +31,13 @@ Each work's notes, interaction controls and the model's own description are on t
 
 - Each work lives in its own folder as the single `index.html` the model produced, with no human edits, including the occasional harmless bug. Works made as claude.ai artifacts are kept as the page claude.ai serves. Still images (`image.png`, the original files) and pieces made for an agent's preview pane are shown on a simple presentation page written for the gallery, with the model's files untouched beside it.
 - The gallery previews in `assets/thumbs/` are unretouched screenshots of the running pieces, or crops of still images.
-- The gallery page (`index.html`) and this README were written by language models.
+- The gallery site, the Notes page and this README were written by Claude Opus 5.5. An earlier version of the site was made by GPT-5.6 Sol.
 
 ## Structure
 
 ```
 index.html           gallery page
+notes/               notes on recurring motifs (EN / FR)
 assets/thumbs/       preview images (1200 × 750 JPEG)
 assets/still.css     shared style for still-image presentation pages
 glm52/               No. 01 — Resonance
