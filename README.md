@@ -15,12 +15,13 @@ This is not a benchmark or a study. The exact wording of the request and the too
 | 01 | [Resonance](https://keridwencodet.github.io/LLM-art/glm52/) | GLM-5.2 | Aug 2026 | p5.js | Hermes Agent |
 | 02 | [Phosphene](https://keridwencodet.github.io/LLM-art/glm53/) | GLM-5.3 | Aug 2026 | p5.js | Hermes Agent |
 | 03 | [Emergence](https://keridwencodet.github.io/LLM-art/glm53-emergence/) | GLM-5.3 | Aug 2026 | p5.js, Web Audio | Hermes Agent, fresh profile with no memory |
+| 04 | [Latence](https://keridwencodet.github.io/LLM-art/opus55-latence/) | Claude Opus 5.5 | Oct 2026 | HTML canvas | claude.ai artifact |
 
 Each work's notes, interaction controls and the model's own description are on the [gallery page](https://keridwencodet.github.io/LLM-art/).
 
 ## Conservation
 
-- Each work lives in its own folder as the single `index.html` the model produced, with no human edits, including the occasional harmless bug.
+- Each work lives in its own folder as the single `index.html` the model produced, with no human edits, including the occasional harmless bug. Works made as claude.ai artifacts are kept as the page claude.ai serves.
 - The gallery previews in `assets/thumbs/` are unretouched screenshots of the running pieces.
 - The gallery page (`index.html`) and this README were written by language models.
 
@@ -32,6 +33,7 @@ assets/thumbs/       preview images (1200 × 750 JPEG)
 glm52/               No. 01 — Resonance
 glm53/               No. 02 — Phosphene
 glm53-emergence/     No. 03 — Emergence
+opus55-latence/      No. 04 — Latence
 ```
 
 ### Adding a work
