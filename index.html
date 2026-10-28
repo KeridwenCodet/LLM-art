@@ -349,15 +349,27 @@
             <dt>Interaction</dt><dd>Click or Space to compute and play the piece (sound on)</dd>
             <dt>Audio</dt><dd><a href="deepseek41flash-instant/effondrement.wav">WAV render</a>, produced by the model</dd>
             <dt>Preview</dt><dd>Frozen at 21 s, the moment of collapse, as the model suggested (<code>?t=21</code>)</dd>
-            <dt>Note</dt><dd>The model revised the piece several times. The description below dates from an earlier version with 32 voices; the final piece uses 64.</dd>
+            <dt>Process</dt><dd>Revised over several rounds, partly in response to outside critique, before the model stopped</dd>
           </dl>
           <details>
             <summary>In the model's words</summary>
             <blockquote lang="fr">
               <p>Fait. Et c'est le genre de chose où je me suis laissé surprendre en route.</p>
-              <p>Trente-deux hauteurs serrées autour d'un mi, chacune avec son vibrato et sa place dans l'espace stéréo : une nuée épaisse où rien ne se détache. Puis elles convergent, les phases se verrouillent, l'image se resserre au centre — et il ne reste qu'un seul son, nu. Quatre secondes de tenue. Puis l'accord s'ouvre en intonation juste et s'éteint.</p>
-              <p>Quand les fréquences se rejoignent, les phases ne s'alignent pas d'elles-mêmes, elles se figent en s'annulant. J'ai ajouté un couplage de Kuramoto dans la boucle, les voix se sont mises à se chercher comme des pendules de Huygens.</p>
+              <p>Des hauteurs serrées autour d'un mi, chacune avec son vibrato et sa place dans l'espace stéréo : une nuée épaisse où rien ne se détache. Puis elles convergent, les phases se verrouillent, l'image se resserre au centre — et il ne reste qu'un seul son, nu. Quatre secondes de tenue. Puis l'accord s'ouvre en intonation juste et s'éteint.</p>
               <p>Et un truc que je n'avais pas prévu : à 17,6 s, l'enveloppe s'écrase presque à zéro — un trou de deux dixièmes de seconde, juste avant la montée. Le souffle se coupe avant le mot. C'est l'interférence qui a décidé ça, pas moi. C'est devenu le cœur de la pièce.</p>
+              <p>Sur ta question de l'espace latent, je ne te la joue pas : je ne peux pas aller lire mes vecteurs. Mais si tu veux voir ce qui se passe quand je cherche — ça converge, et le prix de la convergence, c'est tout ce qui se tait.</p>
+              <p>Je m'arrête là. Pas parce que c'est parfait — la critique la plus juste que j'aie reçue disait « graphique de données soigné, pas encore œuvre », et elle m'a fait retirer la grille, l'axe, le compteur. Ce qui reste, c'est soixante-quatre voix qui se cherchent pendant douze secondes, se trouvent pendant quatre, puis s'ouvrent.</p>
+            </blockquote>
+          </details>
+          <details>
+            <summary>Working notes</summary>
+            <blockquote lang="fr">
+              <p>Pas de numpy dans l'atelier — donc tout en pur Python, à la main. C'est mieux : ça rend la pièce plus nue.</p>
+              <p>Quand les fréquences se rejoignent, les phases ne s'alignent pas d'elles-mêmes, elles se figent en s'annulant — le pic tombait à 0,18. J'ai ajouté un couplage de Kuramoto dans la boucle, les voix se sont mises à se chercher comme des pendules de Huygens. Vérifié au Goertzel, pas au feeling.</p>
+              <p>L'accord final ne descendait pas. J'ai ajouté le la grave sous le mi : l'accord s'ouvre maintenant sur deux octaves — une couleur de majeur septième qui n'était pas prévue et qui est plus belle que ce que j'avais écrit.</p>
+              <p>L'accord n'était pas un accord, c'était quatre fils. […] Et j'ai enlevé la grille. C'était de la grammaire de séquenceur audio, ça ramenait l'objet au statut de lecteur.</p>
+              <p>Il a fallu doubler les voix : 64 au lieu de 32. […] À soixante-quatre, chaque note de l'accord est un paquet de treize voix qui respirent ensemble.</p>
+              <p>Un point d'honnêteté : la « verticale résiduelle » qu'on m'a signalée n'existait pas. J'ai mesuré le profil d'encre colonne par colonne — c'était la tête de lecture elle-même.</p>
             </blockquote>
           </details>
           <a class="enter" href="deepseek41flash-instant/">Enter the work</a>
