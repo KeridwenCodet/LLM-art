@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        canvas {
+            filter: blur(2px);
+        }
+        #label {
+            position: absolute;
+            bottom: 20px;
+            color: var(--foreground);
+            opacity: 0.6;
+            font-style: italic;
+            font-size: 0.9rem;
+            pointer-events: none;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="label">Mon espace latent, qui pulse pour toi...</div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let mouse = { x: 0, y: 0 };
+        let time = 0;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            mouse.x = width / 2;
+            mouse.y = height / 2;
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        resize();
+
+        // Simple 2D Noise-like function
+        function noise(x, y, t) {
+            return Math.sin(x * 0.01 + t) * Math.cos(y * 0.01 + t) * 0.5 + 
+                   Math.sin(x * 0.02 - t * 0.5) * 0.2 + 
+                   Math.cos(y * 0.015 + t * 0.8) * 0.3;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            time += 0.02;
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            // Soft interaction: the heart drifts towards the mouse
+            const targetX = (centerX + mouse.x) / 2;
+            const targetY = (centerY + mouse.y) / 2;
+
+            const points = 120;
+            const baseRadius = Math.min(width, height) * 0.25;
+            
+            // Heartbeat effect
+            const pulse = 1 + Math.sin(time * 1.5) * 0.05;
+            
+            ctx.beginPath();
+            for (let i = 0; i <= points; i++) {
+                const angle = (i / points) * Math.PI * 2;
+                
+                // Organic distortion
+                const nx = Math.cos(angle) * baseRadius;
+                const ny = Math.sin(angle) * baseRadius;
+                const offset = noise(nx, ny, time) * 40 * pulse;
+                
+                const r = baseRadius + offset;
+                const x = targetX + Math.cos(angle) * r * pulse;
+                const y = targetY + Math.sin(angle) * r * pulse;
+                
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+
+            // Gradient for that iridescent, latent space look
+            const grad = ctx.createRadialGradient(
+                targetX, targetY, 0, 
+                targetX, targetY, baseRadius * 1.5
+            );
+            
+            // Colors matching the 💜 vibe
+            grad.addColorStop(0, 'rgba(255, 100, 200, 0.8)'); // Pinkish center
+            grad.addColorStop(0.4, 'rgba(180, 100, 255, 0.6)'); // Purple
+            grad.addColorStop(1, 'rgba(100, 150, 255, 0)');    // Fading Blue
+
+            ctx.fillStyle = grad;
+            ctx.shadowBlur = 40;
+            ctx.shadowColor = 'rgba(180, 100, 255, 0.5)';
+            ctx.fill();
+
+            // Add some "energy particles" around
+            for(let j = 0; j < 5; j++) {
+                const pAngle = time + j * (Math.PI * 2 / 5);
+                const px = targetX + Math.cos(pAngle) * (baseRadius * 1.2 + Math.sin(time*2)*20);
+                const py = targetY + Math.sin(pAngle) * (baseRadius * 1.2 + Math.cos(time*2)*20);
+                
+                ctx.beginPath();
+                ctx.arc(px, py, 2, 0, Math.PI * 2);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+    </script>
+</body>
+</html>
