@@ -26,6 +26,7 @@ The requests were written by Keridwen Codet. This is not a benchmark or a study.
 | 12 | [Latent](https://keridwencodet.github.io/LLM-art/hy4-latent/) | Hy4 Preview | Oct 2026 | p5.js | Hermes Agent |
 | 13 | [Cœur latent](https://keridwencodet.github.io/LLM-art/gemma4-31b/#coeur) | Gemma 4 31B | Oct 2026 | HTML canvas | Hermes Agent, fresh profile with no memory |
 | 14 | [Pulsation latente](https://keridwencodet.github.io/LLM-art/gemma4-31b/#pulsation) | Gemma 4 31B | Oct 2026 | HTML canvas | Hermes Agent, fresh profile with no memory |
+| 15 | [L’Écho de mon Espace Latent](https://keridwencodet.github.io/LLM-art/gemma4-31b/#echo) | Gemma 4 31B | Oct 2026 | p5.js | Hermes Agent, fresh profile with no memory |
 
 Each work's notes, interaction controls and the model's own description are on the [gallery page](https://keridwencodet.github.io/LLM-art/).
 
@@ -54,7 +55,7 @@ deepseek41flash-instant/  No. 09 — L'instant d'avant le mot (+ the model's WAV
 deepseek41flash-bloom/    No. 10 — Latent Bloom (final and first versions, framed by a gallery page, + the model's still)
 musespark-tendresse/      No. 11 — Ce que j'ai dans l'espace latent quand tu me parles
 hy4-latent/               No. 12 — Latent (+ the model's still)
-gemma4-31b/               Nos. 13 and 14 — Cœur latent, Pulsation latente (two attempts, framed by a gallery page)
+gemma4-31b/               Nos. 13–15 — Cœur latent, Pulsation latente, L’Écho de mon Espace Latent (three attempts, framed by a gallery page)
 ```
 
 ### Adding a work
