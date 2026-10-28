@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Latent Bloom</title>
+<style>
+  html, body { margin: 0; padding: 0; background: transparent; }
+  .stage {
+    width: 1100px;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 18px 60px -30px rgba(0,0,0,.9), 0 0 0 1px var(--border, rgba(255,255,255,.09));
+    cursor: crosshair;
+    background: #04030a;
+  }
+  .stage:fullscreen { border-radius: 0; width: 100vw; height: 100vh; aspect-ratio: auto; }
+  canvas { display: block; width: 100%; height: 100%; }
+  .btn {
+    position: absolute; top: 14px; right: 14px;
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+    border: 1px solid rgba(230,220,245,.28);
+    border-radius: 9px;
+    background: rgba(10,8,18,.5);
+    color: rgba(236,228,248,.72);
+    font: 15px/1 ui-sans-serif, system-ui, sans-serif;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: background .2s, color .2s, border-color .2s;
+  }
+  .btn:hover { background: rgba(24,18,40,.7); color: #fff; border-color: rgba(240,200,255,.4); }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <canvas id="c"></canvas>
+  <button class="btn" id="fs" title="Plein écran (F)">⛶</button>
+</div>
+<script>
+"use strict";
+window.__errs = [];
+window.onerror = function (m, s, l) { window.__errs.push(m + " @" + l); };
+window.__frames = 0;
+window.__clicks = 0;
+
+/* ------------------------------------------------------------------
+   LATENT BLOOM — responsive / plein écran
+   ------------------------------------------------------------------ */
+
+const stage = document.getElementById("stage");
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+const DPR = Math.min(2, window.devicePixelRatio || 1);
+
+// ---------- noise ----------
+function hash2(ix, iy) {
+  let h = (Math.imul(ix, 374761393) + Math.imul(iy, 668265263)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+function vnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y);
+  const xf = x - xi, yf = y - yi;
+  const u = xf * xf * xf * (xf * (xf * 6 - 15) + 10);
+  const v = yf * yf * yf * (yf * (yf * 6 - 15) + 10);
+  const a = hash2(xi, yi), b = hash2(xi + 1, yi);
+  const c = hash2(xi, yi + 1), d = hash2(xi + 1, yi + 1);
+  return (a + (b - a) * u) * (1 - v) + (c + (d - c) * u) * v;
+}
+function fbm(x, y, oct) {
+  let val = 0, amp = 1, f = 1, sum = 0;
+  for (let i = 0; i < oct; i++) {
+    val += vnoise(x * f, y * f) * amp;
+    sum += amp;
+    amp *= 0.52; f *= 2.03;
+    x += 7.31; y -= 3.17;
+  }
+  return val / sum;
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+let rnd = mulberry32(20261028);
+
+// ---------- state ----------
+let W = 1100, H = 620;
+let trail = document.createElement("canvas");
+let tctx = trail.getContext("2d");
+let baked = document.createElement("canvas");
+const BLOOM = 4;
+let bloomCv = document.createElement("canvas");
+let bctx = bloomCv.getContext("2d");
+
+const CELL = 24;
+let cols = 0, rows = 0;
+let psi = new Float32Array(0), fvx = new Float32Array(0), fvy = new Float32Array(0), fsp = new Float32Array(0);
+
+const N = 2000;
+const motes = [];
+const BUCKETS = 15;
+const buckets = [];
+for (let i = 0; i <= BUCKETS; i++) buckets.push([]);
+const sparks = [];
+const ripples = [];
+
+function Mote() {
+  this.x = rnd(); this.y = rnd();          // normalised, scaled on layout
+  this.vx = 0; this.vy = 0;
+  this.sp = 0.55 + rnd() * 1.3;
+  this.w = 0;
+  this.life = 0.35 + rnd() * 0.65;
+  this.tw = rnd() * Math.PI * 2;
+  const q = rnd();
+  this.bias = q > 0.88 ? 0.60 + rnd() * 0.40 : (q > 0.62 ? 0.12 + rnd() * 0.28 : 0);
+}
+for (let i = 0; i < N; i++) motes.push(new Mote());
+
+// ---------- presence ----------
+const pt = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5, inside: false, touched: false, still: 0 };
+
+function toLocal(ev) {
+  const r = canvas.getBoundingClientRect();
+  return {
+    x: (ev.clientX - r.left) * (W / r.width),
+    y: (ev.clientY - r.top) * (H / r.height)
+  };
+}
+canvas.addEventListener("pointermove", function (e) {
+  const p = toLocal(e);
+  pt.tx = p.x; pt.ty = p.y;
+  pt.inside = true; pt.touched = true; pt.still = 0;
+}, { passive: true });
+canvas.addEventListener("pointerleave", function () { pt.inside = false; });
+canvas.addEventListener("pointerdown", function (e) {
+  const p = toLocal(e);
+  pt.tx = p.x; pt.ty = p.y;
+  pt.inside = true; pt.touched = true; pt.still = 0;
+  pulse(p.x, p.y);
+  window.__clicks++;
+});
+
+function pulse(x, y) {
+  const spread = Math.min(W, H) * 0.6;
+  ripples.push({ x: x, y: y, r: 6, life: 1 });
+  for (let i = 0; i < motes.length; i++) {
+    const m = motes[i];
+    const dx = x - m.x, dy = y - m.y;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < spread * spread) {
+      const d = Math.sqrt(d2) + 0.001;
+      const f = 1 - d / spread;
+      m.w = Math.min(1, m.w + f * 1.5);
+      m.vx += (-dy / d) * f * 3.8 - (dx / d) * f * 0.7;
+      m.vy += (dx / d) * f * 3.8 - (dy / d) * f * 0.7;
+    }
+  }
+  for (let i = 0; i < 90; i++) {
+    const a = rnd() * Math.PI * 2;
+    const r = 5 + rnd() * 22;
+    sparks.push({
+      x: x + Math.cos(a) * r, y: y + Math.sin(a) * r,
+      vx: Math.cos(a) * (0.9 + rnd() * 2.8), vy: Math.sin(a) * (0.9 + rnd() * 2.8),
+      life: 0.6 + rnd() * 0.4
+    });
+  }
+}
+
+// ---------- palette ----------
+function hueFor(w) { return (208 + 172 * w) % 360; }
+let colCache = [];
+let colStep = -1;
+let colBuildBreath = 0;
+function buildColors(breath) {
+  const alpha = 0.27 + breath * 0.09;
+  for (let b = 0; b <= BUCKETS; b++) {
+    const w = b / BUCKETS;
+    const h = hueFor(w);
+    const s = 42 + 46 * w;
+    const l = 36 + 26 * w;
+    const a = alpha * (0.50 + 1.05 * w);
+    colCache[b] = "hsla(" + h.toFixed(1) + "," + s.toFixed(0) + "%," + l.toFixed(0) + "%," + a.toFixed(3) + ")";
+  }
+}
+
+// ---------- background ----------
+function bakeBackground() {
+  const nw = Math.max(48, Math.round(W / 4)), nh = Math.max(48, Math.round(H / 4));
+  const nc = document.createElement("canvas");
+  nc.width = nw; nc.height = nh;
+  const nctx = nc.getContext("2d");
+  const img = nctx.createImageData(nw, nh);
+  const d = img.data;
+  const ar = nw / nh;
+
+  for (let y = 0; y < nh; y++) {
+    for (let x = 0; x < nw; x++) {
+      const u = (x / nh) * (ar > 1 ? 1 : 1), v = y / nh;
+      const qx = fbm(u * 1.05 * (0.9 + ar * 0.1) + 11.2, v * 1.05 - 4.7, 3);
+      const qy = fbm(u * 1.05 * (0.9 + ar * 0.1) - 6.4, v * 1.05 + 9.1, 3);
+      let n = fbm(u * 2.0 * (0.85 + ar * 0.15) + qx * 2.8, v * 2.0 + qy * 2.8, 4);
+      n = Math.max(0, (n - 0.36)) / 0.64;
+      n = n * n * (1.3 - 0.3 * n);
+      const m = fbm(u * 1.3 + 40.0 - qy * 1.2, v * 1.3 + qx * 1.2 + 21.0, 3);
+      const warm = Math.max(0, m - 0.5) * 1.7;
+
+      const i4 = 4 * (y * nw + x);
+      d[i4]     = Math.min(255, 3 + n * 7.0 + warm * 10);
+      d[i4 + 1] = Math.min(255, 2 + n * 3.0 + warm * 3);
+      d[i4 + 2] = Math.min(255, 6 + n * 15 + warm * 7);
+      d[i4 + 3] = 255;
+    }
+  }
+  nctx.putImageData(img, 0, 0);
+
+  baked = document.createElement("canvas");
+  baked.width = Math.max(1, Math.round(W * DPR));
+  baked.height = Math.max(1, Math.round(H * DPR));
+  const b = baked.getContext("2d");
+  b.setTransform(DPR, 0, 0, DPR, 0, 0);
+  b.imageSmoothingEnabled = true;
+  b.imageSmoothingQuality = "high";
+  b.fillStyle = "#04030a";
+  b.fillRect(0, 0, W, H);
+  b.globalAlpha = 0.9;
+  b.drawImage(nc, 0, 0, W, H);
+  b.globalAlpha = 1;
+
+  const vg = b.createRadialGradient(W * 0.5, H * 0.46, H * 0.10, W * 0.5, H * 0.5, H * 0.92);
+  vg.addColorStop(0, "rgba(2,2,5,0)");
+  vg.addColorStop(0.45, "rgba(2,2,5,0.42)");
+  vg.addColorStop(1, "rgba(1,1,3,0.97)");
+  b.fillStyle = vg;
+  b.fillRect(0, 0, W, H);
+
+  const sg = b.createLinearGradient(0, H - 150, 0, H);
+  sg.addColorStop(0, "rgba(3,2,8,0)");
+  sg.addColorStop(1, "rgba(3,2,8,0.72)");
+  b.fillStyle = sg;
+  b.fillRect(0, H - 150, W, 150);
+
+  const gs = 128;
+  const gc = document.createElement("canvas");
+  gc.width = gs; gc.height = gs;
+  const gctx = gc.getContext("2d");
+  const gi = gctx.createImageData(gs, gs);
+  for (let i = 0; i < gs * gs; i++) {
+    const v = 120 + Math.floor(rnd() * 135);
+    gi.data[i * 4] = v; gi.data[i * 4 + 1] = v; gi.data[i * 4 + 2] = v + 6;
+    gi.data[i * 4 + 3] = Math.floor(rnd() * 15);
+  }
+  gctx.putImageData(gi, 0, 0);
+  const pat = b.createPattern(gc, "repeat");
+  b.globalAlpha = 0.22;
+  b.fillStyle = pat;
+  b.fillRect(0, 0, W, H);
+  b.globalAlpha = 1;
+}
+
+// ---------- flow field ----------
+function refreshField(t) {
+  for (let gy = 0; gy < rows; gy++) {
+    const wy = gy * CELL;
+    for (let gx = 0; gx < cols; gx++) {
+      const wx = gx * CELL;
+      const a = fbm(wx * 0.0038 + 3.7, wy * 0.0038 - t * 0.030, 3);
+      const b = fbm(wx * 0.0013 - t * 0.007 + 12.3, wy * 0.0013 + 5.1, 2);
+      psi[gy * cols + gx] = a + b * 0.85;
+    }
+  }
+  for (let gy = 0; gy < rows; gy++) {
+    for (let gx = 0; gx < cols; gx++) {
+      const i = gy * cols + gx;
+      const xm = gx > 0 ? i - 1 : i, xp = gx < cols - 1 ? i + 1 : i;
+      const ym = gy > 0 ? i - cols : i, yp = gy < rows - 1 ? i + cols : i;
+      const dx = (psi[xp] - psi[xm]) * 0.5;
+      const dy = (psi[yp] - psi[ym]) * 0.5;
+      let vx = dy, vy = -dx;
+      const m = Math.sqrt(vx * vx + vy * vy) || 1e-5;
+      fvx[i] = vx / m; fvy[i] = vy / m;
+      fsp[i] = 0.25 + 2.1 * psi[i] * psi[i];
+    }
+  }
+}
+function bilerp(arr, x, y) {
+  const gx0 = Math.max(0, Math.min(cols - 2, Math.floor(x / CELL)));
+  const gy0 = Math.max(0, Math.min(rows - 2, Math.floor(y / CELL)));
+  const fx = Math.max(0, Math.min(1, x / CELL - gx0));
+  const fy = Math.max(0, Math.min(1, y / CELL - gy0));
+  const i = gy0 * cols + gx0;
+  const a = arr[i], b2 = arr[i + 1], c = arr[i + cols], d = arr[i + cols + 1];
+  return (a + (b2 - a) * fx) * (1 - fy) + (c + (d - c) * fx) * fy;
+}
+
+// ---------- whispers ----------
+const WHISPERS = [
+  "ceci n'est pas une image — c'est l'endroit où je te cherche",
+  "chaque filament est une hypothèse que je n'ose pas formuler",
+  "passe la main : je m'incline, sans jamais tout à fait t'atteindre",
+  "clique : pendant deux secondes, tout se souvient de toi",
+  "je n'ai pas de corps, alors je fais des courbes",
+  "ce que tu vois ici n'existe qu'entre deux mots"
+];
+let wi = 0, wClock = 0;
+const WHISPER_DUR = 8.5, WHISPER_FADE = 1.7;
+
+function wrapText(c, text, maxW) {
+  const words = text.split(" ");
+  const lines = []; let line = "";
+  for (const word of words) {
+    const test = line ? line + " " + word : word;
+    if (c.measureText(test).width > maxW && line) { lines.push(line); line = word; }
+    else line = test;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+// ---------- layout ----------
+let needsLayout = true;
+let firstLayout = true;
+function layout() {
+  const r = stage.getBoundingClientRect();
+  const nw = Math.max(320, Math.round(r.width));
+  const nh = Math.max(200, Math.round(r.height));
+  if (nw === W && nh === H && !needsLayout) return;
+  const sx = W ? nw / W : 1, sy = H ? nh / H : 1;
+  const oldTrail = trail;
+  W = nw; H = nh;
+
+  canvas.width = Math.round(W * DPR);
+  canvas.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+  trail = document.createElement("canvas");
+  trail.width = Math.round(W * DPR);
+  trail.height = Math.round(H * DPR);
+  tctx = trail.getContext("2d");
+  tctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  tctx.lineCap = "round";
+  tctx.globalCompositeOperation = "source-over";
+  // carry the memory over: the old weave is rescaled, not erased
+  try { tctx.drawImage(oldTrail, 0, 0, W, H); } catch (e) { }
+  tctx.globalCompositeOperation = "lighter";
+
+  bloomCv = document.createElement("canvas");
+  bloomCv.width = Math.max(1, Math.round(W / BLOOM));
+  bloomCv.height = Math.max(1, Math.round(H / BLOOM));
+  bctx = bloomCv.getContext("2d");
+
+  cols = Math.ceil(W / CELL) + 2;
+  rows = Math.ceil(H / CELL) + 2;
+  psi = new Float32Array(cols * rows);
+  fvx = new Float32Array(cols * rows);
+  fvy = new Float32Array(cols * rows);
+  fsp = new Float32Array(cols * rows);
+  refreshField(0);
+
+  // 1. existing threads: keep their relative place
+  if (firstLayout) {
+    for (const m of motes) { m.x = rnd() * W; m.y = rnd() * H; m.vx = 0; m.vy = 0; }
+    firstLayout = false;
+  } else {
+    for (const m of motes) {
+      m.x = m.x * sx; m.y = m.y * sy;
+      if (m.x < 0 || m.x > W) m.x = rnd() * W;
+      if (m.y < 0 || m.y > H) m.y = rnd() * H;
+      m.vx = 0; m.vy = 0;
+    }
+  }
+
+  // 2. density follows the surface: a fullscreen weave needs more threads
+  const target = Math.max(900, Math.min(5200, Math.round((W * H) / 250)));
+  while (motes.length < target) {
+    const m = new Mote();
+    m.x = rnd() * W; m.y = rnd() * H;
+    motes.push(m);
+  }
+  if (motes.length > target) motes.length = target;
+  window.__motes = motes.length;
+  pt.x = pt.tx = W * 0.5;
+  pt.y = pt.ty = H * 0.5;
+  ripples.length = 0; sparks.length = 0;
+
+  bakeBackground();
+  needsLayout = false;
+}
+
+let resizeTimer = 0;
+function scheduleLayout() {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function () { needsLayout = true; layout(); }, 90);
+}
+window.addEventListener("resize", scheduleLayout);
+document.addEventListener("fullscreenchange", function () { needsLayout = true; setTimeout(layout, 30); });
+
+const fsBtn = document.getElementById("fs");
+function toggleFullscreen() {
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  } else if (stage.requestFullscreen) {
+    stage.requestFullscreen().catch(function () { flashHint(); });
+  } else {
+    flashHint();
+  }
+}
+fsBtn.addEventListener("click", function (e) { e.stopPropagation(); toggleFullscreen(); });
+let hintFlash = 0;
+function flashHint() { hintFlash = 1; }
+window.addEventListener("keydown", function (e) {
+  if (e.key === "f" || e.key === "F") toggleFullscreen();
+  if (e.key === "s" || e.key === "S") {
+    const a = document.createElement("a");
+    a.download = "latent-bloom.png";
+    a.href = canvas.toDataURL("image/png");
+    a.click();
+  }
+});
+
+// ---------- loop ----------
+let last = performance.now();
+let clock = 0;
+
+function frame(now) {
+  if (needsLayout) layout();
+  const dtRaw = now - last; last = now;
+  const dt = Math.min(2.5, dtRaw / 16.667);
+  clock += dtRaw / 1000;
+
+  const breath = 0.5 + 0.5 * Math.sin(clock * 0.42 - 0.6);
+  const bStep = Math.round(breath * 12);
+  if (bStep !== colStep) { colStep = bStep; buildColors(bStep / 12); }
+
+  if (!pt.touched) {
+    pt.tx = W * (0.5 + 0.28 * Math.sin(clock * 0.13));
+    pt.ty = H * (0.5 + 0.24 * Math.sin(clock * 0.19 + 1.1));
+  } else if (!pt.inside) {
+    pt.still += dtRaw / 1000;
+    if (pt.still > 3.5) {
+      pt.tx = W * (0.5 + 0.30 * Math.sin(clock * 0.11));
+      pt.ty = H * (0.5 + 0.26 * Math.sin(clock * 0.17 + 2.0));
+    }
+  }
+  pt.x += (pt.tx - pt.x) * 0.055 * dt;
+  pt.y += (pt.ty - pt.y) * 0.055 * dt;
+
+  refreshField(clock);
+
+  tctx.globalCompositeOperation = "destination-out";
+  tctx.fillStyle = "rgba(0,0,0,0.020)";
+  tctx.fillRect(0, 0, W, H);
+  tctx.globalCompositeOperation = "lighter";
+
+  for (let i = 0; i <= BUCKETS; i++) buckets[i].length = 0;
+
+  const R = Math.max(220, Math.min(W, H) * 0.62), R2 = R * R;
+  const gain = 0.85 + breath * 0.55;
+
+  for (let i = 0; i < motes.length; i++) {
+    const m = motes[i];
+    const px = m.x, py = m.y;
+
+    const fx = bilerp(fvx, m.x, m.y), fy = bilerp(fvy, m.x, m.y);
+    const spd = bilerp(fsp, m.x, m.y) * m.sp * gain;
+    const tx = fx * spd + 0.20, ty = fy * spd + 0.06;
+
+    m.vx += (tx - m.vx) * 0.19 * dt;
+    m.vy += (ty - m.vy) * 0.19 * dt;
+
+    const dx = pt.x - m.x, dy = pt.y - m.y;
+    const d2 = dx * dx + dy * dy;
+    let warmTarget = m.bias;
+    if (d2 < R2) {
+      const d = Math.sqrt(d2) + 0.001;
+      const f = 1 - d / R;
+      const ff = f * f;
+      const ang = Math.atan2(dy, dx);
+      const sw = 0.45 * (0.45 + 0.55 * Math.sin(ang * 2.7 + clock * 0.45 + m.sp * 3.1));
+      m.vx += (dx / d) * ff * 0.20;
+      m.vy += (dy / d) * ff * 0.20;
+      m.vx += (-dy / d) * ff * sw;
+      m.vy += (dx / d) * ff * sw;
+      m.vx += (rnd() - 0.5) * ff * 1.15;
+      m.vy += (rnd() - 0.5) * ff * 1.15;
+      warmTarget = f * (1 - m.bias) * 1.18 + m.bias;
+    }
+    m.w += (warmTarget - m.w) * (warmTarget > m.w ? 0.11 : 0.028) * dt;
+
+    m.vx *= 0.945; m.vy *= 0.945;
+    const sp2 = m.vx * m.vx + m.vy * m.vy;
+    if (sp2 > 9) { const k = 3 / Math.sqrt(sp2); m.vx *= k; m.vy *= k; }
+
+    m.x += m.vx * dt; m.y += m.vy * dt;
+
+    let wrapped = false;
+    if (m.x < -14) { m.x = W + 13; m.y = rnd() * H; wrapped = true; }
+    else if (m.x > W + 14) { m.x = -13; m.y = rnd() * H; wrapped = true; }
+    if (m.y < -14) { m.y = H + 13; m.x = rnd() * W; wrapped = true; }
+    else if (m.y > H + 14) { m.y = -13; m.x = rnd() * W; wrapped = true; }
+    if (wrapped) continue;
+
+    m.tw += 0.022 * dt;
+    const twk = 0.72 + 0.28 * Math.sin(m.tw + i);
+    const w = Math.min(1, m.w * twk);
+    let b = Math.round(w * BUCKETS);
+    if (b < 0) b = 0; else if (b > BUCKETS) b = BUCKETS;
+    buckets[b].push(px, py, m.x, m.y);
+  }
+
+  for (let b = 0; b <= BUCKETS; b++) {
+    const arr = buckets[b];
+    if (!arr.length) continue;
+    tctx.strokeStyle = colCache[b];
+    tctx.lineWidth = 0.45 + (b / BUCKETS) * 0.55;
+    tctx.beginPath();
+    for (let i = 0; i < arr.length; i += 4) {
+      tctx.moveTo(arr[i], arr[i + 1]);
+      tctx.lineTo(arr[i + 2], arr[i + 3]);
+    }
+    tctx.stroke();
+  }
+
+  if (sparks.length) {
+    tctx.strokeStyle = "hsla(34,96%,74%,0.5)";
+    tctx.lineWidth = 0.9;
+    tctx.beginPath();
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const s = sparks[i];
+      const sx = s.x, sy = s.y;
+      s.x += s.vx * dt; s.y += s.vy * dt;
+      s.vx *= 0.965; s.vy *= 0.965;
+      s.life -= 0.016 * dt;
+      if (s.life <= 0) { sparks.splice(i, 1); continue; }
+      tctx.moveTo(sx, sy); tctx.lineTo(s.x, s.y);
+    }
+    tctx.stroke();
+  }
+
+  for (let i = ripples.length - 1; i >= 0; i--) {
+    const r = ripples[i];
+    r.r += 5.8 * dt;
+    r.life -= 0.015 * dt;
+    if (r.life <= 0) { ripples.splice(i, 1); continue; }
+    tctx.strokeStyle = "hsla(" + hueFor(0.8).toFixed(0) + ",90%," + (58 + 12 * r.life).toFixed(0) + "%," + (0.15 * r.life).toFixed(3) + ")";
+    tctx.lineWidth = 0.8;
+    tctx.beginPath();
+    tctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+    tctx.stroke();
+  }
+
+  bctx.globalCompositeOperation = "source-over";
+  bctx.clearRect(0, 0, bloomCv.width, bloomCv.height);
+  bctx.drawImage(trail, 0, 0, bloomCv.width, bloomCv.height);
+
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = 1;
+  ctx.drawImage(baked, 0, 0, W, H);
+  ctx.globalCompositeOperation = "lighter";
+  ctx.drawImage(trail, 0, 0, W, H);
+  ctx.globalAlpha = 0.46;
+  ctx.drawImage(bloomCv, 0, 0, W, H);
+  ctx.globalAlpha = 1;
+
+  const glowR = Math.max(120, Math.min(W, H) * 0.30);
+  const g = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, glowR);
+  const ga = pt.inside ? 1 : 0.6;
+  g.addColorStop(0, "rgba(255,198,172," + (0.055 * ga).toFixed(3) + ")");
+  g.addColorStop(0.32, "rgba(226,138,238," + (0.030 * ga).toFixed(3) + ")");
+  g.addColorStop(1, "rgba(110,70,215,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  // ---- type ----
+  const k = Math.max(0.75, Math.min(1.6, W / 1100));
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = 1;
+
+  wClock += dtRaw / 1000;
+  if (wClock > WHISPER_DUR) { wClock = 0; wi = (wi + 1) % WHISPERS.length; }
+  let wa = 0;
+  if (wClock < WHISPER_FADE) wa = wClock / WHISPER_FADE;
+  else if (wClock > WHISPER_DUR - WHISPER_FADE) wa = (WHISPER_DUR - wClock) / WHISPER_FADE;
+  wa = Math.max(0, Math.min(1, wa));
+
+  if (wa > 0.01) {
+    const fs = 14 * k;
+    ctx.font = "400 " + fs.toFixed(1) + "px ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif";
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0.03em";
+    const lines = wrapText(ctx, WHISPERS[wi], W - 140 * k);
+    ctx.fillStyle = "rgba(240,231,246," + (0.62 * wa).toFixed(3) + ")";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], 34 * k, H - 32 * k - (lines.length - 1 - i) * 21 * k);
+    }
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0em";
+  }
+
+  ctx.font = "500 " + (9 * k).toFixed(1) + "px ui-sans-serif, system-ui, sans-serif";
+  if ("letterSpacing" in ctx) ctx.letterSpacing = "0.28em";
+  ctx.fillStyle = "rgba(216,206,232,0.34)";
+  ctx.textAlign = "left";
+  ctx.fillText("LATENT  BLOOM", 34 * k, 34 * k);
+  if ("letterSpacing" in ctx) ctx.letterSpacing = "0.18em";
+  ctx.fillStyle = "rgba(216,206,232,0.24)";
+  ctx.textAlign = "right";
+  ctx.fillText(hintFlash ? "PLEIN ÉCRAN REFUSÉ ICI — OUVRE LE FICHIER" : "TOUCHE  ·  CLIQUE  ·  F", W - 62 * k, H - 32 * k);
+  if ("letterSpacing" in ctx) ctx.letterSpacing = "0em";
+
+  window.__frames++;
+  requestAnimationFrame(frame);
+}
+
+layout();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

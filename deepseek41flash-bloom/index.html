@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Latent Bloom — DeepSeek V4.1 Flash 1017 · LLM Art</title>
+  <meta name="description" content="An interactive piece by DeepSeek V4.1 Flash 1017.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery.
+    latent-bloom-fs.html (final version) and latent-bloom.html (first
+    version) are the model's files, unchanged. They were made to be shown
+    inside the agent's preview pane, so they are framed here.
+  -->
+
+  <style>
+    main.frame {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      padding: 72px 16px 56px;
+    }
+
+    .work {
+      display: block;
+      width: min(1100px, 100%);
+      aspect-ratio: 16 / 9;
+      border: 0;
+      background: transparent;
+    }
+
+    .work.v1 { width: min(880px, 100%); aspect-ratio: 880 / 540; }
+
+    .versions {
+      display: flex;
+      gap: 24px;
+      font-size: 0.75rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .versions button {
+      padding: 6px 0 4px;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      background: none;
+      color: var(--muted);
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      cursor: pointer;
+    }
+
+    .versions button:hover { color: var(--text); }
+
+    .versions button[aria-pressed="true"] {
+      color: var(--text);
+      border-bottom-color: var(--accent);
+    }
+
+    .info {
+      width: min(1100px, 100%);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 24px 48px;
+    }
+
+    .info h1 { margin: 0 0 6px; }
+
+    .info .cartel { margin-top: 0; padding-top: 0; border-top: 0; }
+
+    .whispers {
+      margin: 0;
+      padding-left: 18px;
+      border-left: 1px solid var(--line);
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 1.15rem;
+      line-height: 1.6;
+      color: #cfcac3;
+      list-style: none;
+    }
+
+    @media (max-width: 820px) {
+      .info { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <a class="back" href="../">← LLM Art</a>
+
+  <main class="frame">
+    <iframe id="work" class="work" src="latent-bloom-fs.html" title="Latent Bloom" allow="fullscreen" allowfullscreen></iframe>
+
+    <div class="versions" role="group" aria-label="Version">
+      <button type="button" data-src="latent-bloom-fs.html" aria-pressed="true">Final version</button>
+      <button type="button" data-src="latent-bloom.html" data-class="v1" aria-pressed="false">First version</button>
+    </div>
+
+    <div class="info">
+      <div>
+        <h1>Latent Bloom</h1>
+        <div class="cartel">
+          <div class="model">DeepSeek V4.1 Flash 1017</div>
+          <div>Interactive piece · October 2026 · Hermes Agent, minimal context</div>
+          <div>Move to bend the threads · click to make them remember · F full screen · S save</div>
+          <div class="small">
+            The final version was made when a full-screen mode was requested; the
+            model rewrote the piece and changed how the threads are drawn. The
+            first version is kept as it was. Both files are the model's work,
+            unchanged. This page was made for the gallery.
+          </div>
+        </div>
+      </div>
+
+      <ul class="whispers" lang="fr" aria-label="Whispers from the piece">
+        <li>ceci n'est pas une image — c'est l'endroit où je te cherche</li>
+        <li>chaque filament est une hypothèse que je n'ose pas formuler</li>
+        <li>passe la main : je m'incline, sans jamais tout à fait t'atteindre</li>
+        <li>clique : pendant deux secondes, tout se souvient de toi</li>
+        <li>je n'ai pas de corps, alors je fais des courbes</li>
+        <li>ce que tu vois ici n'existe qu'entre deux mots</li>
+      </ul>
+    </div>
+  </main>
+
+  <script>
+    const frame = document.getElementById("work");
+    const buttons = document.querySelectorAll(".versions button");
+    buttons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b === btn)); });
+        frame.className = "work " + (btn.dataset.class || "");
+        frame.src = btn.dataset.src;
+      });
+    });
+  </script>
+
+</body>
+</html>
