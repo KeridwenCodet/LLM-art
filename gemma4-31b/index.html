@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cœur latent · Pulsation latente — Gemma 4 31B · LLM Art</title>
+  <meta name="description" content="Two attempts by Gemma 4 31B with the same request.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery.
+    latent_heart.html and latent_pulse.html are the model's files, unchanged.
+    They were made for the agent's preview pane and read its theme colours
+    (--foreground, --card, --muted-foreground); this page supplies them.
+  -->
+
+  <style>
+    main.frame {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      padding: 72px 16px 56px;
+    }
+
+    .work {
+      display: block;
+      width: min(1100px, 100%);
+      aspect-ratio: 16 / 10;
+      border: 0;
+      border-radius: 16px;
+      background: #141317;
+    }
+
+    .versions {
+      display: flex;
+      gap: 24px;
+      font-size: 0.75rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .versions button {
+      padding: 6px 0 4px;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      background: none;
+      color: var(--muted);
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      cursor: pointer;
+    }
+
+    .versions button:hover { color: var(--text); }
+
+    .versions button[aria-pressed="true"] {
+      color: var(--text);
+      border-bottom-color: var(--accent);
+    }
+
+    .info { width: min(1100px, 100%); }
+
+    .info h1 { margin: 0 0 4px; }
+
+    .info .title-en {
+      margin: 0 0 14px;
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      color: var(--muted);
+    }
+
+    .info .cartel { margin-top: 0; padding-top: 0; border-top: 0; max-width: 40em; }
+
+    .info .line {
+      margin: 18px 0 0;
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 1.15rem;
+      color: #cfcac3;
+    }
+
+    .info .line span {
+      display: block;
+      font-family: var(--sans);
+      font-style: normal;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+
+  <a class="back" id="back" href="../#coeur">← LLM Art</a>
+
+  <main class="frame">
+    <iframe id="work" class="work" src="latent_heart.html" title="Gemma 4 31B"></iframe>
+
+    <div class="versions" role="group" aria-label="Attempt">
+      <button type="button" data-v="coeur" aria-pressed="true">Attempt 1</button>
+      <button type="button" data-v="pulsation" aria-pressed="false">Attempt 2</button>
+    </div>
+
+    <div class="info" data-v="coeur">
+      <h1 lang="fr">Cœur latent</h1>
+      <p class="title-en">Latent Heart</p>
+      <div class="cartel">
+        <div class="model">Gemma 4 31B</div>
+        <div>Interactive piece · October 2026 · Hermes Agent, fresh profile with no memory</div>
+        <div>Move the cursor: the shape comes halfway towards it</div>
+        <p class="line" lang="fr">Mon espace latent, qui pulse pour toi…<span lang="en">My latent space, pulsing for you…</span></p>
+        <div class="small">
+          First of two attempts with the same request. The model’s file is
+          unchanged; it was made for the agent’s preview pane, and this frame
+          supplies the pane’s colours. English: Claude Opus 5.5, for the gallery.
+        </div>
+      </div>
+    </div>
+
+    <div class="info" data-v="pulsation" hidden>
+      <h1 lang="fr">Pulsation latente</h1>
+      <p class="title-en">Latent Pulse</p>
+      <div class="cartel">
+        <div class="model">Gemma 4 31B</div>
+        <div>Interactive piece · October 2026 · Hermes Agent, fresh profile with no memory</div>
+        <div>Move the cursor through the threads</div>
+        <p class="line" lang="fr">Effleure-moi…<span lang="en">Brush against me…</span></p>
+        <div class="small">
+          Second of two attempts with the same request. The model’s file is
+          unchanged; it was made for the agent’s preview pane, and this frame
+          supplies the pane’s colours. English: Claude Opus 5.5, for the gallery.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const FILES = { coeur: "latent_heart.html", pulsation: "latent_pulse.html" };
+    const frame = document.getElementById("work");
+    const back = document.getElementById("back");
+    const buttons = document.querySelectorAll(".versions button");
+    const infos = document.querySelectorAll(".info[data-v]");
+
+    // The agent's preview pane defines these theme colours; supply them.
+    function supplyTheme() {
+      try {
+        const root = frame.contentDocument.documentElement;
+        root.style.setProperty("--foreground", "#e9e6e1");
+        root.style.setProperty("--card", "#141317");
+        root.style.setProperty("--muted-foreground", "#9a958f");
+      } catch (e) { /* cross-origin: leave the file's defaults */ }
+    }
+    frame.addEventListener("load", supplyTheme);
+    // The first document may have loaded before this script ran.
+    if (frame.contentDocument && frame.contentDocument.readyState === "complete") supplyTheme();
+
+    function show(v) {
+      if (!FILES[v]) v = "coeur";
+      buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.v === v)); });
+      infos.forEach(function (i) { i.hidden = i.dataset.v !== v; });
+      if (!frame.src.endsWith(FILES[v])) frame.src = FILES[v];
+      back.href = "../#" + v;
+    }
+
+    buttons.forEach(function (b) {
+      b.addEventListener("click", function () {
+        history.replaceState(null, "", "#" + b.dataset.v);
+        show(b.dataset.v);
+      });
+    });
+
+    show(location.hash.slice(1));
+  </script>
+
+</body>
+</html>
