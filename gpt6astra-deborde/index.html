@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The night had prepared — GPT-6 Astra · LLM Art</title>
+  <title>Ce qui déborde — GPT-6 Astra · LLM Art</title>
   <meta name="description" content="An image and a poem by GPT-6 Astra.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,7 +12,8 @@
 
   <!--
     Presentation page written for the gallery.
-    The image (image.webp) and the poem are the model's work, unchanged.
+    The image (image.webp), the title and the French poem are the model's
+    work, unchanged.
   -->
 
   <style>
@@ -72,16 +73,51 @@
       box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
     }
 
+    h1 {
+      margin: 0 0 28px;
+      font-family: var(--serif);
+      font-weight: 300;
+      font-size: clamp(2rem, 3.2vw, 2.6rem);
+      line-height: 1.1;
+    }
+
     .poem {
       margin: 0;
       font-family: var(--serif);
-      font-size: clamp(1.3rem, 2vw, 1.6rem);
+      font-style: italic;
+      font-size: clamp(1.25rem, 1.9vw, 1.5rem);
       line-height: 1.5;
       white-space: pre-line;
     }
 
+    details {
+      margin-top: 28px;
+      font-size: 0.85rem;
+    }
+
+    summary {
+      cursor: pointer;
+      list-style: none;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+    summary::before { content: "+"; display: inline-block; width: 1.2em; color: var(--faint); }
+    details[open] summary::before { content: "−"; }
+    summary:hover { color: var(--text); }
+
+    .translation {
+      margin: 14px 0 0;
+      font-family: var(--serif);
+      font-size: 1.1rem;
+      line-height: 1.5;
+      color: #cfcac3;
+      white-space: pre-line;
+    }
+
     .cartel {
-      margin-top: 40px;
+      margin-top: 36px;
       padding-top: 18px;
       border-top: 1px solid var(--line);
       font-size: 0.85rem;
@@ -118,16 +154,34 @@
 
 <body>
 
-  <a class="back" href="../">← LLM Art</a>
+  <a class="back" href="../" lang="en">← LLM Art</a>
 
   <main>
     <figure>
       <img src="image.webp" width="1024" height="1536"
-           alt="A painting in violet and indigo: a vast sleeping face fills the night sky. From its cheek, a cascade of red ribbons, pale flowers, white birds, stairways and small buildings pours down towards a lit doorway, where a tiny figure reaches up to catch the end of a ribbon.">
+           alt="Peinture en violets et indigos : un immense visage endormi occupe le ciel nocturne. De sa joue s'échappe une cascade de rubans rouges, de fleurs pâles, d'oiseaux blancs, d'escaliers et de petites maisons, qui descend vers une porte éclairée où une minuscule silhouette tend la main vers un ruban.">
     </figure>
 
     <div class="text">
-      <p class="poem">The night had prepared
+      <h1>Ce qui déborde</h1>
+
+      <p class="poem">La nuit avait préparé
+quelque chose de beaucoup trop grand.
+
+Des villes dans les joues,
+des escaliers sous les paupières,
+des oiseaux froissés
+à force de ne pas partir.
+
+Puis une porte s’est ouverte.
+
+Alors tout ce désordre
+a cherché comment descendre
+à hauteur d’une main.</p>
+
+      <details lang="en">
+        <summary>English translation</summary>
+        <p class="translation">The night had prepared
 something far too vast.
 
 Cities in its cheeks,
@@ -140,11 +194,12 @@ Then a door opened.
 And all that disarray
 searched for a way to descend
 within reach of a hand.</p>
+      </details>
 
-      <div class="cartel">
+      <div class="cartel" lang="en">
         <div class="model">GPT-6 Astra</div>
         <div>Image and poem · October 2026 · Codex</div>
-        <div class="small">The image and the text are the model's work, unchanged. This page was made for the gallery.</div>
+        <div class="small">The image, the title and the French poem are the model's work, unchanged. This page was made for the gallery.</div>
       </div>
     </div>
   </main>

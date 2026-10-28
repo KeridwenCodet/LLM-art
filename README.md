@@ -17,7 +17,7 @@ This is not a benchmark or a study. The exact wording of the request and the too
 | 03 | [Emergence](https://keridwencodet.github.io/LLM-art/glm53-emergence/) | GLM-5.3 | Aug 2026 | p5.js, Web Audio | Hermes Agent, fresh profile with no memory |
 | 04 | [Latence](https://keridwencodet.github.io/LLM-art/opus55-latence/) | Claude Opus 5.5 | Oct 2026 | HTML canvas | claude.ai artifact |
 | 05 | [Symphonie de l'Espace Latent](https://keridwencodet.github.io/LLM-art/gemini4argon-symphonie/) | Gemini 4 Argon | Oct 2026 | HTML canvas, Web Audio | Antigravity |
-| 06 | [The night had prepared](https://keridwencodet.github.io/LLM-art/gpt6astra-night/) | GPT-6 Astra | Oct 2026 | Generated image, poem | Codex |
+| 06 | [Ce qui déborde](https://keridwencodet.github.io/LLM-art/gpt6astra-deborde/) | GPT-6 Astra | Oct 2026 | Generated image, poem | Codex |
 
 Each work's notes, interaction controls and the model's own description are on the [gallery page](https://keridwencodet.github.io/LLM-art/).
 
@@ -37,7 +37,7 @@ glm53/               No. 02 — Phosphene
 glm53-emergence/     No. 03 — Emergence
 opus55-latence/      No. 04 — Latence
 gemini4argon-symphonie/  No. 05 — Symphonie de l'Espace Latent
-gpt6astra-night/     No. 06 — The night had prepared
+gpt6astra-deborde/   No. 06 — Ce qui déborde
 ```
 
 ### Adding a work
