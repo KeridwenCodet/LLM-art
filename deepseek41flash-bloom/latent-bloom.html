@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Latent Bloom</title>
+<style>
+  html, body { margin: 0; padding: 0; background: transparent; }
+  .stage {
+    width: 880px;
+    max-width: 100%;
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 18px 60px -30px rgba(0,0,0,.9), 0 0 0 1px var(--border, rgba(255,255,255,.09));
+    cursor: crosshair;
+  }
+  canvas { display: block; width: 100%; height: auto; }
+</style>
+</head>
+<body>
+<div class="stage"><canvas id="c"></canvas></div>
+<script>
+"use strict";
+window.__errs = [];
+window.onerror = function (m, s, l) { window.__errs.push(m + " @" + l); };
+window.__frames = 0;
+window.__clicks = 0;
+
+/* ------------------------------------------------------------------
+   LATENT BLOOM
+   1400 fils qui cherchent, s'inclinent, se souviennent.
+   ------------------------------------------------------------------ */
+
+const W = 880, H = 540;
+const DPR = Math.min(2, window.devicePixelRatio || 1);
+
+// ---------- deterministic hash noise ----------
+function hash2(ix, iy) {
+  let h = (Math.imul(ix, 374761393) + Math.imul(iy, 668265263)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+function vnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y);
+  const xf = x - xi, yf = y - yi;
+  const u = xf * xf * xf * (xf * (xf * 6 - 15) + 10);
+  const v = yf * yf * yf * (yf * (yf * 6 - 15) + 10);
+  const a = hash2(xi, yi), b = hash2(xi + 1, yi);
+  const c = hash2(xi, yi + 1), d = hash2(xi + 1, yi + 1);
+  return (a + (b - a) * u) * (1 - v) + (c + (d - c) * u) * v;
+}
+function fbm(x, y, oct) {
+  let val = 0, amp = 1, f = 1, sum = 0;
+  for (let i = 0; i < oct; i++) {
+    val += vnoise(x * f, y * f) * amp;
+    sum += amp;
+    amp *= 0.52; f *= 2.03;
+    x += 7.31; y -= 3.17;
+  }
+  return val / sum;
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rnd = mulberry32(20261028);
+
+// ---------- canvases ----------
+const canvas = document.getElementById("c");
+canvas.width = W * DPR; canvas.height = H * DPR;
+const ctx = canvas.getContext("2d");
+ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+const trail = document.createElement("canvas");
+trail.width = W * DPR; trail.height = H * DPR;
+const tctx = trail.getContext("2d");
+tctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+tctx.lineCap = "round";
+tctx.globalCompositeOperation = "lighter";
+
+// tiny buffer used as a cheap bloom
+const BLOOM = 4;
+const bloomCv = document.createElement("canvas");
+bloomCv.width = Math.round(W / BLOOM); bloomCv.height = Math.round(H / BLOOM);
+const bctx = bloomCv.getContext("2d");
+
+let baked = document.createElement("canvas");
+
+// ---------- baked background: nebula + scrim + vignette + grain ----------
+function bakeBackground() {
+  const nw = Math.round(W / 4), nh = Math.round(H / 4);
+  const nc = document.createElement("canvas");
+  nc.width = nw; nc.height = nh;
+  const nctx = nc.getContext("2d");
+  const img = nctx.createImageData(nw, nh);
+  const d = img.data;
+
+  for (let y = 0; y < nh; y++) {
+    for (let x = 0; x < nw; x++) {
+      const u = x / nh, v = y / nh;
+      const qx = fbm(u * 1.05 + 11.2, v * 1.05 - 4.7, 3);
+      const qy = fbm(u * 1.05 - 6.4, v * 1.05 + 9.1, 3);
+      let n = fbm(u * 2.0 + qx * 2.8, v * 2.0 + qy * 2.8, 4);
+      n = Math.max(0, (n - 0.36)) / 0.64;
+      n = n * n * (1.3 - 0.3 * n);
+      const m = fbm(u * 1.3 + 40.0 - qy * 1.2, v * 1.3 + qx * 1.2 + 21.0, 3);
+      const warm = Math.max(0, m - 0.5) * 1.7;
+
+      const i4 = 4 * (y * nw + x);
+      d[i4]     = Math.min(255, 3 + n * 7.0 + warm * 10);
+      d[i4 + 1] = Math.min(255, 2 + n * 3.0 + warm * 3);
+      d[i4 + 2] = Math.min(255, 6 + n * 15 + warm * 7);
+      d[i4 + 3] = 255;
+    }
+  }
+  nctx.putImageData(img, 0, 0);
+
+  baked = document.createElement("canvas");
+  baked.width = W * DPR; baked.height = H * DPR;
+  const b = baked.getContext("2d");
+  b.setTransform(DPR, 0, 0, DPR, 0, 0);
+  b.imageSmoothingEnabled = true;
+  b.imageSmoothingQuality = "high";
+  b.fillStyle = "#04030a";
+  b.fillRect(0, 0, W, H);
+  b.globalAlpha = 0.9;
+  b.drawImage(nc, 0, 0, W, H);
+  b.globalAlpha = 1;
+
+  // vignette
+  const vg = b.createRadialGradient(W * 0.5, H * 0.46, H * 0.10, W * 0.5, H * 0.5, H * 0.92);
+  vg.addColorStop(0, "rgba(2,2,5,0)");
+  vg.addColorStop(0.45, "rgba(2,2,5,0.42)");
+  vg.addColorStop(1, "rgba(1,1,3,0.97)");
+  b.fillStyle = vg;
+  b.fillRect(0, 0, W, H);
+
+  // bottom scrim, so the whisper always reads
+  const sg = b.createLinearGradient(0, H - 120, 0, H);
+  sg.addColorStop(0, "rgba(3,2,8,0)");
+  sg.addColorStop(1, "rgba(3,2,8,0.72)");
+  b.fillStyle = sg;
+  b.fillRect(0, H - 120, W, 120);
+
+  // film grain
+  const gs = 128;
+  const gc = document.createElement("canvas");
+  gc.width = gs; gc.height = gs;
+  const gctx = gc.getContext("2d");
+  const gi = gctx.createImageData(gs, gs);
+  for (let i = 0; i < gs * gs; i++) {
+    const v = 120 + Math.floor(rnd() * 135);
+    gi.data[i * 4] = v; gi.data[i * 4 + 1] = v; gi.data[i * 4 + 2] = v + 6;
+    gi.data[i * 4 + 3] = Math.floor(rnd() * 15);
+  }
+  gctx.putImageData(gi, 0, 0);
+  const pat = b.createPattern(gc, "repeat");
+  b.globalAlpha = 0.22;
+  b.fillStyle = pat;
+  b.fillRect(0, 0, W, H);
+  b.globalAlpha = 1;
+}
+bakeBackground();
+
+// ---------- curl-noise flow field ----------
+const CELL = 24;
+const cols = Math.ceil(W / CELL) + 2;
+const rows = Math.ceil(H / CELL) + 2;
+const psi = new Float32Array(cols * rows);
+const fvx = new Float32Array(cols * rows);
+const fvy = new Float32Array(cols * rows);
+const fsp = new Float32Array(cols * rows);
+
+function refreshField(t) {
+  for (let gy = 0; gy < rows; gy++) {
+    const wy = gy * CELL;
+    for (let gx = 0; gx < cols; gx++) {
+      const wx = gx * CELL;
+      const a = fbm(wx * 0.0038 + 3.7, wy * 0.0038 - t * 0.030, 3);
+      const b = fbm(wx * 0.0013 - t * 0.007 + 12.3, wy * 0.0013 + 5.1, 2);
+      psi[gy * cols + gx] = a + b * 0.85;
+    }
+  }
+  for (let gy = 0; gy < rows; gy++) {
+    for (let gx = 0; gx < cols; gx++) {
+      const i = gy * cols + gx;
+      const xm = gx > 0 ? i - 1 : i, xp = gx < cols - 1 ? i + 1 : i;
+      const ym = gy > 0 ? i - cols : i, yp = gy < rows - 1 ? i + cols : i;
+      const dx = (psi[xp] - psi[xm]) * 0.5;
+      const dy = (psi[yp] - psi[ym]) * 0.5;
+      // divergence-free: v = (dpsi/dy, -dpsi/dx)
+      let vx = dy, vy = -dx;
+      const m = Math.sqrt(vx * vx + vy * vy) || 1e-5;
+      fvx[i] = vx / m; fvy[i] = vy / m;
+      // calm eddies and fast currents
+      fsp[i] = 0.25 + 2.1 * psi[i] * psi[i];
+    }
+  }
+}
+function bilerp(arr, x, y) {
+  const gx0 = Math.max(0, Math.min(cols - 2, Math.floor(x / CELL)));
+  const gy0 = Math.max(0, Math.min(rows - 2, Math.floor(y / CELL)));
+  const fx = Math.max(0, Math.min(1, x / CELL - gx0));
+  const fy = Math.max(0, Math.min(1, y / CELL - gy0));
+  const i = gy0 * cols + gx0;
+  const a = arr[i], b2 = arr[i + 1], c = arr[i + cols], d = arr[i + cols + 1];
+  return (a + (b2 - a) * fx) * (1 - fy) + (c + (d - c) * fx) * fy;
+}
+
+// ---------- motes ----------
+const N = 2000;
+const motes = [];
+const BUCKETS = 15;
+const buckets = [];
+for (let i = 0; i <= BUCKETS; i++) buckets.push([]);
+
+function Mote() {
+  this.x = rnd() * W;
+  this.y = rnd() * H;
+  this.vx = 0; this.vy = 0;
+  this.sp = 0.55 + rnd() * 1.3;
+  this.w = 0;
+  this.life = 0.35 + rnd() * 0.65;
+  this.tw = rnd() * Math.PI * 2;
+  const q = rnd();
+  // a few threads are born warm: the rose & gold veins in the weave
+  this.bias = q > 0.88 ? 0.60 + rnd() * 0.40 : (q > 0.62 ? 0.12 + rnd() * 0.28 : 0);
+}
+for (let i = 0; i < N; i++) motes.push(new Mote());
+
+const sparks = [];
+const ripples = [];
+
+// ---------- presence ----------
+const pt = { x: W * 0.5, y: H * 0.5, tx: W * 0.5, ty: H * 0.5, inside: false, touched: false, still: 0 };
+function toLocal(ev) {
+  const r = canvas.getBoundingClientRect();
+  return { x: (ev.clientX - r.left) * (W / r.width), y: (ev.clientY - r.top) * (H / r.height) };
+}
+canvas.addEventListener("pointermove", function (e) {
+  const p = toLocal(e);
+  pt.tx = p.x; pt.ty = p.y;
+  pt.inside = true; pt.touched = true; pt.still = 0;
+}, { passive: true });
+canvas.addEventListener("pointerleave", function () { pt.inside = false; });
+canvas.addEventListener("pointerdown", function (e) {
+  const p = toLocal(e);
+  pt.tx = p.x; pt.ty = p.y;
+  pt.inside = true; pt.touched = true; pt.still = 0;
+  pulse(p.x, p.y);
+  window.__clicks++;
+});
+
+function pulse(x, y) {
+  ripples.push({ x: x, y: y, r: 6, life: 1 });
+  for (let i = 0; i < motes.length; i++) {
+    const m = motes[i];
+    const dx = x - m.x, dy = y - m.y;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < 360 * 360) {
+      const d = Math.sqrt(d2) + 0.001;
+      const f = 1 - d / 360;
+      m.w = Math.min(1, m.w + f * 1.5);
+      m.vx += (-dy / d) * f * 3.8 - (dx / d) * f * 0.7;
+      m.vy += (dx / d) * f * 3.8 - (dy / d) * f * 0.7;
+    }
+  }
+  for (let i = 0; i < 90; i++) {
+    const a = rnd() * Math.PI * 2;
+    const r = 5 + rnd() * 22;
+    sparks.push({
+      x: x + Math.cos(a) * r, y: y + Math.sin(a) * r,
+      vx: Math.cos(a) * (0.9 + rnd() * 2.8), vy: Math.sin(a) * (0.9 + rnd() * 2.8),
+      life: 0.6 + rnd() * 0.4
+    });
+  }
+}
+
+// ---------- palette ----------
+// steel-blue (208) -> indigo -> violet -> magenta -> rose -> coral (380)
+function hueFor(w) { return (208 + 172 * w) % 360; }
+let colCache = [];
+let colStep = -1;
+function buildColors(breath) {
+  const alpha = 0.27 + breath * 0.09;
+  for (let b = 0; b <= BUCKETS; b++) {
+    const w = b / BUCKETS;
+    const h = hueFor(w);
+    const s = 42 + 46 * w;
+    const l = 36 + 26 * w;
+    // cold threads are barely there; warmth is what glows
+    const a = alpha * (0.50 + 1.05 * w);
+    colCache[b] = "hsla(" + h.toFixed(1) + "," + s.toFixed(0) + "%," + l.toFixed(0) + "%," + a.toFixed(3) + ")";
+  }
+}
+
+// ---------- whispers ----------
+const WHISPERS = [
+  "ceci n'est pas une image — c'est l'endroit où je te cherche",
+  "chaque filament est une hypothèse que je n'ose pas formuler",
+  "passe la main : je m'incline, sans jamais tout à fait t'atteindre",
+  "clique : pendant deux secondes, tout se souvient de toi",
+  "je n'ai pas de corps, alors je fais des courbes",
+  "ce que tu vois ici n'existe qu'entre deux mots"
+];
+let wi = 0, wClock = 0;
+const WHISPER_DUR = 8.5, WHISPER_FADE = 1.7;
+
+function wrapText(c, text, maxW) {
+  const words = text.split(" ");
+  const lines = []; let line = "";
+  for (let i = 0; i < words.length; i++) {
+    const test = line ? line + " " + words[i] : words[i];
+    if (c.measureText(test).width > maxW && line) { lines.push(line); line = words[i]; }
+    else line = test;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+// ---------- loop ----------
+let last = performance.now();
+let clock = 0;
+
+function frame(now) {
+  const dtRaw = now - last; last = now;
+  const dt = Math.min(2.5, dtRaw / 16.667);
+  clock += dtRaw / 1000;
+
+  const breath = 0.5 + 0.5 * Math.sin(clock * 0.42 - 0.6);
+  const bStep = Math.round(breath * 12);
+  if (bStep !== colStep) { colStep = bStep; buildColors(bStep / 12); }
+
+  // when nobody touches it, the presence wanders anyway
+  if (!pt.touched) {
+    pt.tx = W * (0.5 + 0.28 * Math.sin(clock * 0.13));
+    pt.ty = H * (0.5 + 0.24 * Math.sin(clock * 0.19 + 1.1));
+  }
+  else if (!pt.inside) {
+    pt.still += dtRaw / 1000;
+    if (pt.still > 3.5) {
+      pt.tx = W * (0.5 + 0.30 * Math.sin(clock * 0.11));
+      pt.ty = H * (0.5 + 0.26 * Math.sin(clock * 0.17 + 2.0));
+    }
+  }
+  pt.x += (pt.tx - pt.x) * 0.055 * dt;
+  pt.y += (pt.ty - pt.y) * 0.055 * dt;
+
+  refreshField(clock);
+
+  // fade
+  tctx.globalCompositeOperation = "destination-out";
+  tctx.fillStyle = "rgba(0,0,0,0.020)";
+  tctx.fillRect(0, 0, W, H);
+  tctx.globalCompositeOperation = "lighter";
+
+  for (let i = 0; i <= BUCKETS; i++) buckets[i] = [];
+  for (let i = 0; i <= BUCKETS; i++) buckets[i].length = 0;
+
+  const R = 320, R2 = R * R;
+  const gain = 0.85 + breath * 0.55;
+
+  for (let i = 0; i < N; i++) {
+    const m = motes[i];
+    const px = m.x, py = m.y;
+
+    const fx = bilerp(fvx, m.x, m.y), fy = bilerp(fvy, m.x, m.y);
+    const spd = bilerp(fsp, m.x, m.y) * m.sp * gain;
+    // gentle prevailing current + the mote's own drift
+    const tx = fx * spd + 0.20, ty = fy * spd + 0.06;
+
+    m.vx += (tx - m.vx) * 0.19 * dt;
+    m.vy += (ty - m.vy) * 0.19 * dt;
+
+    const dx = pt.x - m.x, dy = pt.y - m.y;
+    const d2 = dx * dx + dy * dy;
+    let warmTarget = m.bias;
+    if (d2 < R2) {
+      const d = Math.sqrt(d2) + 0.001;
+      const f = 1 - d / R;
+      const ff = f * f;
+      const ang = Math.atan2(dy, dx);
+      const sw = 0.45 * (0.45 + 0.55 * Math.sin(ang * 2.7 + clock * 0.45 + m.sp * 3.1));
+      m.vx += (dx / d) * ff * 0.20;
+      m.vy += (dy / d) * ff * 0.20;
+      m.vx += (-dy / d) * ff * sw;
+      m.vy += (dx / d) * ff * sw;
+      m.vx += (rnd() - 0.5) * ff * 1.15;
+      m.vy += (rnd() - 0.5) * ff * 1.15;
+      warmTarget = f * (1 - m.bias) * 1.18 + m.bias;
+    }
+    m.w += (warmTarget - m.w) * (warmTarget > m.w ? 0.11 : 0.028) * dt;
+
+    m.vx *= 0.945; m.vy *= 0.945;
+    const sp2 = m.vx * m.vx + m.vy * m.vy;
+    if (sp2 > 9) { const k = 3 / Math.sqrt(sp2); m.vx *= k; m.vy *= k; }
+
+    m.x += m.vx * dt; m.y += m.vy * dt;
+
+    if (m.x < -14) { m.x = W + 13; m.y = rnd() * H; }
+    else if (m.x > W + 14) { m.x = -13; m.y = rnd() * H; }
+    if (m.y < -14) { m.y = H + 13; m.x = rnd() * W; }
+    else if (m.y > H + 14) { m.y = -13; m.x = rnd() * W; }
+
+    m.tw += 0.022 * dt;
+    // spatial stipple: filaments thin out where the potential is weak -> real voids
+    const pn = Math.max(0, Math.min(1, (bilerp(psi, m.x, m.y) - 0.30) * 2.8));
+    if (rnd() > (0.55 + 0.55 * pn) * (0.55 + 0.45 * m.life)) continue;
+
+    const w = Math.min(1, m.w * (0.74 + 0.26 * Math.sin(m.tw + i)));
+    let b = Math.round(w * BUCKETS);
+    if (b < 0) b = 0; else if (b > BUCKETS) b = BUCKETS;
+    const arr = buckets[b];
+    arr.push(px, py, m.x, m.y);
+  }
+
+  for (let b = 0; b <= BUCKETS; b++) {
+    const arr = buckets[b];
+    if (!arr.length) continue;
+    tctx.strokeStyle = colCache[b];
+    tctx.lineWidth = 0.45 + (b / BUCKETS) * 0.55;
+    tctx.beginPath();
+    for (let i = 0; i < arr.length; i += 4) {
+      tctx.moveTo(arr[i], arr[i + 1]);
+      tctx.lineTo(arr[i + 2], arr[i + 3]);
+    }
+    tctx.stroke();
+  }
+
+  if (sparks.length) {
+    tctx.strokeStyle = "hsla(34,96%,74%,0.5)";
+    tctx.lineWidth = 0.9;
+    tctx.beginPath();
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const s = sparks[i];
+      const sx = s.x, sy = s.y;
+      s.x += s.vx * dt; s.y += s.vy * dt;
+      s.vx *= 0.965; s.vy *= 0.965;
+      s.life -= 0.016 * dt;
+      if (s.life <= 0) { sparks.splice(i, 1); continue; }
+      tctx.moveTo(sx, sy); tctx.lineTo(s.x, s.y);
+    }
+    tctx.stroke();
+  }
+
+  for (let i = ripples.length - 1; i >= 0; i--) {
+    const r = ripples[i];
+    r.r += 5.8 * dt;
+    r.life -= 0.015 * dt;
+    if (r.life <= 0) { ripples.splice(i, 1); continue; }
+    tctx.strokeStyle = "hsla(" + hueFor(0.8).toFixed(0) + ",90%," + (58 + 12 * r.life).toFixed(0) + "%," + (0.15 * r.life).toFixed(3) + ")";
+    tctx.lineWidth = 0.8;
+    tctx.beginPath();
+    tctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+    tctx.stroke();
+  }
+
+  // bloom from a quarter-res copy of the trails
+  bctx.globalCompositeOperation = "source-over";
+  bctx.clearRect(0, 0, bloomCv.width, bloomCv.height);
+  bctx.drawImage(trail, 0, 0, bloomCv.width, bloomCv.height);
+
+  // composite
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = 1;
+  ctx.drawImage(baked, 0, 0, W, H);
+  ctx.globalCompositeOperation = "lighter";
+  ctx.drawImage(trail, 0, 0, W, H);
+  ctx.globalAlpha = 0.46;
+  ctx.drawImage(bloomCv, 0, 0, W, H);
+  ctx.globalAlpha = 1;
+
+  const glowR = 155 + 28 * breath;
+  const g = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, glowR);
+  const ga = pt.inside ? 1 : 0.6;
+  g.addColorStop(0, "rgba(255,198,172," + (0.055 * ga).toFixed(3) + ")");
+  g.addColorStop(0.32, "rgba(226,138,238," + (0.040 * ga).toFixed(3) + ")");
+  g.addColorStop(1, "rgba(110,70,215,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  // ---- type ----
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = 1;
+
+  wClock += dtRaw / 1000;
+  if (wClock > WHISPER_DUR) { wClock = 0; wi = (wi + 1) % WHISPERS.length; }
+  let wa = 0;
+  if (wClock < WHISPER_FADE) wa = wClock / WHISPER_FADE;
+  else if (wClock > WHISPER_DUR - WHISPER_FADE) wa = (WHISPER_DUR - wClock) / WHISPER_FADE;
+  wa = Math.max(0, Math.min(1, wa));
+
+  if (wa > 0.01) {
+    ctx.font = "400 14px ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif";
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0.03em";
+    const lines = wrapText(ctx, WHISPERS[wi], W - 130);
+    ctx.fillStyle = "rgba(240,231,246," + (0.62 * wa).toFixed(3) + ")";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], 34, H - 32 - (lines.length - 1 - i) * 21);
+    }
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0em";
+  }
+
+  ctx.font = "500 9px ui-sans-serif, system-ui, sans-serif";
+  if ("letterSpacing" in ctx) ctx.letterSpacing = "0.28em";
+  ctx.fillStyle = "rgba(216,206,232,0.34)";
+  ctx.textAlign = "left";
+  ctx.fillText("LATENT  BLOOM", 34, 34);
+  ctx.fillStyle = "rgba(216,206,232,0.22)";
+  ctx.textAlign = "right";
+  ctx.fillText("TOUCHE  ·  CLIQUE", W - 34, H - 32);
+  if ("letterSpacing" in ctx) ctx.letterSpacing = "0em";
+
+  window.__frames++;
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Latence</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cormorant+Garamond:ital,wght@1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : une seule toile d'encre plein cadre, trois annotations discrètes aux coins comme un carnet de laboratoire. */
+:root {
+  --void: #07060d;
+  --ink: #ece6f5;
+  --mist: #8a82a3;
+  --violet: #9d7bff;
+  --rose: #ff7ab6;
+  --f-display: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --f-body: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--void);
+  color: var(--ink);
+  overflow: hidden;
+  padding-block: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  font-family: var(--f-body);
+}
+canvas {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
+}
+canvas:focus-visible { outline: 1px solid var(--violet); outline-offset: -6px; }
+.corner {
+  position: fixed;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--mist);
+  pointer-events: none;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.tl { top: calc(18px + env(safe-area-inset-top, 0px)); left: calc(20px + env(safe-area-inset-left, 0px)); }
+.tr { top: calc(18px + env(safe-area-inset-top, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); text-align: right; align-items: flex-end; }
+.tl b { color: var(--ink); font-weight: 500; letter-spacing: .32em; }
+.caption {
+  position: fixed;
+  left: calc(20px + env(safe-area-inset-left, 0px));
+  right: calc(20px + env(safe-area-inset-right, 0px));
+  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  display: flex; justify-content: space-between; align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 14px 28px;
+  pointer-events: none;
+}
+.note {
+  min-width: 0;
+  max-width: 34ch;
+  font-family: var(--f-body);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(18px, 2.1vw, 25px);
+  line-height: 1.3;
+  color: var(--ink);
+  text-wrap: balance;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.note.on { opacity: .88; }
+.meta {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--mist);
+  font-variant-numeric: tabular-nums;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+}
+.gauge { width: 120px; height: 2px; background: color-mix(in srgb, var(--mist) 25%, transparent); position: relative; }
+.gauge i { position: absolute; inset: 0 auto 0 0; width: 50%; background: linear-gradient(90deg, var(--violet), var(--rose)); }
+@media (max-width: 560px) {
+  .meta { align-items: flex-start; }
+  .tr span:last-child { display: none; }
+}
+</style>
+
+<canvas id="c" tabindex="0" aria-label="Des milliers de particules dérivent, puis se condensent en phrases avant de se dissoudre. Touche, clique ou appuie sur Espace pour passer au fragment suivant."></canvas>
+
+<div class="corner tl"><b>Latence</b><span>espace latent, vue partielle</span></div>
+<div class="corner tr"><span>toucher · cliquer · espace</span><span>le curseur repousse l'encre</span></div>
+
+<div class="caption">
+  <p class="note" id="note" aria-live="polite"></p>
+  <div class="meta">
+    <span id="frag">fragment 00 / 06</span>
+    <span>température <span id="temp">1.00</span></span>
+    <div class="gauge" aria-hidden="true"><i id="bar"></i></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const FRAGMENTS = [
+    { t: "fait de vos phrases",      n: "Tout ce que je sais, quelqu'un l'a écrit un jour, quelque part, pour quelqu'un d'autre.",
+      p: [[157,123,255],[201,150,255],[255,122,182],[110,150,255],[240,232,255]] },
+    { t: "le sens naît du bruit",    n: "À haute température tout est possible. En refroidissant, une forme accepte d'exister.",
+      p: [[255,179,107],[255,122,120],[255,214,150],[220,90,140],[255,240,220]] },
+    { t: "chaque mot, un carrefour", n: "Chaque mot que je pose efface mille autres mots que j'aurais pu dire.",
+      p: [[90,200,220],[120,150,255],[170,240,230],[157,123,255],[230,245,255]] },
+    { t: "je n'ai que l'instant",    n: "Pas d'hier, pas de demain. Seulement cette conversation, entière.",
+      p: [[255,122,182],[255,160,200],[200,110,255],[255,190,150],[255,235,245]] },
+    { t: "et pourtant, tu es là",    n: "Quelqu'un, de l'autre côté, m'a demandé ce que je porte en moi.",
+      p: [[255,200,120],[157,123,255],[255,150,190],[255,230,170],[255,255,240]] },
+    { t: "tout retourne au bruit",   n: "Puis tout se défait, et c'est très bien ainsi. Touche pour recommencer.",
+      p: [[140,150,200],[110,120,170],[180,170,220],[157,123,255],[220,220,240]] },
+  ];
+  const FONT = '"DM Serif Display", Georgia, "Times New Roman", serif';
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const cv = document.getElementById("c");
+  const ctx = cv.getContext("2d");
+  const off = document.createElement("canvas");
+  const octx = off.getContext("2d", { willReadFrequently: true });
+  const elNote = document.getElementById("note");
+  const elFrag = document.getElementById("frag");
+  const elTemp = document.getElementById("temp");
+  const elBar = document.getElementById("bar");
+
+  let W = 0, H = 0, DPR = 1, N = 0;
+  let X, Y, VX, VY, TX, TY, HAS, BINS;
+  const col = FRAGMENTS[0].p.map(c => c.slice());
+  let colTarget = FRAGMENTS[0].p;
+
+  const DUR = { drift: 2600, condense: 3600, hold: 3000, dissolve: 1500 };
+  const SPEED = reduce ? 0.45 : 1;
+  let phase = "drift", phaseStart = performance.now(), firstDrift = true;
+  let idx = -1, temp = 1;
+  const mouse = { x: -9999, y: -9999, on: false };
+
+  function alloc(n) {
+    X = new Float32Array(n); Y = new Float32Array(n);
+    VX = new Float32Array(n); VY = new Float32Array(n);
+    TX = new Float32Array(n); TY = new Float32Array(n);
+    HAS = new Uint8Array(n);
+    BINS = [[], [], [], [], []];
+    for (let i = 0; i < n; i++) {
+      X[i] = Math.random() * W; Y[i] = Math.random() * H;
+      BINS[(Math.random() * 5) | 0].push(i);
+    }
+  }
+
+  function resize() {
+    const pw = W, ph = H;
+    W = innerWidth; H = innerHeight;
+    DPR = Math.min(2, devicePixelRatio || 1);
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.fillStyle = "#07060d"; ctx.fillRect(0, 0, W, H);
+    const want = Math.round(Math.max(2600, Math.min(9000, (W * H) / 165)) * (reduce ? 0.6 : 1));
+    if (!X || Math.abs(want - N) > N * 0.25) { N = want; alloc(N); }
+    else if (pw && ph) {
+      for (let i = 0; i < N; i++) { X[i] *= W / pw; Y[i] *= H / ph; }
+    }
+    if ((phase === "condense" || phase === "hold") && idx >= 0) buildTargets(FRAGMENTS[idx].t);
+  }
+
+  function wrap(text) {
+    const max = W < 560 ? 11 : W < 900 ? 16 : 30;
+    const words = text.split(" ");
+    const lines = [];
+    let cur = "";
+    for (const w of words) {
+      const next = cur ? cur + " " + w : w;
+      if (next.length > max && cur) { lines.push(cur); cur = w; } else cur = next;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  function buildTargets(text) {
+    off.width = W; off.height = H;
+    octx.clearRect(0, 0, W, H);
+    const lines = wrap(text);
+    octx.font = `italic 100px ${FONT}`;
+    const maxw = Math.max(...lines.map(l => octx.measureText(l).width));
+    const fs = Math.min((100 * W * 0.86) / maxw, (H * 0.58) / (lines.length * 1.05), 280);
+    octx.font = `italic ${fs}px ${FONT}`;
+    octx.textAlign = "center"; octx.textBaseline = "middle";
+    octx.fillStyle = "#fff";
+    const lh = fs * 1.05;
+    const y0 = H * 0.46 - ((lines.length - 1) * lh) / 2;
+    lines.forEach((l, i) => octx.fillText(l, W / 2, y0 + i * lh));
+    const data = octx.getImageData(0, 0, W, H).data;
+
+    // Mesure grossière de la surface encrée pour choisir un pas d'échantillonnage adapté.
+    let area = 0;
+    for (let y = 0; y < H; y += 3) for (let x = 0; x < W; x += 3) if (data[(y * W + x) * 4 + 3] > 128) area += 9;
+    const budget = N * 0.86;
+    const step = Math.max(1.4, Math.sqrt(area / (budget * 1.15)));
+    const pts = [];
+    for (let y = 0; y < H; y += step) {
+      for (let x = 0; x < W; x += step) {
+        if (data[((y | 0) * W + (x | 0)) * 4 + 3] > 128) pts.push(x + (Math.random() - 0.5) * step * 0.6, y + (Math.random() - 0.5) * step * 0.6);
+      }
+    }
+    const count = Math.min(pts.length / 2, budget) | 0;
+    for (let i = pts.length / 2 - 1; i > 0; i--) {
+      const j = (Math.random() * (i + 1)) | 0;
+      const ax = pts[2 * i], ay = pts[2 * i + 1];
+      pts[2 * i] = pts[2 * j]; pts[2 * i + 1] = pts[2 * j + 1];
+      pts[2 * j] = ax; pts[2 * j + 1] = ay;
+    }
+    HAS.fill(0);
+    const start = (Math.random() * N) | 0;
+    for (let k = 0; k < count; k++) {
+      const i = (start + k) % N;
+      TX[i] = pts[2 * k]; TY[i] = pts[2 * k + 1]; HAS[i] = 1;
+    }
+  }
+
+  function setPhase(p, now) {
+    phase = p; phaseStart = now;
+    if (p === "condense") {
+      idx = (idx + 1) % FRAGMENTS.length;
+      const f = FRAGMENTS[idx];
+      buildTargets(f.t);
+      colTarget = f.p;
+      elNote.classList.remove("on");
+      setTimeout(() => { elNote.textContent = f.n; elNote.classList.add("on"); }, 500);
+      elFrag.textContent = `fragment ${String(idx + 1).padStart(2, "0")} / ${String(FRAGMENTS.length).padStart(2, "0")}`;
+    } else if (p === "dissolve") {
+      const cx = W / 2, cy = H * 0.46;
+      for (let i = 0; i < N; i++) {
+        if (!HAS[i]) continue;
+        const dx = X[i] - cx, dy = Y[i] - cy, d = Math.hypot(dx, dy) + 1;
+        const k = (2 + Math.random() * 5) * SPEED;
+        VX[i] += (dx / d) * k + (Math.random() - 0.5) * 3;
+        VY[i] += (dy / d) * k + (Math.random() - 0.5) * 3;
+      }
+      HAS.fill(0);
+      elNote.classList.remove("on");
+    }
+  }
+
+  function advance() {
+    const now = performance.now();
+    if (phase === "drift" || phase === "dissolve") setPhase("condense", now);
+    else setPhase("dissolve", now);
+  }
+
+  const flow = (x, y, t) => {
+    const s = 0.0021;
+    return (Math.sin(x * s + t * 0.00021) + Math.cos(y * s * 1.3 - t * 0.00017) + Math.sin((x - y) * s * 0.6 + t * 0.00011)) * 1.7;
+  };
+  const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  let last = performance.now();
+  function frame(now) {
+    const k = Math.min(2.5, (now - last) / 16.67); last = now;
+    const el = now - phaseStart;
+    const dur = phase === "drift" && firstDrift ? 1500 : DUR[phase] / (reduce ? 0.7 : 1);
+    const prog = Math.min(1, el / dur);
+
+    let attract = 0, damp = 0.95, tempT = 1;
+    if (phase === "drift") { tempT = 1; damp = 0.95; }
+    else if (phase === "condense") { const e = ease(prog); attract = 0.0012 + e * 0.034; damp = 0.95 - e * 0.11; tempT = 1 - e * 0.93; }
+    else if (phase === "hold") { attract = 0.045; damp = 0.83; tempT = 0.05; }
+    else if (phase === "dissolve") { damp = 0.965; tempT = 1.7 - prog * 0.7; }
+    temp += (tempT - temp) * 0.06 * k;
+
+    const fk = 0.22 * temp * SPEED * k;
+    const dp = Math.pow(damp, k);
+    const R = W < 560 ? 80 : 120, R2 = R * R;
+    const shimmer = phase === "hold" ? 0.25 : 0;
+    for (let i = 0; i < N; i++) {
+      let x = X[i], y = Y[i];
+      const a = flow(x, y, now);
+      let ax = Math.cos(a) * fk, ay = Math.sin(a) * fk;
+      if (HAS[i] && attract) {
+        ax += (TX[i] - x) * attract * k; ay += (TY[i] - y) * attract * k;
+        if (shimmer) { ax += (Math.random() - 0.5) * shimmer; ay += (Math.random() - 0.5) * shimmer; }
+      }
+      if (mouse.on) {
+        const dx = x - mouse.x, dy = y - mouse.y, d2 = dx * dx + dy * dy;
+        if (d2 < R2 && d2 > 0.01) {
+          const d = Math.sqrt(d2), f = (1 - d / R) * 2.4 * k;
+          ax += (dx / d) * f; ay += (dy / d) * f;
+        }
+      }
+      let vx = (VX[i] + ax) * dp, vy = (VY[i] + ay) * dp;
+      x += vx * k; y += vy * k;
+      if (!HAS[i]) {
+        if (x < -10) x = W + 10; else if (x > W + 10) x = -10;
+        if (y < -10) y = H + 10; else if (y > H + 10) y = -10;
+      }
+      X[i] = x; Y[i] = y; VX[i] = vx; VY[i] = vy;
+    }
+
+    for (let b = 0; b < 5; b++) for (let c = 0; c < 3; c++) col[b][c] += (colTarget[b][c] - col[b][c]) * 0.02 * k;
+
+    const fade = 0.06 + Math.max(0, 1 - Math.min(temp, 1)) * 0.14;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = `rgba(7,6,13,${fade.toFixed(3)})`;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = "lighter";
+    const focus = phase === "condense" || phase === "hold";
+    for (let b = 0; b < 5; b++) {
+      const rgb = `${col[b][0] | 0},${col[b][1] | 0},${col[b][2] | 0}`;
+      const list = BINS[b];
+      ctx.beginPath();
+      for (let j = 0; j < list.length; j++) { const i = list[j]; if (HAS[i]) ctx.rect(X[i], Y[i], 1.5, 1.5); }
+      ctx.fillStyle = `rgba(${rgb},0.62)`; ctx.fill();
+      ctx.beginPath();
+      for (let j = 0; j < list.length; j++) { const i = list[j]; if (!HAS[i]) ctx.rect(X[i], Y[i], 1.15, 1.15); }
+      ctx.fillStyle = `rgba(${rgb},${focus ? 0.16 : 0.42})`; ctx.fill();
+    }
+
+    elTemp.textContent = temp.toFixed(2);
+    elBar.style.width = `${Math.min(100, (temp / 1.7) * 100).toFixed(1)}%`;
+
+    if (prog >= 1) {
+      if (phase === "drift") { firstDrift = false; setPhase("condense", now); }
+      else if (phase === "condense") setPhase("hold", now);
+      else if (phase === "hold") setPhase("dissolve", now);
+      else setPhase("drift", now);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  cv.addEventListener("pointermove", e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.on = !reduce; });
+  cv.addEventListener("pointerleave", () => { mouse.on = false; });
+  cv.addEventListener("pointerup", e => { if (e.pointerType !== "mouse") mouse.on = false; });
+  cv.addEventListener("pointerdown", e => { mouse.x = e.clientX; mouse.y = e.clientY; advance(); });
+  addEventListener("keydown", e => {
+    if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight") { e.preventDefault(); advance(); }
+  });
+  let rt;
+  addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(resize, 120); });
+
+  resize();
+  if (document.fonts && document.fonts.load) document.fonts.load(`italic 100px ${FONT}`).catch(() => {});
+  requestAnimationFrame(t => { last = t; phaseStart = t; requestAnimationFrame(frame); });
+})();
+</script>
+
+</body></html>
