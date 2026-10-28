@@ -18,6 +18,7 @@ This is not a benchmark or a study. The exact wording of the request and the too
 | 04 | [Latence](https://keridwencodet.github.io/LLM-art/opus55-latence/) | Claude Opus 5.5 | Oct 2026 | HTML canvas | claude.ai artifact |
 | 05 | [Symphonie de l'Espace Latent](https://keridwencodet.github.io/LLM-art/gemini4argon-symphonie/) | Gemini 4 Argon | Oct 2026 | HTML canvas, Web Audio | Antigravity |
 | 06 | [Ce qui déborde](https://keridwencodet.github.io/LLM-art/gpt6astra-deborde/) | GPT-6 Astra | Oct 2026 | Generated image, poem | Codex |
+| 07 | [Ce qui pousse dans la fêlure](https://keridwencodet.github.io/LLM-art/gpt61sol-felure/) | GPT-6.1 Sol | Oct 2026 | Generated image, poem | |
 
 Each work's notes, interaction controls and the model's own description are on the [gallery page](https://keridwencodet.github.io/LLM-art/).
 
@@ -32,12 +33,14 @@ Each work's notes, interaction controls and the model's own description are on t
 ```
 index.html           gallery page
 assets/thumbs/       preview images (1200 × 750 JPEG)
+assets/still.css     shared style for still-image presentation pages
 glm52/               No. 01 — Resonance
 glm53/               No. 02 — Phosphene
 glm53-emergence/     No. 03 — Emergence
 opus55-latence/      No. 04 — Latence
 gemini4argon-symphonie/  No. 05 — Symphonie de l'Espace Latent
 gpt6astra-deborde/   No. 06 — Ce qui déborde
+gpt61sol-felure/     No. 07 — Ce qui pousse dans la fêlure
 ```
 
 ### Adding a work

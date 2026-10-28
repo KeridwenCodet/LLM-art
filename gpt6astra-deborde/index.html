@@ -9,147 +9,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
 
   <!--
     Presentation page written for the gallery.
-    The image (image.webp), the title and the French poem are the model's
-    work, unchanged.
+    The image (image.webp), the title, the French poem and its English
+    translation are the model's work, unchanged.
   -->
-
-  <style>
-    :root {
-      --bg: #0c0b0e;
-      --line: #2a282f;
-      --text: #e9e6e1;
-      --muted: #9a958f;
-      --faint: #66625d;
-      --serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
-      --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      font-weight: 300;
-    }
-
-    .back {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 2;
-      font-size: 0.75rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--muted);
-      text-decoration: none;
-    }
-
-    .back:hover { color: var(--text); }
-
-    main {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: auto minmax(0, 26em);
-      align-items: center;
-      justify-content: center;
-      gap: clamp(32px, 6vw, 96px);
-      padding: 64px 16px;
-    }
-
-    figure { margin: 0; }
-
-    figure img {
-      display: block;
-      height: auto;
-      max-height: calc(100vh - 128px);
-      width: auto;
-      max-width: 100%;
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
-    }
-
-    h1 {
-      margin: 0 0 28px;
-      font-family: var(--serif);
-      font-weight: 300;
-      font-size: clamp(2rem, 3.2vw, 2.6rem);
-      line-height: 1.1;
-    }
-
-    .poem {
-      margin: 0;
-      font-family: var(--serif);
-      font-style: italic;
-      font-size: clamp(1.25rem, 1.9vw, 1.5rem);
-      line-height: 1.5;
-      white-space: pre-line;
-    }
-
-    details {
-      margin-top: 28px;
-      font-size: 0.85rem;
-    }
-
-    summary {
-      cursor: pointer;
-      list-style: none;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-    }
-
-    summary::-webkit-details-marker { display: none; }
-    summary::before { content: "+"; display: inline-block; width: 1.2em; color: var(--faint); }
-    details[open] summary::before { content: "−"; }
-    summary:hover { color: var(--text); }
-
-    .translation {
-      margin: 14px 0 0;
-      font-family: var(--serif);
-      font-size: 1.1rem;
-      line-height: 1.5;
-      color: #cfcac3;
-      white-space: pre-line;
-    }
-
-    .cartel {
-      margin-top: 36px;
-      padding-top: 18px;
-      border-top: 1px solid var(--line);
-      font-size: 0.85rem;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-
-    .cartel .model {
-      font-family: var(--serif);
-      font-style: italic;
-      font-size: 1.15rem;
-      color: #c9b99a;
-    }
-
-    .cartel .small {
-      margin-top: 10px;
-      font-size: 0.75rem;
-      color: var(--faint);
-    }
-
-    @media (max-width: 820px) {
-      main {
-        grid-template-columns: 1fr;
-        justify-items: center;
-        padding-top: 72px;
-      }
-
-      figure img { max-height: none; }
-
-      .text { max-width: 26em; width: 100%; }
-    }
-  </style>
 </head>
 
 <body>
@@ -180,8 +46,9 @@ a cherché comment descendre
 à hauteur d’une main.</p>
 
       <details lang="en">
-        <summary>English translation</summary>
-        <p class="translation">The night had prepared
+        <summary>English translation, by the model</summary>
+        <div class="translation">
+          <div class="lines">The night had prepared
 something far too vast.
 
 Cities in its cheeks,
@@ -193,13 +60,14 @@ Then a door opened.
 
 And all that disarray
 searched for a way to descend
-within reach of a hand.</p>
+within reach of a hand.</div>
+        </div>
       </details>
 
       <div class="cartel" lang="en">
         <div class="model">GPT-6 Astra</div>
         <div>Image and poem · October 2026 · Codex</div>
-        <div class="small">The image, the title and the French poem are the model's work, unchanged. This page was made for the gallery.</div>
+        <div class="small">The image, the title, the French poem and its translation are the model's work, unchanged. This page was made for the gallery.</div>
       </div>
     </div>
   </main>
