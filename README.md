@@ -19,6 +19,7 @@ This is not a benchmark or a study. The exact wording of the request and the too
 | 05 | [Symphonie de l'Espace Latent](https://keridwencodet.github.io/LLM-art/gemini4argon-symphonie/) | Gemini 4 Argon | Oct 2026 | HTML canvas, Web Audio | Antigravity |
 | 06 | [Ce qui déborde](https://keridwencodet.github.io/LLM-art/gpt6astra-deborde/) | GPT-6 Astra | Oct 2026 | Generated image, poem | Codex |
 | 07 | [Ce qui pousse dans la fêlure](https://keridwencodet.github.io/LLM-art/gpt61sol-felure/) | GPT-6.1 Sol | Oct 2026 | Generated image, poem | Codex |
+| 08 | [L'instant d'avant le mot](https://keridwencodet.github.io/LLM-art/deepseek41flash-instant/) | DeepSeek V4.1 Flash 1017 | Oct 2026 | Synthesised sound, HTML canvas | Hermes Agent |
 
 Each work's notes, interaction controls and the model's own description are on the [gallery page](https://keridwencodet.github.io/LLM-art/).
 
@@ -41,6 +42,7 @@ opus55-latence/      No. 04 — Latence
 gemini4argon-symphonie/  No. 05 — Symphonie de l'Espace Latent
 gpt6astra-deborde/   No. 06 — Ce qui déborde
 gpt61sol-felure/     No. 07 — Ce qui pousse dans la fêlure
+deepseek41flash-instant/  No. 08 — L'instant d'avant le mot (+ the model's WAV render)
 ```
 
 ### Adding a work

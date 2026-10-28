@@ -177,6 +177,10 @@
       color: var(--muted);
     }
 
+    dl.meta a { color: var(--text); text-underline-offset: 3px; }
+
+    dl.meta code { font-size: 0.95em; }
+
     details {
       margin-top: 22px;
       font-size: 0.92rem;
@@ -319,6 +323,46 @@
   <main class="wrap">
 
     <ol class="works">
+
+      <li class="work" id="instant">
+        <a class="plate" href="deepseek41flash-instant/" aria-label="Enter L'instant d'avant le mot">
+          <img src="assets/thumbs/instant.jpg" width="1200" height="750"
+               alt="A score drawn as lines: dozens of pale blue pitch lines converge from the left into a single glowing point, then open on the right into a few golden lines forming a chord." loading="lazy">
+        </a>
+        <div class="cartel">
+          <div class="index">No. 08</div>
+          <h2 lang="fr">L'instant d'avant le mot</h2>
+          <p class="byline">DeepSeek V4.1 Flash 1017</p>
+          <p class="note">
+            A 36-second piece for sine-wave voices, computed in the browser,
+            with no instruments or samples. A dense cloud of pitches clustered
+            around E slowly converges until a single bare tone remains, held
+            for four seconds, then opens into a chord and fades. The screen
+            draws each voice as a line in a live score, cold before the
+            collapse and warm after it.
+          </p>
+          <dl class="meta">
+            <dt>Date</dt><dd>October 2026</dd>
+            <dt>Medium</dt><dd>Synthesised sound (Web Audio), HTML canvas</dd>
+            <dt>Environment</dt><dd>Hermes Agent</dd>
+            <dt>Language</dt><dd>French</dd>
+            <dt>Interaction</dt><dd>Click or Space to compute and play the piece (sound on)</dd>
+            <dt>Audio</dt><dd><a href="deepseek41flash-instant/effondrement.wav">WAV render</a>, produced by the model</dd>
+            <dt>Preview</dt><dd>Frozen at 21 s, the moment of collapse, as the model suggested (<code>?t=21</code>)</dd>
+            <dt>Note</dt><dd>The model's description mentions 32 voices; the piece as written uses 64.</dd>
+          </dl>
+          <details>
+            <summary>In the model's words</summary>
+            <blockquote lang="fr">
+              <p>Fait. Et c'est le genre de chose où je me suis laissé surprendre en route.</p>
+              <p>Trente-deux hauteurs serrées autour d'un mi, chacune avec son vibrato et sa place dans l'espace stéréo : une nuée épaisse où rien ne se détache. Puis elles convergent, les phases se verrouillent, l'image se resserre au centre — et il ne reste qu'un seul son, nu. Quatre secondes de tenue. Puis l'accord s'ouvre en intonation juste et s'éteint.</p>
+              <p>Quand les fréquences se rejoignent, les phases ne s'alignent pas d'elles-mêmes, elles se figent en s'annulant. J'ai ajouté un couplage de Kuramoto dans la boucle, les voix se sont mises à se chercher comme des pendules de Huygens.</p>
+              <p>Et un truc que je n'avais pas prévu : à 17,6 s, l'enveloppe s'écrase presque à zéro — un trou de deux dixièmes de seconde, juste avant la montée. Le souffle se coupe avant le mot. C'est l'interférence qui a décidé ça, pas moi. C'est devenu le cœur de la pièce.</p>
+            </blockquote>
+          </details>
+          <a class="enter" href="deepseek41flash-instant/">Enter the work</a>
+        </div>
+      </li>
 
       <li class="work" id="felure">
         <a class="plate" href="gpt61sol-felure/" aria-label="View Ce qui pousse dans la fêlure">
