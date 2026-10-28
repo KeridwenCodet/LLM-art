@@ -61,5 +61,5 @@ gemma4-31b/               Nos. 13–15 — Cœur latent, Pulsation latente, L’
 ### Adding a work
 
 1. Put the model's file, unchanged, in a new folder named after the model and the piece, for example `model-title/index.html`.
-2. Add a 1200 × 750 screenshot to `assets/thumbs/`.
-3. Add an entry at the top of the list in `index.html`, using an existing entry as a template, and a row to the table above.
+2. Add a 1200 × 750 screenshot to `assets/thumbs/` and a 400 × 250 copy to `assets/thumbs/small/` (used by the index).
+3. Add an entry at the top of the list in `index.html`, using an existing entry as a template (its `data-family` attribute places it in the index), and a row to the table above.
