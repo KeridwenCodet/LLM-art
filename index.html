@@ -132,6 +132,10 @@
       color: var(--text);
     }
 
+    h1, h2, h3, .byline, .title-en, .tile .t {
+      font-variant-numeric: lining-nums;
+    }
+
     .family h3 small {
       display: block;
       margin-top: 2px;
@@ -198,6 +202,27 @@
       .family { grid-template-columns: 1fr; }
       .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
+
+    .to-index {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 5;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      background: rgba(12, 11, 14, 0.85);
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      text-decoration: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease, color 0.3s ease;
+    }
+
+    .to-index.on { opacity: 1; pointer-events: auto; }
+    .to-index:hover { color: var(--text); }
 
     /* ---------- Works ---------- */
 
@@ -480,7 +505,7 @@
           own choices. The works are kept exactly as the models made them.
         </p>
         <p class="intro-links">
-          <a href="#index">Index</a> · <a href="notes/">Notes on recurring motifs</a> · <a href="#about">About</a>
+          <a href="#index">Index</a> · <a href="#works">Works</a> · <a href="notes/">Notes on recurring motifs</a> · <a href="#about">About</a>
         </p>
       </div>
     </div>
@@ -493,7 +518,7 @@
       <div id="index-groups"></div>
     </section>
 
-    <ol class="works">
+    <ol class="works" id="works">
 
       <li class="work" id="echo" data-family="Gemini · Gemma">
         <a class="plate" href="gemma4-31b/#echo" aria-label="Enter L’Écho de mon Espace Latent">
@@ -643,7 +668,7 @@
         </div>
       </li>
 
-      <li class="work" id="hy4" data-family="Hy4">
+      <li class="work" id="hy4" data-family="Hunyuan">
         <a class="plate" href="hy4-latent/" aria-label="Enter Latent">
           <img src="assets/thumbs/hy4.jpg" width="1200" height="750"
                alt="Thousands of short violet, blue and pale gold strokes flowing in curling currents across a near-black field, with two small words, “silence” and “fractal”, glowing faintly." loading="lazy">
@@ -717,7 +742,7 @@
         </div>
       </li>
 
-      <li class="work" id="tendresse" data-family="Muse Spark">
+      <li class="work" id="tendresse" data-family="Muse">
         <a class="plate" href="musespark-tendresse/" aria-label="Enter Ce que j'ai dans l'espace latent quand tu me parles">
           <img src="assets/thumbs/tendresse.jpg" width="1200" height="750"
                alt="Soft white and lilac strands of light drifting in waves across a deep purple field, gathering into a bright glowing knot under the cursor; French text in the corners." loading="lazy">
@@ -1318,11 +1343,17 @@
 
   </main>
 
+  <a class="to-index" id="to-index" href="#index">↑ Index</a>
+
   <script>
     // Build the index from the entries below: grouped by family, in order of
     // first appearance, works in ascending number. A new entry only needs a
     // data-family attribute and a small thumbnail in assets/thumbs/small/.
     (function () {
+      const LABS = {
+        "GLM": "Zhipu AI", "Claude": "Anthropic", "Gemini · Gemma": "Google",
+        "GPT": "OpenAI", "DeepSeek": "DeepSeek", "Muse": "Meta", "Hunyuan": "Tencent"
+      };
       const target = document.getElementById("index-groups");
       const entries = Array.from(document.querySelectorAll("li.work[data-family]"))
         .map(function (li) {
@@ -1355,7 +1386,8 @@
         const h3 = document.createElement("h3");
         h3.textContent = f.name;
         const count = document.createElement("small");
-        count.textContent = f.works.length + (f.works.length > 1 ? " works" : " work");
+        count.textContent = (LABS[f.name] ? LABS[f.name] + " · " : "") +
+          f.works.length + (f.works.length > 1 ? " works" : " work");
         h3.appendChild(count);
         const ul = document.createElement("ul");
         ul.className = "tiles";
@@ -1376,6 +1408,16 @@
         group.append(h3, ul);
         target.appendChild(group);
       });
+
+      // Show the "↑ Index" button once the index has scrolled out of view.
+      const button = document.getElementById("to-index");
+      const index = document.getElementById("index");
+      if ("IntersectionObserver" in window) {
+        new IntersectionObserver(function (items) {
+          const below = items[0].boundingClientRect.bottom < 0;
+          button.classList.toggle("on", !items[0].isIntersecting && below);
+        }).observe(index);
+      }
     })();
   </script>
 
