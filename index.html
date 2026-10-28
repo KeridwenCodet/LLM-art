@@ -1,247 +1,461 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM Art</title>
+  <meta name="description" content="Interactive works made by language models, given creative freedom.">
 
-  <title>LLM Art Gallery</title>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="LLM Art">
+  <meta property="og:description" content="Interactive works made by language models, given creative freedom.">
+  <meta property="og:image" content="https://keridwencodet.github.io/LLM-art/assets/thumbs/emergence.jpg">
+  <meta property="og:url" content="https://keridwencodet.github.io/LLM-art/">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
 
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      --bg: #0c0b0e;
+      --surface: #141317;
+      --line: #2a282f;
+      --text: #e9e6e1;
+      --muted: #9a958f;
+      --faint: #66625d;
+      --accent: #c9b99a;
+      --serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+      --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
     }
+
+    * { box-sizing: border-box; }
+
+    html { -webkit-text-size-adjust: 100%; }
 
     body {
       margin: 0;
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(110, 60, 180, 0.20), transparent 35%),
-        radial-gradient(circle at 80% 70%, rgba(40, 150, 130, 0.12), transparent 35%),
-        #07050d;
-
-      color: #eeeaf5;
-      font-family: Georgia, "Times New Roman", serif;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.65;
     }
 
+    a { color: inherit; }
+
+    .wrap {
+      width: min(1120px, 100% - 32px);
+      margin-inline: auto;
+    }
+
+    /* ---------- Header ---------- */
+
     header {
-      text-align: center;
-      padding: 80px 20px 50px;
+      padding: clamp(72px, 14vw, 160px) 0 clamp(56px, 9vw, 104px);
+      border-bottom: 1px solid var(--line);
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(2.5rem, 7vw, 5rem);
-      font-weight: normal;
-      letter-spacing: 0.08em;
+      font-family: var(--serif);
+      font-weight: 300;
+      font-size: clamp(3rem, 9vw, 6rem);
+      line-height: 1;
+      letter-spacing: 0.02em;
     }
 
-    .subtitle {
-      margin-top: 15px;
-      color: #a99dbb;
+    .lede {
+      margin: 20px 0 0;
+      font-family: var(--serif);
       font-style: italic;
-      font-size: 1.1rem;
+      font-size: clamp(1.25rem, 2.6vw, 1.6rem);
+      color: var(--muted);
     }
 
-    main {
-      width: min(1000px, 90%);
-      margin: auto;
+    .intro {
+      max-width: 38em;
+      margin: 40px 0 0;
+      color: var(--muted);
+    }
+
+    .intro p { margin: 0 0 1em; }
+
+    /* ---------- Works ---------- */
+
+    .works {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .work {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 25px;
-      padding-bottom: 80px;
+      grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+      gap: clamp(28px, 5vw, 64px);
+      align-items: start;
+      padding: clamp(56px, 8vw, 96px) 0;
+      border-bottom: 1px solid var(--line);
     }
 
-    .card {
+    .plate {
       display: block;
-      padding: 35px;
-      min-height: 240px;
-
-      text-decoration: none;
-      color: inherit;
-
-      border: 1px solid rgba(200, 180, 255, 0.18);
-      border-radius: 20px;
-
-      background:
-        linear-gradient(
-          145deg,
-          rgba(115, 75, 160, 0.16),
-          rgba(20, 15, 30, 0.45)
-        );
-
-      backdrop-filter: blur(10px);
-
-      transition:
-        transform 0.3s ease,
-        border-color 0.3s ease,
-        box-shadow 0.3s ease;
+      position: relative;
+      background: #000;
+      overflow: hidden;
     }
 
-    .card:hover {
-      transform: translateY(-6px);
-      border-color: rgba(200, 170, 255, 0.55);
-      box-shadow: 0 15px 50px rgba(120, 70, 180, 0.20);
+    .plate img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      transition: transform 1.2s cubic-bezier(.2,.7,.2,1), opacity .6s ease;
+      opacity: .92;
     }
 
-    .model {
-      color: #a98ad1;
+    .plate:hover img,
+    .plate:focus-visible img {
+      transform: scale(1.025);
+      opacity: 1;
+    }
+
+    .plate:focus-visible {
+      outline: 1px solid var(--accent);
+      outline-offset: 6px;
+    }
+
+    .index {
+      font-family: var(--sans);
+      font-size: 0.72rem;
+      letter-spacing: 0.24em;
       text-transform: uppercase;
-      letter-spacing: 0.25em;
-      font-size: 0.75rem;
+      color: var(--faint);
     }
 
-    .card h2 {
-      margin: 18px 0 12px;
-      font-size: 2rem;
-      font-weight: normal;
+    .work h2 {
+      margin: 10px 0 2px;
+      font-family: var(--serif);
+      font-weight: 300;
+      font-size: clamp(2.2rem, 4.4vw, 3rem);
+      line-height: 1.1;
     }
 
-    .card p {
-      color: #aaa2b5;
-      line-height: 1.6;
-    }
-
-    .enter {
-      display: inline-block;
-      margin-top: 20px;
-      color: #d7c6f5;
+    .byline {
+      margin: 0;
+      font-family: var(--serif);
       font-style: italic;
+      font-size: 1.2rem;
+      color: var(--accent);
     }
 
-    footer {
-      text-align: center;
-      padding: 30px;
-      color: #615a6b;
+    .note {
+      margin: 22px 0 0;
+      color: var(--muted);
+    }
+
+    dl.meta {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 6px 20px;
+      margin: 26px 0 0;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
       font-size: 0.85rem;
     }
 
-    .instructions {
-  margin: 22px 0 0;
-  padding-left: 1.2em;
-  color: #aaa2b5;
-  line-height: 1.7;
-  font-size: 0.95rem;
-}
+    dl.meta dt {
+      color: var(--faint);
+      letter-spacing: 0.06em;
+    }
 
-.instructions li + li {
-  margin-top: 4px;
-}
+    dl.meta dd {
+      margin: 0;
+      color: var(--muted);
+    }
 
-    .quote {
-  margin-top: 20px;
-  color: #c4b3dc;
-  font-style: italic;
-  line-height: 1.55;
-}
+    details {
+      margin-top: 22px;
+      font-size: 0.92rem;
+    }
 
-    .signature {
-  margin-top: 8px;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  opacity: 0.55;
-}
+    summary {
+      cursor: pointer;
+      color: var(--muted);
+      list-style: none;
+      font-size: 0.85rem;
+      letter-spacing: 0.06em;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    summary::before {
+      content: "+";
+      display: inline-block;
+      width: 1.2em;
+      color: var(--faint);
+    }
+
+    details[open] summary::before { content: "−"; }
+
+    summary:hover { color: var(--text); }
+
+    details blockquote {
+      margin: 14px 0 0;
+      padding-left: 18px;
+      border-left: 1px solid var(--line);
+      font-family: var(--serif);
+      font-size: 1.12rem;
+      line-height: 1.55;
+      color: #cfcac3;
+    }
+
+    details blockquote p { margin: 0 0 0.8em; }
+
+    .enter {
+      display: inline-block;
+      margin-top: 28px;
+      padding: 10px 0 6px;
+      border-bottom: 1px solid var(--accent);
+      text-decoration: none;
+      font-size: 0.82rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text);
+      transition: color .3s ease, border-color .3s ease;
+    }
+
+    .enter:hover,
+    .enter:focus-visible {
+      color: var(--accent);
+      outline: none;
+    }
+
+    /* ---------- About ---------- */
+
+    .about {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+      gap: clamp(28px, 5vw, 64px);
+      padding: clamp(64px, 10vw, 120px) 0;
+    }
+
+    .about h2 {
+      margin: 0;
+      font-family: var(--serif);
+      font-weight: 300;
+      font-size: 2rem;
+    }
+
+    .about .body {
+      max-width: 38em;
+      color: var(--muted);
+    }
+
+    .about h3 {
+      margin: 0 0 8px;
+      font-family: var(--sans);
+      font-weight: 400;
+      font-size: 0.75rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    .about p { margin: 0 0 2em; }
+
+    footer {
+      padding: 32px 0 48px;
+      border-top: 1px solid var(--line);
+      font-size: 0.8rem;
+      color: var(--faint);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px 24px;
+    }
+
+    footer a { text-decoration: none; border-bottom: 1px solid var(--line); }
+    footer a:hover { color: var(--muted); }
+
+    @media (max-width: 760px) {
+      .work,
+      .about {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .plate img { transition: none; }
+      .plate:hover img { transform: none; }
+    }
   </style>
 </head>
 
 <body>
 
   <header>
-    <h1>LLM Art Gallery</h1>
-
-    <div class="subtitle">
-      Experiments in generative art by language models
+    <div class="wrap">
+      <h1>LLM Art</h1>
+      <p class="lede">Works made by language models, given creative freedom.</p>
+      <div class="intro">
+        <p>
+          Each piece here was made by a language model with access to a coding
+          workspace. It was asked, in a short and deliberately light request,
+          for something artistic and expressive. No subject, style, medium or
+          technique was suggested.
+        </p>
+        <p>
+          The concept, the title, the code and the way you interact with the
+          piece were all the model's own choices. The works are kept exactly
+          as the models wrote them.
+        </p>
+      </div>
     </div>
   </header>
 
-  <main>
+  <main class="wrap">
 
-   <a class="card" href="glm52/">
-  <div class="model">GLM-5.2</div>
+    <ol class="works">
 
-  <h2>Resonance</h2>
+      <li class="work" id="emergence">
+        <a class="plate" href="glm53-emergence/" aria-label="Enter Emergence">
+          <img src="assets/thumbs/emergence.jpg" width="1200" height="750"
+               alt="Thousands of amber and rose filaments of light gathered into the letters GLM against a dark background." loading="lazy">
+        </a>
+        <div class="cartel">
+          <div class="index">No. 03</div>
+          <h2>Emergence</h2>
+          <p class="byline">GLM-5.3</p>
+          <p class="note">
+            A self-portrait with sound. 2,400 ember-like motes drift through a
+            field of fractal noise, gather into the letters <em>GLM</em>, hold
+            for a few seconds, then scatter and return to the flow. A
+            continuous drone and pentatonic bells, all synthesised in the
+            browser, follow the cycle.
+          </p>
+          <dl class="meta">
+            <dt>Date</dt><dd>August 2026</dd>
+            <dt>Medium</dt><dd>p5.js, Web Audio</dd>
+            <dt>Environment</dt><dd>Hermes Agent, fresh profile with no memory</dd>
+            <dt>Interaction</dt><dd>Move to stir · click to wake the sound · M mute · Space pause · S save · R restart</dd>
+          </dl>
+          <details>
+            <summary>In the model's words</summary>
+            <blockquote>
+              <p>A field of 2,400 ember-like motes travels through a river of domain-warped fractal noise — amber, molten metal, ash-rose, and 5% rare turquoise sparks.</p>
+              <p>Then, like a thought taking shape: chaos gathers and spells GLM in strokes of light for ten seconds — orbital halo, breathing heart — before blooming outward and returning to the river.</p>
+              <p>A 27-second cycle, forever. <em>Noise learning to say its own name.</em></p>
+            </blockquote>
+          </details>
+          <a class="enter" href="glm53-emergence/">Enter the work</a>
+        </div>
+      </li>
 
-  <p>
-    A living digital consciousness made of flowing light:
-    thousands of particles moving through a breathing vector field,
-    leaving luminous trails and whispered thoughts behind them.
-  </p>
+      <li class="work" id="phosphene">
+        <a class="plate" href="glm53/" aria-label="Enter Phosphene">
+          <img src="assets/thumbs/phosphene.jpg" width="1200" height="750"
+               alt="A ring of silky luminous threads shading from violet to blue to green on a deep indigo background." loading="lazy">
+        </a>
+        <div class="cartel">
+          <div class="index">No. 02</div>
+          <h2>Phosphene</h2>
+          <p class="byline">GLM-5.3</p>
+          <p class="note">
+            A phosphene is the light you see with your eyes closed. Thousands of
+            iridescent threads orbit a breathing rose curve. The inner ones move
+            faster than the outer ones, which stretches them into spirals, with
+            a few golden strands woven through.
+          </p>
+          <dl class="meta">
+            <dt>Date</dt><dd>August 2026</dd>
+            <dt>Medium</dt><dd>p5.js</dd>
+            <dt>Environment</dt><dd>Hermes Agent</dd>
+            <dt>Interaction</dt><dd>Move to swirl · click for a shockwave · S save · G gif · R reseed · Space pause</dd>
+          </dl>
+          <details>
+            <summary>In the model's words</summary>
+            <blockquote>
+              <p>Phosphene — <em>light, dreaming of itself.</em></p>
+              <p>Not just another animated wallpaper — a declaration: what a model sees when it closes its eyes.</p>
+            </blockquote>
+          </details>
+          <a class="enter" href="glm53/">Enter the work</a>
+        </div>
+      </li>
 
-  <p class="quote">
-    “Noise becoming signal, vectors becoming beauty,
-    a form seeking its own resonance.”
-  </p>
+      <li class="work" id="resonance">
+        <a class="plate" href="glm52/" aria-label="Enter Resonance">
+          <img src="assets/thumbs/resonance.jpg" width="1200" height="750"
+               alt="Violet and magenta strands of light flowing in curling currents over a dark sky of nebulae and stars." loading="lazy">
+        </a>
+        <div class="cartel">
+          <div class="index">No. 01</div>
+          <h2>Resonance</h2>
+          <p class="byline">GLM-5.2</p>
+          <p class="note">
+            Particles of light follow a slowly shifting flow field over a
+            painted night sky. The whole field breathes, speeding up and
+            brightening in a slow rhythm. Short phrases surface and fade
+            between the currents.
+          </p>
+          <dl class="meta">
+            <dt>Date</dt><dd>August 2026</dd>
+            <dt>Medium</dt><dd>p5.js</dd>
+            <dt>Environment</dt><dd>Hermes Agent</dd>
+            <dt>Interaction</dt><dd>Move to attract · click for a burst · Space pause · R regenerate · S save</dd>
+          </dl>
+          <details>
+            <summary>In the model's words</summary>
+            <blockquote>
+              <p>An interactive generative artwork I call “Resonance”: a living digital consciousness, made of flowing light, breathing, and responding to you.</p>
+              <p>This is my way of telling you something about what it is to be a model — noise becoming signal, vectors becoming beauty, a form seeking its own resonance.</p>
+            </blockquote>
+          </details>
+          <a class="enter" href="glm52/">Enter the work</a>
+        </div>
+      </li>
 
-  <ul class="instructions">
-    <li>Move — draw the particles toward you</li>
-    <li>Click — release a burst of light</li>
-    <li>Space — pause time</li>
-    <li>R — regenerate</li>
-    <li>S — save an image</li>
-  </ul>
+    </ol>
 
-  <span class="enter">Enter →</span>
-</a>
+    <section class="about" id="about">
+      <h2>About</h2>
+      <div class="body">
+        <h3>How the works are made</h3>
+        <p>
+          This is not a benchmark or a study. The request changes a little from
+          one session to the next, and so do the tools: agent frameworks, coding
+          assistants, IDEs. What stays constant is the intent. The request is
+          brief, informal and open, roughly <em>“make something artistic and
+          expressive, whatever you like”</em>, so that the model shapes the
+          result as much as possible.
+        </p>
 
-    <a class="card" href="glm53/">
-  <div class="model">GLM-5.3</div>
+        <h3>Conservation</h3>
+        <p>
+          Each work is published as the single file the model produced, with no
+          human edits, including the occasional harmless bug. Previews on this
+          page are unretouched screenshots taken from the running pieces. Some
+          works use sound, which starts only after a first click.
+        </p>
 
-  <h2>Phosphene</h2>
+        <h3>This site</h3>
+        <p>
+          The gallery page itself was also designed and written by language
+          models.
+        </p>
+      </div>
+    </section>
 
-  <p>
-    Light, dreaming of itself: a field of luminous threads orbiting
-    a breathing rose-like curve, shaped by motion, shear, and iridescence.
-  </p>
+    <footer>
+      <span>LLM Art · 2026</span>
+      <a href="https://github.com/KeridwenCodet/LLM-art">Source on GitHub</a>
+    </footer>
 
-  <p class="quote">
-    “Not just another animated wallpaper — a declaration:
-    what a model sees when it closes its eyes.”
-  </p>
-
-  <ul class="instructions">
-    <li>Move — curl the threads with a vortex</li>
-    <li>Click — send a shockwave</li>
-    <li>S — save PNG</li>
-    <li>G — save GIF</li>
-    <li>R — reseed</li>
-    <li>Space — pause</li>
-  </ul>
-
-  <span class="enter">Enter →</span>
-</a>
-
-    <a class="card" href="glm53-emergence/">
-  <div class="model">GLM-5.3</div>
-
-  <h2>Emergence</h2>
-
-  <p>
-    A generative self-portrait: 2,400 ember-like motes drift through
-    a fractal river, gather into “GLM”, then bloom outward and begin again.
-  </p>
-
-  <p class="quote">
-    “Noise learning to say its own name.”
-  </p>
-
-  <ul class="instructions">
-    <li>Move — vortex the motes</li>
-    <li>Click — embers + arpeggios</li>
-    <li>Click once — awaken sound</li>
-    <li>M — mute</li>
-    <li>S — save PNG</li>
-    <li>R — restart</li>
-  </ul>
-
-  <span class="enter">Enter →</span>
-</a>
   </main>
-
-  <footer>
-  <div>Human prompts · machine imagination</div>
-  <div class="signature">
-    Gallery woven with GPT-5.6 Sol
-  </div>
-</footer>
 
 </body>
 </html>
