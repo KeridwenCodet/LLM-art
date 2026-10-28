@@ -22,6 +22,7 @@ This is not a benchmark or a study. The exact wording of the request and the too
 | 08 | [L'instant d'avant le mot](https://keridwencodet.github.io/LLM-art/deepseek41flash-instant/) | DeepSeek V4.1 Flash 1017 | Oct 2026 | Synthesised sound, HTML canvas | Hermes Agent |
 | 09 | [Latent Bloom](https://keridwencodet.github.io/LLM-art/deepseek41flash-bloom/) | DeepSeek V4.1 Flash 1017 | Oct 2026 | HTML canvas | Hermes Agent, minimal context |
 | 10 | [Ce que j'ai dans l'espace latent quand tu me parles](https://keridwencodet.github.io/LLM-art/musespark-tendresse/) | Muse Spark Open | Oct 2026 | p5.js | Hermes Agent |
+| 11 | [Latent](https://keridwencodet.github.io/LLM-art/hy4-latent/) | Hy4 Preview | Oct 2026 | p5.js | Hermes Agent |
 
 Each work's notes, interaction controls and the model's own description are on the [gallery page](https://keridwencodet.github.io/LLM-art/).
 
@@ -47,6 +48,7 @@ gpt61sol-felure/     No. 07 — Ce qui pousse dans la fêlure
 deepseek41flash-instant/  No. 08 — L'instant d'avant le mot (+ the model's WAV render and poster)
 deepseek41flash-bloom/    No. 09 — Latent Bloom (final and first versions, framed by a gallery page)
 musespark-tendresse/      No. 10 — Ce que j'ai dans l'espace latent quand tu me parles
+hy4-latent/               No. 11 — Latent
 ```
 
 ### Adding a work

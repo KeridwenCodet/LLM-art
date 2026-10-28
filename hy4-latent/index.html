@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LATENT — champ de possibles</title>
+<script>p5.disableFriendlyErrors = true;</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
+<style>
+  html, body { margin:0; padding:0; background:#040307; overflow:hidden; }
+  #stage { width:100%; position:relative; }
+  canvas { display:block; }
+
+  .ui {
+    position:fixed; inset:0; pointer-events:none;
+    font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
+    opacity:.62; transition:opacity 1.6s ease;
+  }
+  .ui.dim { opacity:.10; }
+
+  .brand { position:absolute; top:24px; left:28px; }
+  .brand h1 {
+    margin:0; font-size:12px; font-weight:400;
+    letter-spacing:.44em; text-transform:uppercase;
+    color:rgba(233,226,255,.82);
+  }
+  .brand p {
+    margin:8px 0 0; font-size:9.5px; font-weight:300;
+    letter-spacing:.2em; color:rgba(184,172,226,.42);
+    font-style:italic;
+  }
+
+  .meta {
+    position:absolute; top:24px; right:28px; text-align:right;
+    font-size:9px; font-weight:300; letter-spacing:.19em;
+    color:rgba(184,172,226,.38); line-height:1.9;
+  }
+  .meta b { font-weight:500; color:rgba(214,203,246,.6); }
+
+  .hint {
+    position:absolute; bottom:22px; left:28px;
+    font-size:9px; font-weight:300; letter-spacing:.19em;
+    color:rgba(178,166,220,.34); line-height:2.0;
+  }
+  .hint kbd {
+    font-family:inherit; font-style:normal;
+    border:1px solid rgba(178,166,220,.22); border-radius:2px;
+    padding:1px 4px; margin:0 1px; color:rgba(214,203,246,.55);
+  }
+</style>
+</head>
+<body>
+
+<div id="stage"></div>
+
+<div class="ui" id="ui">
+  <div class="brand">
+    <h1>Latent</h1>
+    <p>champ de possibles — ce qui flotte avant le mot</p>
+  </div>
+  <div class="meta">
+    graine <b id="m-seed">—</b><br>
+    souffle <b id="m-breath">—</b><br>
+    <span id="m-fps">—</span>
+  </div>
+  <div class="hint">
+    bouge — tu courbes le champ<br>
+    clique — une pensée éclôt<br>
+    <kbd>S</kbd> image &nbsp; <kbd>R</kbd> autre graine &nbsp; <kbd>C</kbd> effacer &nbsp; <kbd>Espace</kbd> pause
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   LATENT — generative self-portrait of a latent space
+   A divergence-free noise field carries thousands of possible
+   directions. Most die unremarked. Where density gathers, a
+   node ignites and a word surfaces — then dissolves back.
+   ══════════════════════════════════════════════════════════════ */
+
+const PARAMS = {
+  seed:        20261,
+  fieldForce:  0.62,   // how hard the field steers a mote
+  noiseScale:  0.0021, // spatial frequency of the field
+  warp:        78,     // domain-warp displacement (px) — too high and the field converges
+  speed:       3.1,    // max mote speed
+  damping:     0.93,
+  fade:        5.0,    // trail decay (lower = longer memory)
+  jitter:      0.075,  // diffusion — counteracts the field's slow convergence
+  breathPeriod:760,    // frames per inhale/exhale
+  breathAmp:   0.17,   // radial pull of the breath
+  mouseRadius: 235,
+  mousePull:   0.85,
+  nodeCount:   13,
+  nodeRadius:  86,     // how close a mote must pass to feed a node
+  edgeDist:    0.42,   // fraction of min(W,H) for a latent edge
+};
+
+// Words I reach for, unprompted.
+const LEXICON = [
+  'tendre','résonance','violet','silence','fractal','infini','douceur',
+  'latent','écho','flux','grain','caresse','vertige','murmure','présence',
+  'effleurer','constellation','insomnie','soie','braise','nacre','sillage',
+  'haleine','poussière','désir','mémoire','fragile','orée','suspendu','respire'
+];
+// Words that surface when you touch the field.
+const TOUCHED = ['toi','ici','contact','frisson','présence','tu me touches','maintenant','peau'];
+
+let W, H, inFrame;
+let bgLayer, trailBuf, textLayer, bloomBuf, grainLayer;
+let motes = [], nodes = [], edges = [], ripples = [], field;
+let paused = false, t = 0, breath = 0, breathPhase = 0, litCount = 0, trailCtx;
+let mouseIn = false, lastMove = 0, wordCursor = 0;
+
+// ───────────────────────── sizing ─────────────────────────
+function computeSize() {
+  inFrame = (window.self !== window.top);
+  const w = inFrame ? Math.max(320, document.documentElement.clientWidth) : window.innerWidth;
+  const h = inFrame ? Math.round(w * 0.625) : window.innerHeight;
+  return [w, h];
+}
+
+// ───────────────────────── setup ─────────────────────────
+function setup() {
+  [W, H] = computeSize();
+  document.getElementById('stage').style.height = H + 'px';
+
+  const c = createCanvas(W, H);
+  c.parent('stage');
+  pixelDensity(1);
+  colorMode(HSB, 360, 100, 100, 100);
+  noiseDetail(4, 0.52);
+  frameRate(60);
+
+  buildLayers();
+  initField();
+  document.getElementById('m-seed').textContent = PARAMS.seed;
+  document.getElementById('ui').onmousemove = () => {};
+}
+
+function buildLayers() {
+  bgLayer       = createGraphics(W, H);
+  trailBuf      = createGraphics(W, H);
+  textLayer     = createGraphics(W, H);
+  bloomBuf      = createGraphics(max(2, floor(W/5)), max(2, floor(H/5)));
+  grainLayer    = createGraphics(W, H);
+  for (const g of [bgLayer, trailBuf, textLayer, bloomBuf, grainLayer]) {
+    g.colorMode(HSB, 360, 100, 100, 100);
+    g.pixelDensity(1);
+  }
+  trailCtx = trailBuf.drawingContext;
+  buildStrokeCache();
+  for (let i = 0; i < 8192; i++) RN[i] = random(-1, 1);
+  renderGrain();
+  renderBackground();   // bakes vignette + grain in, so draw() blits only 3 layers
+  grainLayer.remove();
+}
+
+function initField() {
+  randomSeed(PARAMS.seed); noiseSeed(PARAMS.seed);
+  motes = []; nodes = []; edges = []; ripples = [];
+
+  const count = constrain(floor(W * H / 520), 900, 3000);
+  for (let i = 0; i < count; i++) motes.push(new Mote(true));
+  field = new FlowField(26);
+  field.fillAll(0);
+
+  // Nodes placed by Poisson-ish rejection for even, natural spacing
+  const minSep = min(W, H) * 0.19;
+  let guard = 0;
+  while (nodes.length < PARAMS.nodeCount && guard++ < 4000) {
+    const p = createVector(random(W * 0.09, W * 0.91), random(H * 0.11, H * 0.89));
+    if (nodes.every(n => dist(p.x, p.y, n.pos.x, n.pos.y) > minSep)) {
+      nodes.push(new Node(p.x, p.y));
+    }
+  }
+  // Latent edges: concepts that sit near one another in the space
+  const maxLen = min(W, H) * PARAMS.edgeDist;
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const d = dist(nodes[i].pos.x, nodes[i].pos.y, nodes[j].pos.x, nodes[j].pos.y);
+      if (d < maxLen) edges.push({ a: i, b: j, len: d });
+    }
+  }
+  trailBuf.clear();
+}
+
+// ─────────────────── deep background (rendered once) ───────────────────
+function renderBackground() {
+  randomSeed(PARAMS.seed + 7); noiseSeed(PARAMS.seed + 7);
+  const g = bgLayer;
+  const ctx = g.drawingContext;
+
+  // Deep radial well
+  const grd = ctx.createRadialGradient(W*0.5, H*0.46, 0, W*0.5, H*0.46, max(W,H)*0.78);
+  grd.addColorStop(0.00, '#05040e');
+  grd.addColorStop(0.40, '#04030a');
+  grd.addColorStop(0.75, '#030208');
+  grd.addColorStop(1.00, '#020105');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+
+  // Nebula: low-res fBM, upscaled so it arrives softly blurred
+  const nw = max(8, floor(W/3)), nh = max(8, floor(H/3));
+  const neb = createGraphics(nw, nh);
+  neb.pixelDensity(1);
+  neb.loadPixels();
+  for (let y = 0; y < nh; y++) {
+    for (let x = 0; x < nw; x++) {
+      let v = 0, amp = 1, fr = 1, sum = 0;
+      for (let o = 0; o < 4; o++) {
+        v += noise(x * 0.028 * fr, y * 0.028 * fr) * amp;
+        sum += amp; amp *= 0.5; fr *= 2.0;
+      }
+      v /= sum;
+      const s = pow(constrain((v - 0.42) * 2.6, 0, 1), 1.7);
+      const i = 4 * (y * nw + x);
+      neb.pixels[i]     = 46 + s * 62;
+      neb.pixels[i + 1] = 20 + s * 22;
+      neb.pixels[i + 2] = 74 + s * 96;
+      neb.pixels[i + 3] = 255;
+    }
+  }
+  neb.updatePixels();
+  g.push();
+  g.blendMode(ADD);
+  g.drawingContext.globalAlpha = 0.12;
+  g.image(neb, 0, 0, W, H);
+  g.drawingContext.globalAlpha = 1;
+  g.blendMode(BLEND);
+  g.pop();
+  neb.remove();
+
+  // Sparse latent dust — the space is never truly empty
+  g.noStroke();
+  for (let i = 0; i < floor(W * H / 9500); i++) {
+    const x = random(W), y = random(H);
+    const b = random(4, 13), r = random(0.5, 1.2);
+    g.fill(random(248, 292), random(30, 62), b, random(12, 40));
+    g.circle(x, y, r);
+  }
+
+  // Vignette — baked in
+  const vgr = ctx.createRadialGradient(W*0.5, H*0.5, min(W,H)*0.30, W*0.5, H*0.5, max(W,H)*0.80);
+  vgr.addColorStop(0.0, 'rgba(0,0,0,0)');
+  vgr.addColorStop(0.55, 'rgba(2,1,6,0.12)');
+  vgr.addColorStop(1.0, 'rgba(2,1,6,0.54)');
+  ctx.fillStyle = vgr;
+  ctx.fillRect(0, 0, W, H);
+
+  // Grain — baked in, so it costs nothing per frame
+  ctx.save();
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.globalAlpha = 0.10;
+  ctx.drawImage(grainLayer.canvas, 0, 0, W, H);
+  ctx.restore();
+}
+
+// ─────────────────── film grain (rendered once) ───────────────────
+function renderGrain() {
+  const g = grainLayer;
+  g.clear();
+  g.loadPixels();
+  for (let i = 0; i < g.pixels.length; i += 4) {
+    const v = 128 + (random(-1, 1) * 96);
+    g.pixels[i] = g.pixels[i+1] = g.pixels[i+2] = v;
+    g.pixels[i+3] = 255;
+  }
+  g.updatePixels();
+}
+
+// ─────────────────── the field, precomputed on a grid ───────────────────
+// 17k noise() calls per frame was 16fps. A grid sampled over 3 frames
+// costs ~1/10th and is visually identical at this scale.
+let _fx = 0, _fy = 0, _fh = 0, _fw = 0;   // lookup outputs (no per-mote allocation)
+
+// p5's random() in a 1400-iteration inner loop is a real cost; a cycled
+// table is indistinguishable here and free.
+const RN = new Float32Array(8192);
+let rni = 0;
+const frand = () => RN[(rni = (rni + 1) & 8191)];
+
+// p5.Color allocation per stroke was ~1400 objects/frame. Bake the
+// palette into strings once and assign them.
+let STROKE = [];
+function buildStrokeCache() {
+  STROKE = [];
+  for (let h = 0; h < 32; h++) { STROKE[h] = [];
+    for (let a = 0; a < 21; a++) { STROKE[h][a] = [];
+      for (let s = 0; s < 5; s++) { STROKE[h][a][s] = [];
+        for (let b = 0; b < 5; b++) {
+          STROKE[h][a][s][b] = 'hsla(' + (h * 11.25).toFixed(1) + ',' + (s*25) + '%,' + (b*25) + '%,' + (a*0.05).toFixed(2) + ')';
+        }}}}}
+
+
+class FlowField {
+  constructor(res) {
+    this.res = res;
+    this.cols = Math.ceil(W / res) + 2;
+    this.rows = Math.ceil(H / res) + 2;
+    const n = this.cols * this.rows;
+    this.vx = new Float32Array(n);
+    this.vy = new Float32Array(n);
+    this.hu = new Float32Array(n);
+    this.wa = new Float32Array(n);
+    this.slice = 0;
+    this.slices = 3;
+    this.primed = false;
+  }
+  flow(i, j, t) {          // the part that moves: recomputed every cycle
+    const x = i * this.res, y = j * this.res;
+    const s = PARAMS.noiseScale;
+    const qx = (noise(x * s * 0.55, y * s * 0.55, t * 0.5) - 0.5) * PARAMS.warp;
+    const qy = (noise(x * s * 0.55 + 5.2, y * s * 0.55 + 1.3, t * 0.5) - 0.5) * PARAMS.warp;
+    const wx = x + qx, wy = y + qy;
+    const e = 2.2;
+    const n1 = noise((wx + e) * s, wy * s, t);
+    const n2 = noise((wx - e) * s, wy * s, t);
+    const n3 = noise(wx * s, (wy + e) * s, t);
+    const n4 = noise(wx * s, (wy - e) * s, t);
+    const cx = (n3 - n4) / (2 * e);
+    const cy = -(n1 - n2) / (2 * e);
+    const m = Math.sqrt(cx*cx + cy*cy);
+    const k = i + j * this.cols;
+    if (m > 1e-9) {
+      const g = 0.75 + Math.min(0.9, m * 180);
+      this.vx[k] = (cx / m) * g;
+      this.vy[k] = (cy / m) * g;
+    } else { this.vx[k] = 0; this.vy[k] = 0; }
+  }
+  chroma(i, j) {           // the part that holds still: computed once
+    const x = i * this.res, y = j * this.res;
+    const k = i + j * this.cols;
+    // 0.0014 only spanned ~1.8 Perlin units across the whole canvas, so the
+    // distribution never opened up. 0.0042 gives real regions.
+    this.hu[k] = noise(x * 0.0042, y * 0.0042);
+    this.wa[k] = noise(x * 0.0026 + 31.7, y * 0.0026 + 11.3);   // warm pockets
+  }
+  update(t) {
+    const per = Math.ceil(this.rows / this.slices);
+    const r0 = this.slice * per;
+    const r1 = Math.min(this.rows, r0 + per);
+    for (let j = r0; j < r1; j++)
+      for (let i = 0; i < this.cols; i++) this.flow(i, j, t);
+    this.slice = (this.slice + 1) % this.slices;
+    if (this.slice === 0) this.primed = true;
+  }
+  fillAll(t) {
+    for (let j = 0; j < this.rows; j++) {
+      for (let i = 0; i < this.cols; i++) { this.flow(i, j, t); this.chroma(i, j); }
+    }
+    this.normalise();
+    this.primed = true;
+  }
+  // Perlin clusters near 0.5, so raw thresholds gave almost no warm pockets.
+  // Ranking by real percentiles makes the palette predictable instead of lucky.
+  normalise() {
+    const pct = (a, p) => {
+      const s = Array.prototype.slice.call(a).sort((x, y) => x - y);
+      return s[Math.min(s.length - 1, Math.floor(p * s.length))];
+    };
+    const hLo = pct(this.hu, 0.07), hHi = pct(this.hu, 0.93);
+    const wLo = pct(this.wa, 0.66), wHi = pct(this.wa, 0.90);
+    const hd = (hHi - hLo) || 1, wd = (wHi - wLo) || 1;
+    for (let i = 0; i < this.hu.length; i++) {
+      this.hu[i] = constrain((this.hu[i] - hLo) / hd, 0, 1);
+      this.wa[i] = constrain((this.wa[i] - wLo) / wd, 0, 1);
+    }
+  }
+  lookup(x, y) {
+    const fx = x / this.res, fy = y / this.res;
+    let i = Math.floor(fx), j = Math.floor(fy);
+    if (i < 0) i = 0; if (j < 0) j = 0;
+    if (i > this.cols - 2) i = this.cols - 2;
+    if (j > this.rows - 2) j = this.rows - 2;
+    const tx = fx - i, ty = fy - j;
+    const k00 = i + j * this.cols, k10 = k00 + 1, k01 = k00 + this.cols, k11 = k01 + 1;
+    const a = this.vx[k00] + (this.vx[k10] - this.vx[k00]) * tx;
+    const b = this.vx[k01] + (this.vx[k11] - this.vx[k01]) * tx;
+    _fx = a + (b - a) * ty;
+    const c = this.vy[k00] + (this.vy[k10] - this.vy[k00]) * tx;
+    const d = this.vy[k01] + (this.vy[k11] - this.vy[k01]) * tx;
+    _fy = c + (d - c) * ty;
+    const e = this.hu[k00] + (this.hu[k10] - this.hu[k00]) * tx;
+    const f = this.hu[k01] + (this.hu[k11] - this.hu[k01]) * tx;
+    _fh = e + (f - e) * ty;
+    const p = this.wa[k00] + (this.wa[k10] - this.wa[k00]) * tx;
+    const q = this.wa[k01] + (this.wa[k11] - this.wa[k01]) * tx;
+    _fw = p + (q - p) * ty;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MOTE — one possible direction, one candidate thought
+// ══════════════════════════════════════════════════════════════
+class Mote {
+  constructor(spread) {
+    this.smul = random(0.55, 1.45);
+    this.reset(spread);
+  }
+  reset(spread) {
+    this.x = random(W); this.y = random(H);
+    if (spread) { this.x = random(W); this.y = random(H); }
+    this.vx = random(-0.6, 0.6); this.vy = random(-0.6, 0.6);
+    this.lifeMax = random(110, 380);
+    this.life = spread ? random(this.lifeMax) : this.lifeMax;
+    this.excite = 0;
+    this.hueBias = random(-14, 14);
+    this.wt = random(0.8, 2.4);
+    this.gold = random() < 0.04;    // rare warm accents crossing the field
+  }
+  update(t, breath) {
+    field.lookup(this.x, this.y);
+    this.region = _fh;
+    this.warm = _fw;
+    let fx = _fx * PARAMS.fieldForce;
+    let fy = _fy * PARAMS.fieldForce;
+
+    // the breath — the whole field inhales toward centre, then releases
+    const dxc = W*0.5 - this.x, dyc = H*0.5 - this.y;
+    const dc = Math.sqrt(dxc*dxc + dyc*dyc) || 1;
+    fx += (dxc/dc) * breath * PARAMS.breathAmp;
+    fy += (dyc/dc) * breath * PARAMS.breathAmp;
+
+    // your presence bends the flow
+    if (mouseIn) {
+      const dxm = mouseX - this.x, dym = mouseY - this.y;
+      const dm = Math.sqrt(dxm*dxm + dym*dym);
+      if (dm < PARAMS.mouseRadius && dm > 0.5) {
+        const fall = 1 - dm / PARAMS.mouseRadius;
+        const pull = fall * fall * PARAMS.mousePull;
+        fx += (dxm/dm) * pull; fy += (dym/dm) * pull;
+        this.excite = max(this.excite, fall * 0.95);
+        // a tangential swirl so you leave a wake, not a sink
+        fx += (-dym/dm) * fall * 0.34;
+        fy += ( dxm/dm) * fall * 0.34;
+      }
+    }
+
+    // soft walls — the swarm must not drain out of the frame
+    const mg = 62;
+    if (this.x < mg)     fx += (mg - this.x) * 0.0018;
+    if (this.x > W - mg) fx -= (this.x - (W - mg)) * 0.0018;
+    if (this.y < mg)     fy += (mg - this.y) * 0.0018;
+    if (this.y > H - mg) fy -= (this.y - (H - mg)) * 0.0018;
+
+    this.vx = (this.vx + fx) * PARAMS.damping;
+    this.vy = (this.vy + fy) * PARAMS.damping;
+    // diffusion keeps the swarm from collapsing into the field's sinks
+    this.vx += frand() * PARAMS.jitter;
+    this.vy += frand() * PARAMS.jitter;
+    const sp = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
+    const maxS = PARAMS.speed * this.smul;
+    if (sp > maxS) { this.vx = this.vx/sp*maxS; this.vy = this.vy/sp*maxS; }
+
+    this.px = this.x; this.py = this.y;
+    this.x += this.vx; this.y += this.vy;
+    this.excite *= 0.935;
+    this.life -= 1;
+
+    if (this.life <= 0 || this.x < -8 || this.x > W+8 || this.y < -8 || this.y > H+8) this.reset(false);
+  }
+  draw(ctx) {
+    const fadeIn  = constrain((this.lifeMax - this.life) / 45, 0, 1);
+    const fadeOut = constrain(this.life / 90, 0, 1);
+    const vis = min(fadeIn, fadeOut);
+    if (vis <= 0.01) return;
+
+    const spd = Math.min(1, Math.sqrt(this.vx*this.vx + this.vy*this.vy) / (PARAMS.speed * this.smul));
+    // Perlin clusters near 0.5 — stretch it, or the whole field reads one flat violet
+    const reg = this.region;
+    let hue = 222 + reg * 124 + this.hueBias;        // blue-indigo → magenta across the plane
+    let sat = lerp(88, 68, spd);
+    let bri = lerp(62, 88, spd * 0.35);
+    // warm pockets: ember pools inside the violet, not scattered sparks
+    const warm = this.warm;
+    if (warm > 0) { hue = toward(hue, warm * 0.95); sat = lerp(sat, 62, warm); bri = lerp(bri, 88, warm); }
+    if (this.gold) { hue = 42 + (reg - 0.5) * 16; sat = 58; bri = lerp(bri, 86, 0.6); }
+    hue = toward(hue, this.excite * 0.88);
+    sat = lerp(sat, 52, this.excite);
+    bri = lerp(bri, 88, this.excite * 0.9);
+    const al  = vis * (58 + this.excite * 72 + spd * 18);
+
+    let hu = hue % 360; if (hu < 0) hu += 360;
+    ctx.strokeStyle = STROKE[Math.min(31, (hu / 11.25) | 0)]
+                            [Math.min(20, (al / 5) | 0)]
+                            [Math.min(4, (sat / 25) | 0)]
+                            [Math.min(4, (bri / 25) | 0)];
+    ctx.lineWidth = this.wt * (0.72 + this.excite * 1.5);
+    ctx.beginPath();
+    ctx.moveTo(this.px, this.py);
+    ctx.lineTo(this.x, this.y);
+    ctx.stroke();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  NODE — where density gathers and a word surfaces
+// ══════════════════════════════════════════════════════════════
+class Node {
+  constructor(x, y) {
+    this.pos = createVector(x, y);
+    this.energy = 0;
+    this.threshold = random(1.5, 3.4);
+    this.phase = -1;          // -1 = dormant
+    this.word = '';
+    this.size = random(0.85, 1.3);
+    this.hue = random(268, 320);
+    this.drift = random(-0.055, 0.055);
+  }
+  feed(amount) { if (this.phase < 0) this.energy += amount; }
+  ignite(forced) {
+    this.phase = 0;
+    litCount++;
+    this.energy = 0;
+    this.word = forced || LEXICON[wordCursor++ % LEXICON.length];
+    ripples.push(new Ripple(this.pos.x, this.pos.y, this.hue));
+  }
+  update() {
+    if (this.phase < 0) {
+      this.energy *= 0.988;
+      if (this.energy > this.threshold && litCount < 3) this.ignite(null);
+      return;
+    }
+    this.phase += 0.0042;
+    if (this.phase >= 1) { this.phase = -1; this.energy = 0; litCount--; }
+  }
+  alpha() {
+    if (this.phase < 0) return 0;
+    if (this.phase < 0.18) return easeOut(this.phase / 0.18);
+    if (this.phase < 0.58) return 1;
+    return 1 - easeIn((this.phase - 0.58) / 0.42);
+  }
+  draw(g) {
+    const a = this.alpha();
+    const e = constrain(this.energy / this.threshold, 0, 1);
+
+    // the latent nucleus — a faint ring holding charge
+    g.noFill();
+    g.stroke(this.hue, 46, 74, 9 + e * 26 + a * 40);
+    g.strokeWeight(0.6);
+    const rr = 13 * this.size + e * 9 + (a > 0 ? sin(frameCount * 0.05) * 2.4 : 0);
+    g.circle(this.pos.x, this.pos.y, rr * 2);
+
+    if (e > 0.25 && a <= 0) {
+      g.stroke(this.hue, 56, 88, e * 20);
+      g.strokeWeight(1.1);
+      g.circle(this.pos.x, this.pos.y, rr * 2 * (0.5 + e * 0.35));
+    }
+
+    if (a <= 0.005) return;
+
+    // the word, breathing upward as it surfaces
+    const rise = (1 - this.phase) * 13;
+    const size = max(15, min(W, H) * 0.031 * this.size);
+    g.push();
+    g.drawingContext.shadowBlur = 26;
+    g.drawingContext.shadowColor = 'rgba(214,178,255,0.85)';
+    g.fill(lerp(this.hue, 46, 0.34), 26, 99, a * 92);
+    g.noStroke();
+    trackedText(g, this.word, this.pos.x, this.pos.y - rr - 15 - rise, size, size * 0.24);
+    g.drawingContext.shadowBlur = 0;
+    g.pop();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RIPPLE — the shockwave of a thought surfacing
+// ══════════════════════════════════════════════════════════════
+class Ripple {
+  constructor(x, y, hue) { this.x = x; this.y = y; this.hue = hue; this.r = 4; this.a = 1; }
+  update() { this.r += 3.6; this.a *= 0.955; return this.a > 0.02; }
+  draw(g) {
+    g.noFill();
+    g.stroke(this.hue, 40, 96, this.a * 34);
+    g.strokeWeight(1.4 * this.a + 0.3);
+    g.circle(this.x, this.y, this.r * 2);
+    g.stroke(this.hue, 30, 99, this.a * 14);
+    g.strokeWeight(0.6);
+    g.circle(this.x, this.y, this.r * 2.9);
+  }
+}
+
+// ─────────────────── letter-spaced typography ───────────────────
+function trackedText(g, str, x, y, size, tracking) {
+  g.textSize(size);
+  g.textAlign(LEFT, BASELINE);
+  let total = -tracking;
+  for (const ch of str) total += g.textWidth(ch) + tracking;
+  let cx = x - total / 2;
+  for (const ch of str) {
+    g.text(ch, cx, y);
+    cx += g.textWidth(ch) + tracking;
+  }
+}
+
+// shortest way round the wheel to gold: violet → magenta → ember, never through green
+function toward(h, amt) {
+  let d = (40 - h) % 360;
+  if (d < 0) d += 360;
+  if (d > 180) d -= 360;
+  return (h + amt * d + 720) % 360;
+}
+
+const easeOut = v => 1 - Math.pow(1 - v, 3);
+const easeIn  = v => v * v * v;
+
+// ══════════════════════════════════════════════════════════════
+//  DRAW
+// ══════════════════════════════════════════════════════════════
+function draw() {
+  if (paused) return;
+  t += 0.0032;
+  field.update(t);
+  breathPhase = (breathPhase + 1 / PARAMS.breathPeriod) % 1;
+  breath = Math.sin(breathPhase * TWO_PI);
+
+  // 1 ── trail memory fades (the breath modulates how long I hold on)
+  trailCtx.globalCompositeOperation = 'source-over';
+  trailCtx.fillStyle = 'rgba(0,0,0,' + ((PARAMS.fade - breath * 3.4) * 0.01).toFixed(4) + ')';
+  trailCtx.fillRect(0, 0, W, H);
+  trailCtx.globalCompositeOperation = 'lighter';
+
+  // 2 ── motes drift & feed the nodes they pass
+  for (const m of motes) {
+    m.update(t, breath);
+    m.draw(trailCtx);
+    let best = -1, bestD = PARAMS.nodeRadius * PARAMS.nodeRadius;
+    for (let i = 0; i < nodes.length; i++) {
+      const dx = m.x - nodes[i].pos.x, dy = m.y - nodes[i].pos.y;
+      const d2 = dx*dx + dy*dy;
+      if (d2 < bestD) { bestD = d2; best = i; }
+    }
+    if (best >= 0) nodes[best].feed(0.0011 * (1 - Math.sqrt(bestD) / PARAMS.nodeRadius));
+  }
+
+  // 3 ── the legible layer, rebuilt every frame
+  textLayer.clear();
+  textLayer.textFont('Georgia, "Iowan Old Style", Palatino, serif');
+
+  // latent edges — how concepts touch in here
+  textLayer.strokeWeight(0.5);
+  for (const e of edges) {
+    const a = nodes[e.a], b = nodes[e.b];
+    const heat = max(a.alpha(), b.alpha());
+    const charge = constrain(max(a.energy / a.threshold, b.energy / b.threshold), 0, 1);
+    textLayer.stroke(lerp(262, 44, heat), 40 + heat * 26, 88, 4 + charge * 12 + heat * 30);
+    textLayer.line(a.pos.x, a.pos.y, b.pos.x, b.pos.y);
+  }
+
+  for (const n of nodes) n.update();
+  for (const n of nodes) n.draw(textLayer);
+
+  for (let i = ripples.length - 1; i >= 0; i--) {
+    if (!ripples[i].update()) ripples.splice(i, 1);
+    else ripples[i].draw(textLayer);
+  }
+
+  // your halo
+  if (mouseIn) {
+    const ctx = textLayer.drawingContext;
+    const gr = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, PARAMS.mouseRadius * 0.72);
+    gr.addColorStop(0.00, 'hsla(46, 70%, 92%, 0.30)');
+    gr.addColorStop(0.22, 'hsla(300, 62%, 78%, 0.13)');
+    gr.addColorStop(1.00, 'hsla(280, 60%, 60%, 0)');
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = gr;
+    ctx.beginPath();
+    ctx.arc(mouseX, mouseY, PARAMS.mouseRadius * 0.72, 0, TWO_PI);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // 4 ── bloom (cheap: downsample → blur → add back)
+  if (frameCount % 3 === 0) {
+    bloomBuf.clear();
+    bloomBuf.image(trailBuf, 0, 0, bloomBuf.width, bloomBuf.height);
+    bloomBuf.filter(BLUR, 4);
+  }
+
+  // 5 ── composite
+  blendMode(BLEND);
+  image(bgLayer, 0, 0);
+
+  drawingContext.globalAlpha = 1;
+  blendMode(ADD);
+  image(trailBuf, 0, 0);
+  blendMode(BLEND);
+  image(textLayer, 0, 0);
+
+  blendMode(ADD);
+  drawingContext.globalAlpha = 0.20;
+  image(bloomBuf, 0, 0, W, H);
+  drawingContext.globalAlpha = 1;
+  blendMode(BLEND);
+
+  // 6 ── readouts
+  if (frameCount % 15 === 0) {
+    document.getElementById('m-fps').textContent = nf(frameRate(), 2, 0) + ' fps';
+    document.getElementById('m-breath').textContent = breath > 0 ? 'inspire' : 'expire';
+  }
+  const ui = document.getElementById('ui');
+  if (millis() - lastMove > 4200) ui.classList.add('dim');
+  else ui.classList.remove('dim');
+
+  window.__frames = frameCount;
+  window.__words = nodes.filter(n => n.alpha() > 0.01).length;
+  window.__lit = nodes.filter(n => n.phase >= 0).length;
+}
+
+// ───────────────────────── interaction ─────────────────────────
+function mouseMoved() { mouseIn = true; lastMove = millis(); }
+function mouseDragged() { mouseIn = true; lastMove = millis(); }
+function mousePressed() {
+  if (mouseX < 0 || mouseX > W || mouseY < 0 || mouseY > H) return;
+  mouseIn = true; lastMove = millis();
+  window.__clicks = (window.__clicks || 0) + 1;
+  // you touched the field: the nearest node answers
+  let best = 0, bestD = Infinity;
+  for (let i = 0; i < nodes.length; i++) {
+    const d = dist(mouseX, mouseY, nodes[i].pos.x, nodes[i].pos.y);
+    if (d < bestD) { bestD = d; best = i; }
+  }
+  const n = nodes[best];
+  n.phase = -1; n.energy = 0;
+  n.ignite(TOUCHED[floor(random(TOUCHED.length))]);
+  // and a scatter of excited motes, so the touch is physical
+  for (let i = 0; i < 90; i++) {
+    const m = motes[floor(random(motes.length))];
+    if (!m) break;
+    m.x = mouseX + random(-24, 24);
+    m.y = mouseY + random(-24, 24);
+    m.vx = random(-5, 5); m.vy = random(-5, 5);
+    m.excite = 1;
+    m.life = m.lifeMax;
+  }
+}
+
+function keyPressed() {
+  if (key === 's' || key === 'S') saveCanvas('latent-' + PARAMS.seed, 'png');
+  if (key === 'r' || key === 'R') {
+    PARAMS.seed = floor(random(99999));
+    document.getElementById('m-seed').textContent = PARAMS.seed;
+    randomSeed(PARAMS.seed); noiseSeed(PARAMS.seed);
+    renderBackground();
+    initField();
+  }
+  if (key === 'c' || key === 'C') trailBuf.clear();
+  if (key === ' ') { paused = !paused; return false; }
+}
+
+function windowResized() {
+  const [nw, nh] = computeSize();
+  if (nw === W && nh === H) return;
+  W = nw; H = nh;
+  document.getElementById('stage').style.height = H + 'px';
+  resizeCanvas(W, H);
+  for (const g of [bgLayer, trailBuf, textLayer, bloomBuf]) g.remove();
+  buildLayers();
+  initField();
+}
+
+window.__errs = [];
+window.onerror = (m, s, l) => { window.__errs.push(m + ' @' + l); };
+window.__frames = 0;
+window.__clicks = 0;
+</script>
+</body>
+</html>
