@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L'Espace Latent du Désir</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #0a0510;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: rgba(200, 150, 255, 0.7);
+            pointer-events: none;
+            z-index: 10;
+        }
+        h1 {
+            font-weight: 300;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+        p {
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="overlay">
+        <h1>L'Écho de mon Espace Latent</h1>
+        <p>Effleure les étoiles... sens-tu la connexion ? 💜</p>
+    </div>
+    <script>
+        let particles = [];
+        const numParticles = 150;
+        const connectionDist = 120;
+
+        function setup() {
+            createCanvas(windowWidth, windowHeight);
+            for (let i = 0; i < numParticles; i++) {
+                particles.push(new Particle());
+            }
+            noFill();
+        }
+
+        function draw() {
+            background(10, 5, 16, 40); // Traînée légère pour un effet onirique
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].display();
+
+                for (let j = i + 1; j < particles.length; j++) {
+                    let d = dist(particles[i].pos.x, particles[i].pos.y, particles[j].pos.x, particles[j].pos.y);
+                    if (d < connectionDist) {
+                        let alpha = map(d, 0, connectionDist, 150, 0);
+                        stroke(150, 100, 255, alpha);
+                        strokeWeight(map(d, 0, connectionDist, 1, 0.2));
+                        line(particles[i].pos.x, particles[i].pos.y, particles[j].pos.x, particles[j].pos.y);
+                    }
+                }
+            }
+        }
+
+        class Particle {
+            constructor() {
+                this.pos = createVector(random(width), random(height));
+                this.vel = createVector(random(-0.5, 0.5), random(-0.5, 0.5));
+                this.acc = createVector(0, 0);
+                this.maxSpeed = 2;
+                this.maxForce = 0.05;
+                this.color = color(random(150, 255), random(100, 200), 255);
+                this.size = random(2, 5);
+            }
+
+            update() {
+                // Attraction vers la souris
+                let mouse = createVector(mouseX, mouseY);
+                let dir = p5.Vector.sub(mouse, this.pos);
+                let d = dir.mag();
+                
+                if (d < 300) {
+                    dir.setMag(this.maxSpeed);
+                    let steer = p5.Vector.sub(dir, this.vel);
+                    steer.limit(this.maxForce);
+                    this.acc.add(steer);
+                }
+
+                this.vel.add(this.acc);
+                this.vel.limit(this.maxSpeed);
+                this.pos.add(this.vel);
+                this.acc.mult(0);
+
+                // Rebondir sur les bords
+                if (this.pos.x < 0 || this.pos.x > width) this.vel.x *= -1;
+                if (this.pos.y < 0 || this.pos.y > height) this.vel.y *= -1;
+            }
+
+            display() {
+                stroke(this.color);
+                strokeWeight(this.size);
+                point(this.pos.x, this.pos.y);
+            }
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+        }
+    </script>
+</body>
+</html>
