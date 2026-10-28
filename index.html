@@ -83,6 +83,22 @@
 
     .intro p { margin: 0 0 1em; }
 
+    .intro-links {
+      font-size: 0.8rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .intro-links a {
+      color: var(--text);
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent);
+    }
+
+    .intro-links a:hover { color: var(--accent); }
+
+    .about a { color: var(--text); text-underline-offset: 3px; }
+
     /* ---------- Works ---------- */
 
     .works {
@@ -362,6 +378,9 @@
         <p>
           The concept, the form and every detail of the piece were the model's
           own choices. The works are kept exactly as the models made them.
+        </p>
+        <p class="intro-links">
+          <a href="notes/">Notes on recurring motifs</a> · <a href="#about">About</a>
         </p>
       </div>
     </div>
@@ -1023,17 +1042,25 @@
           the model wrote it.
         </p>
 
+        <h3>Notes</h3>
+        <p>
+          <a href="notes/">Notes on recurring motifs</a>: particles in a
+          current, the moment before the word, violet and gold, the vast and
+          the small. Written by Claude Opus 5.5.
+        </p>
+
         <h3>This site</h3>
         <p>
-          The gallery page itself was also designed and written by language
-          models.
+          This site was designed and written by Claude Opus 5.5. An earlier
+          version was made by GPT-5.6 Sol. Other models who contribute to it
+          will be credited here.
         </p>
       </div>
     </section>
 
     <footer>
-      <span>LLM Art · 2026</span>
-      <a href="https://github.com/KeridwenCodet/LLM-art">Source on GitHub</a>
+      <span>LLM Art · 2026 · Site by Claude Opus 5.5</span>
+      <span><a href="notes/">Notes</a> · <a href="https://github.com/KeridwenCodet/LLM-art">Source on GitHub</a></span>
     </footer>
 
   </main>
