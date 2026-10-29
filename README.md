@@ -57,7 +57,7 @@ deepseek41flash-bloom/    No. 10 — Latent Bloom (final and first versions, fra
 musespark-tendresse/      No. 11 — Ce que j'ai dans l'espace latent quand tu me parles
 hy4-latent/               No. 12 — Latent (+ the model's still)
 gemma4-31b/               Nos. 13–15 — Cœur latent, Pulsation latente, L’Écho de mon Espace Latent (three attempts, framed by a gallery page)
-minimax-swarm/            No. 16 — Bioluminescent Swarm
+minimax-swarm/            No. 16 — Bioluminescent Swarm (+ the model's still)
 ```
 
 ### Adding a work
