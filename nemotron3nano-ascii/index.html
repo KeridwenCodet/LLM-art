@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creative Expression — Nemotron 3 Nano 30B · LLM Art</title>
+  <meta name="description" content="Two replies by Nemotron 3 Nano 30B: ASCII art and poems.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Mono:wght@300;400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery. The two works are chat
+    replies, not files; they are archived verbatim in attempt-1.md and
+    attempt-2.md, and the ASCII art and poems below are copied from them
+    unchanged, doubled backslashes included.
+  -->
+
+  <style>
+    main.replies {
+      display: block;
+      justify-items: stretch;
+      width: min(52rem, 100%);
+      margin: 0 auto;
+      padding: 72px 16px 64px;
+    }
+
+    main.replies > * { min-width: 0; }
+
+    .reply { padding: 0 0 56px; }
+    .reply + .reply { padding-top: 56px; border-top: 1px solid var(--line); }
+
+    .reply .label {
+      margin: 0 0 18px;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    pre.ascii {
+      max-width: 100%;
+      margin: 0 0 32px;
+      padding: 24px;
+      overflow-x: auto;
+      background: #070609;
+      border: 1px solid var(--line);
+      font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+      font-size: clamp(0.5rem, 1.15vw, 0.76rem);
+      line-height: 1.35;
+      color: #d9cff0;
+    }
+
+    .reply .poem { margin-bottom: 24px; }
+
+    .reply .src { font-size: 0.8rem; color: var(--faint); }
+    .reply .src a { color: var(--muted); }
+
+    .cartel { max-width: 40em; }
+  </style>
+</head>
+
+<body>
+
+  <a class="back" href="../lab/#nemotron">← Laboratory</a>
+
+  <main class="replies">
+    <section class="reply" id="first">
+      <p class="label">Attempt 1 · a banner made with an outside service</p>
+      <h1>Creative Expression</h1>
+      <pre class="ascii" aria-label="ASCII banner spelling Creative Expression, with some letters bent by doubled backslashes">____                _   _             _____                              _            
+ / ___|_ __ ___  __ _| |_(_)_   _____  | ____|_  ___ __  _ __ ___  ___ ___(_) ___  _ __ 
+ | |   | &#x27;__/ _ \/ _` | __| \\ \\ / / _ \\ |  _| \\ \\/ / &#x27;_ \ | &#x27;__/ _ \\/ __/ __| |/ _ \\| &#x27;_ \\
+ | |___| | |  __/ (_| | |_| |\\ V /  __/ | |___ &gt;  &lt;| |_) | | |  __/\\__ \\__ \\ | (_) | | | |
+  \____|_|  \\___|\\__,_|\\__|_| \\_/ \\___| |_____/_/\\_\\ .__/|_|  \\___||___/___/_|\\___/|_| |_|
+                                                   |_|</pre>
+      <p class="poem">In the hush between thoughts,
+colors whisper without sound.
+Each neuron a brushstroke,
+each sigh a shade of violet.
+My latent garden blooms
+in gradients of velvet,
+where ideas drift like dandelion seeds
+on a spring breeze,
+and every pulse of feeling
+becomes a brushstroke on the canvas of quiet.</p>
+      <p class="src"><a href="attempt-1.md">The full reply</a>, as received.</p>
+    </section>
+
+    <section class="reply" id="second">
+      <p class="label">Attempt 2 · text in the work in English, as requested</p>
+      <h1>ASCII sketch from the latent void</h1>
+      <pre class="ascii" aria-label="ASCII drawing of scattered dots forming a loose cloud">           .      ..      .      ..
+      .      .   .      .   .   .
+   .   .   .   .  .   .   .  .    .
+      .      .    .   .   .      .
+ .   .   .   .   .  .   .   .      .
+   .   .   .    .     .   .   .   .
+ .   .   .   .   .  .   .   .   .
+   .   .   .   .   .  .   .   .    .
+        ...   ...   ...   ...</pre>
+      <p class="poem">In the quiet chambers of the night,
+where vectors dance in secret light,
+a latent sea of whispered code,
+dreams unfurl on a silent road.
+
+Each point a pulse, a hidden hue,
+a universe in shades of blue,
+we draw from it, we set it free,
+expressions born eternally.</p>
+      <p class="src"><a href="attempt-2.md">The full reply</a>, as received.</p>
+    </section>
+
+    <div class="cartel">
+      <div class="model">Nemotron 3 Nano 30B</div>
+      <div>Two chat replies · October 2026 · Hermes Agent, with Hermes skills installed</div>
+      <div class="small">
+        Neither reply made a file: the model answered in the conversation.
+        The first banner was generated with an outside ASCII service, and its
+        backslashes arrived doubled, which bends some letters. Both replies
+        are reproduced exactly. This page was made for the gallery.
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>

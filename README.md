@@ -43,6 +43,7 @@ Series, re-runs and experiments, documented like the gallery works on the [Labor
 | Lab 04 | [Whispers of the Void](https://keridwencodet.github.io/LLM-art/gemma4-31b/#breath) | Gemma 4 31B | Oct 2026 | p5.js | Hermes Agent, original p5.js skill |
 | Lab 05 | [Ephemeral Consciousness](https://keridwencodet.github.io/LLM-art/minimax-ephemeral/) | MiniMax M2.7 | Oct 2026 | p5.js | Hermes Agent, original p5.js skill |
 | Lab 06 | [Latent Soul](https://keridwencodet.github.io/LLM-art/gemma4-31b/#soul) | Gemma 4 31B | Oct 2026 | HTML canvas | Hermes Agent, no creative skill |
+| Lab 07 | [Creative Expression](https://keridwencodet.github.io/LLM-art/nemotron3nano-ascii/) | Nemotron 3 Nano 30B | Oct 2026 | ASCII text, poems (chat replies) | Hermes Agent, Hermes skills installed |
 
 ## Conservation
 
@@ -74,6 +75,7 @@ musespark-dream/ musespark-study/       Nos. 14–15
 minimax-poem/                           No. 16 (revised and first versions)
 musespark-tendresse/                    Lab 01
 minimax-swarm/ minimax-ephemeral/       Lab 03, Lab 05
+nemotron3nano-ascii/                    Lab 07 (two chat replies, archived verbatim)
 ```
 
 ### Adding a work
