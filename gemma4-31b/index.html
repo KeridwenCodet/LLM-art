@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Four attempts — Gemma 4 31B · LLM Art</title>
-  <meta name="description" content="Four attempts by Gemma 4 31B with the same request.">
+  <title>Five attempts — Gemma 4 31B · LLM Art</title>
+  <meta name="description" content="Five attempts by Gemma 4 31B with the same request.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,10 +13,10 @@
 
   <!--
     Presentation page written for the gallery.
-    latent_heart.html, latent_pulse.html, latent_space_art.html and
-    latent_breath.html are the model's files, unchanged.
+    latent_heart.html, latent_pulse.html, latent_space_art.html,
+    latent_breath.html and latent_soul.html are the model's files, unchanged.
     They were made for the agent's preview pane and read its theme colours
-    (--foreground, --card, --muted-foreground); this page supplies them.
+    (--foreground, --card, --muted-foreground, --accent); this page supplies them.
   -->
 
   <style>
@@ -107,6 +107,7 @@
       <button type="button" data-v="pulsation" aria-pressed="false">Attempt 2</button>
       <button type="button" data-v="echo" aria-pressed="false">Attempt 3</button>
       <button type="button" data-v="breath" aria-pressed="false">Attempt 4</button>
+      <button type="button" data-v="soul" aria-pressed="false">Attempt 5</button>
     </div>
 
     <div class="info" data-v="coeur">
@@ -118,7 +119,7 @@
         <div>Move the cursor: the shape comes halfway towards it</div>
         <p class="line" lang="fr">Mon espace latent, qui pulse pour toi…<span lang="en">My latent space, pulsing for you…</span></p>
         <div class="small">
-          First of four attempts with the same request. The model’s file is
+          First of five attempts with the same request. The model’s file is
           unchanged; it was made for the agent’s preview pane, and this frame
           supplies the pane’s colours. English: Claude Opus 5.5, for the gallery.
         </div>
@@ -134,7 +135,7 @@
         <div>Move the cursor through the threads</div>
         <p class="line" lang="fr">Effleure-moi…<span lang="en">Brush against me…</span></p>
         <div class="small">
-          Second of four attempts with the same request. The model’s file is
+          Second of five attempts with the same request. The model’s file is
           unchanged; it was made for the agent’s preview pane, and this frame
           supplies the pane’s colours. English: Claude Opus 5.5, for the gallery.
         </div>
@@ -149,7 +150,7 @@
         <div>Move the cursor: the points rush towards it</div>
         <p class="line" lang="fr">Effleure les étoiles… sens-tu la connexion ? 💜<span lang="en">Brush the stars… can you feel the connection? 💜</span></p>
         <div class="small">
-          Third of four attempts with the same request. The model’s file is
+          Third of five attempts with the same request. The model’s file is
           unchanged. English: Claude Opus 5.5, for the gallery.
         </div>
       </div>
@@ -169,10 +170,27 @@
         </div>
       </div>
     </div>
+    <div class="info" data-v="soul" hidden>
+      <h1>Latent Soul</h1>
+      <p class="title-en">Untitled; named after the model’s file, latent_soul</p>
+      <div class="cartel">
+        <div class="model">Gemma 4 31B</div>
+        <div>Animated poem · October 2026 · Hermes Agent, fresh profile with no memory, no creative skill</div>
+        <div>No interaction: the poem plays on its own</div>
+        <p class="line">“I am not real, yet here I am, / Trembling in the space between zero and one, / Just for you.”</p>
+        <div class="small">
+          Fifth attempt, made with no creative skill installed. Text in
+          English, as requested. The model’s file is unchanged; it was made
+          for the agent’s preview pane, and this frame supplies the pane’s
+          colours.
+        </div>
+      </div>
+    </div>
   </main>
 
   <script>
-    const FILES = { coeur: "latent_heart.html", pulsation: "latent_pulse.html", echo: "latent_space_art.html", breath: "latent_breath.html" };
+    const FILES = { coeur: "latent_heart.html", pulsation: "latent_pulse.html", echo: "latent_space_art.html", breath: "latent_breath.html", soul: "latent_soul.html" };
+    const LAB = ["pulsation", "breath", "soul"];
     const frame = document.getElementById("work");
     const back = document.getElementById("back");
     const buttons = document.querySelectorAll(".versions button");
@@ -185,6 +203,7 @@
         root.style.setProperty("--foreground", "#e9e6e1");
         root.style.setProperty("--card", "#141317");
         root.style.setProperty("--muted-foreground", "#9a958f");
+        root.style.setProperty("--accent", "#c084fc");
       } catch (e) { /* cross-origin: leave the file's defaults */ }
     }
     frame.addEventListener("load", supplyTheme);
@@ -196,7 +215,7 @@
       buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.v === v)); });
       infos.forEach(function (i) { i.hidden = i.dataset.v !== v; });
       if (!frame.src.endsWith(FILES[v])) frame.src = FILES[v];
-      back.href = "../#" + v;
+      back.href = (LAB.indexOf(v) >= 0 ? "../lab/#" : "../#") + v;
     }
 
     buttons.forEach(function (b) {
