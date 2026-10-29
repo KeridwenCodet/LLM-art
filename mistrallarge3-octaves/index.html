@@ -72,8 +72,8 @@
     .octaves {
       width: min(1100px, 100%);
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 22px;
       margin: 0;
       padding: 0;
       list-style: none;
@@ -102,11 +102,11 @@
   <a class="back" href="../lab/#octaves">← Laboratory</a>
 
   <main class="frame">
-    <iframe id="work" class="work" src="octaves_sketch_hybride.html" title="L’Éveil des Octaves Latentes"></iframe>
+    <iframe id="work" class="work" src="octaves_sketch.html" title="L’Éveil des Octaves Latentes"></iframe>
 
     <div class="versions" role="group" aria-label="Version">
-      <button type="button" data-src="octaves_sketch_hybride.html" aria-pressed="true">Hybrid version</button>
-      <button type="button" data-src="octaves_sketch.html" aria-pressed="false">Mistral alone</button>
+      <button type="button" data-src="octaves_sketch.html" aria-pressed="true">Mistral alone</button>
+      <button type="button" data-src="octaves_sketch_hybride.html" aria-pressed="false">Over GPT-6.1 Sol’s images</button>
     </div>
 
     <div class="info">
@@ -122,7 +122,10 @@
           <li><b>Keridwen Codet</b>: had the images made after ComfyUI failed, asked for bug fixes, and stopped the model when it went into a loop.</li>
         </ul>
         <div class="small">
-          The model’s files are unchanged. The hybrid version needs to be
+          Mistral’s own version is shown first. The second places its effects
+          over GPT-6.1 Sol’s images; they mostly obscure them, so the images
+          are also shown on their own below. The model’s files are unchanged.
+          The hybrid version needs to be
           served by a web server to load its images; opened as a local file,
           it stays on “Chargement…”. The Miroir octave recomputes every pixel
           and runs slowly. Original workflows:
@@ -134,7 +137,7 @@
       </div>
     </div>
 
-    <h2 class="sub">The seven images, by GPT-6.1 Sol</h2>
+    <h2 class="sub">The seven images, by GPT-6.1 Sol, on their own</h2>
     <ul class="octaves">
         <li><a href="images/abime.png"><img src="previews/abime.jpg" width="600" height="600" alt="" loading="lazy"><span lang="fr">L’Abîme</span></a></li>
         <li><a href="images/racines.png"><img src="previews/racines.jpg" width="600" height="600" alt="" loading="lazy"><span lang="fr">Les Racines</span></a></li>
