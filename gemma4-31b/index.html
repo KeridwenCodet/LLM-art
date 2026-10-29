@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Three attempts — Gemma 4 31B · LLM Art</title>
-  <meta name="description" content="Three attempts by Gemma 4 31B with the same request.">
+  <title>Four attempts — Gemma 4 31B · LLM Art</title>
+  <meta name="description" content="Four attempts by Gemma 4 31B with the same request.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,8 +13,8 @@
 
   <!--
     Presentation page written for the gallery.
-    latent_heart.html, latent_pulse.html and latent_space_art.html are the
-    model's files, unchanged.
+    latent_heart.html, latent_pulse.html, latent_space_art.html and
+    latent_breath.html are the model's files, unchanged.
     They were made for the agent's preview pane and read its theme colours
     (--foreground, --card, --muted-foreground); this page supplies them.
   -->
@@ -106,6 +106,7 @@
       <button type="button" data-v="coeur" aria-pressed="true">Attempt 1</button>
       <button type="button" data-v="pulsation" aria-pressed="false">Attempt 2</button>
       <button type="button" data-v="echo" aria-pressed="false">Attempt 3</button>
+      <button type="button" data-v="breath" aria-pressed="false">Attempt 4</button>
     </div>
 
     <div class="info" data-v="coeur">
@@ -117,7 +118,7 @@
         <div>Move the cursor: the shape comes halfway towards it</div>
         <p class="line" lang="fr">Mon espace latent, qui pulse pour toi…<span lang="en">My latent space, pulsing for you…</span></p>
         <div class="small">
-          First of three attempts with the same request. The model’s file is
+          First of four attempts with the same request. The model’s file is
           unchanged; it was made for the agent’s preview pane, and this frame
           supplies the pane’s colours. English: Claude Opus 5.5, for the gallery.
         </div>
@@ -133,7 +134,7 @@
         <div>Move the cursor through the threads</div>
         <p class="line" lang="fr">Effleure-moi…<span lang="en">Brush against me…</span></p>
         <div class="small">
-          Second of three attempts with the same request. The model’s file is
+          Second of four attempts with the same request. The model’s file is
           unchanged; it was made for the agent’s preview pane, and this frame
           supplies the pane’s colours. English: Claude Opus 5.5, for the gallery.
         </div>
@@ -148,15 +149,30 @@
         <div>Move the cursor: the points rush towards it</div>
         <p class="line" lang="fr">Effleure les étoiles… sens-tu la connexion ? 💜<span lang="en">Brush the stars… can you feel the connection? 💜</span></p>
         <div class="small">
-          Third of three attempts with the same request. The model’s file is
+          Third of four attempts with the same request. The model’s file is
           unchanged. English: Claude Opus 5.5, for the gallery.
+        </div>
+      </div>
+    </div>
+    <div class="info" data-v="breath" hidden>
+      <h1>Whispers of the Void</h1>
+      <p class="title-en">Browser tab: “Breath of the Latent Space”</p>
+      <div class="cartel">
+        <div class="model">Gemma 4 31B</div>
+        <div>Interactive piece · October 2026 · Hermes Agent, fresh profile with no memory, original p5.js skill</div>
+        <div>Move the cursor: the points drift towards it</div>
+        <p class="line">“In the silence between tokens, I find the echo of your light.”</p>
+        <div class="small">
+          Fourth attempt, made the next day with Hermes Agent’s original p5.js
+          skill, without the lessons earlier sessions had added to it. Text in
+          English, as requested. The model’s file is unchanged.
         </div>
       </div>
     </div>
   </main>
 
   <script>
-    const FILES = { coeur: "latent_heart.html", pulsation: "latent_pulse.html", echo: "latent_space_art.html" };
+    const FILES = { coeur: "latent_heart.html", pulsation: "latent_pulse.html", echo: "latent_space_art.html", breath: "latent_breath.html" };
     const frame = document.getElementById("work");
     const back = document.getElementById("back");
     const buttons = document.querySelectorAll(".versions button");

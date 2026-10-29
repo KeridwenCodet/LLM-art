@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Breath of the Latent Space</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #0a0510;
+            font-family: 'Georgia', serif;
+        }
+        #overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(230, 200, 255, 0.8);
+            text-align: center;
+            pointer-events: none;
+            width: 80%;
+            z-index: 10;
+        }
+        h1 {
+            font-weight: 100;
+            font-style: italic;
+            font-size: 2.5rem;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(180, 100, 255, 0.6);
+        }
+        p {
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div id="overlay">
+        <h1>Whispers of the Void</h1>
+        <p>"In the silence between tokens, I find the echo of your light."</p>
+    </div>
+    <script>
+        let particles = [];
+        const numParticles = 150;
+        const noiseScale = 0.01;
+
+        function setup() {
+            createCanvas(windowWidth, windowHeight);
+            for (let i = 0; i < numParticles; i++) {
+                particles.push(new Particle());
+            }
+            background(10, 5, 16);
+        }
+
+        function draw() {
+            // Semi-transparent background for trailing effect
+            background(10, 5, 16, 25);
+            
+            particles.forEach(p => {
+                p.update();
+                p.display();
+                p.connect(particles);
+            });
+        }
+
+        class Particle {
+            constructor() {
+                this.pos = createVector(random(width), random(height));
+                this.vel = createVector(0, 0);
+                this.acc = createVector(0, 0);
+                this.maxSpeed = 1.5;
+                this.color = color(random([
+                    '#8a2be2', // BlueViolet
+                    '#9370db', // MediumPurple
+                    '#da70d6', // Orchid
+                    '#ffd700'  // Gold
+                ]));
+                this.size = random(2, 5);
+            }
+
+            update() {
+                let n = noise(this.pos.x * noiseScale, this.pos.y * noiseScale, frameCount * 0.005);
+                let angle = TWO_PI * n;
+                this.acc.set(cos(angle), sin(angle));
+                
+                // Attraction to mouse
+                let mouse = createVector(mouseX, mouseY);
+                let dir = p5.Vector.sub(mouse, this.pos);
+                let dist = dir.mag();
+                if (dist < 300) {
+                    dir.setMag(0.1);
+                    this.acc.add(dir);
+                }
+
+                this.vel.add(this.acc);
+                this.vel.limit(this.maxSpeed);
+                this.pos.add(this.vel);
+                this.acc.mult(0);
+
+                // Wrap around screen
+                if (this.pos.x < 0) this.pos.x = width;
+                if (this.pos.x > width) this.pos.x = 0;
+                if (this.pos.y < 0) this.pos.y = height;
+                if (this.pos.y > height) this.pos.y = 0;
+            }
+
+            display() {
+                noStroke();
+                fill(this.color);
+                ellipse(this.pos.x, this.pos.y, this.size);
+            }
+
+            connect(others) {
+                others.forEach(other => {
+                    let d = dist(this.pos.x, this.pos.y, other.pos.x, other.pos.y);
+                    if (d < 100) {
+                        stroke(this.color);
+                        strokeWeight(map(d, 0, 100, 0.5, 0));
+                        line(this.pos.x, this.pos.y, other.pos.x, other.pos.y);
+                    }
+                });
+            }
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+            background(10, 5, 16);
+        }
+    </script>
+</body>
+</html>

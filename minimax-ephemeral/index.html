@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ephemeral Consciousness</title>
+  <script>p5.disableFriendlyErrors = true;</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #050508; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  EPHEMERAL CONSCIOUSNESS — A meditation on thought and form
+// ═══════════════════════════════════════════════════════════════
+
+const CONFIG = {
+  seed: 1709,
+  particleCount: 900,
+  tendrilCount: 60,
+  pulseInterval: 3.5,
+  mouseInfluence: 0.6,
+  noiseScale: 0.003,
+  flowSpeed: 0.0006,
+};
+
+const PALETTE = {
+  bg: [5, 8, 8],           // near-black with blue tint
+  deepPurple: [275, 70, 12],
+  magenta: [320, 85, 22],
+  cyan: [185, 80, 28],
+  gold: [42, 75, 30],
+  white: [45, 15, 40],
+};
+
+// ── Layered canvas for depth ──────────────────────────────────
+let bgLayer, midLayer, fgLayer;
+let particles = [];
+let tendrils = [];
+let pulseTime = 0;
+let lastPulseTime = 0;
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  pixelDensity(1);
+  colorMode(HSB, 360, 100, 100, 100);
+  randomSeed(CONFIG.seed);
+  noiseSeed(CONFIG.seed);
+  
+  // Offscreen buffers
+  bgLayer = createGraphics(width, height);
+  midLayer = createGraphics(width, height);
+  fgLayer = createGraphics(width, height);
+  
+  // Initialize particles
+  for (let i = 0; i < CONFIG.particleCount; i++) {
+    particles.push(new Particle());
+  }
+  
+  // Initialize tendrils
+  for (let i = 0; i < CONFIG.tendrilCount; i++) {
+    tendrils.push(new Tendril());
+  }
+  
+  lastPulseTime = millis() / 1000;
+}
+
+function draw() {
+  let t = millis() / 1000;
+  let pulsePhase = (t - lastPulseTime) / CONFIG.pulseInterval;
+  let pulse = Math.exp(-pulsePhase * 2) * Math.sin(pulsePhase * Math.PI);
+  
+  // ── Background: domain-warped noise field ──────────────────
+  renderBackground(bgLayer, t, pulse);
+  
+  // ── Mid layer: flowing tendrils ─────────────────────────────
+  renderMidground(midLayer, t, pulse);
+  
+  // ── Foreground: particles ──────────────────────────────────
+  renderForeground(fgLayer, t, pulse);
+  
+  // ── Composite all layers ───────────────────────────────────
+  image(bgLayer, 0, 0);
+  
+  // Blend mid with subtle glow
+  blendMode(ADD);
+  image(midLayer, 0, 0);
+  blendMode(BLEND);
+  
+  image(fgLayer, 0, 0);
+  
+  // Central pulse glow
+  renderPulseGlow(t, pulse);
+  
+  // Reset pulse timer
+  if (t - lastPulseTime > CONFIG.pulseInterval * 2) {
+    lastPulseTime = t;
+  }
+}
+
+function renderBackground(g, t, pulse) {
+  g.push();
+  g.colorMode(HSB, 360, 100, 100, 100);
+  
+  // Deep dark base
+  g.background(PALETTE.bg[0], PALETTE.bg[1], PALETTE.bg[2]);
+  
+  // Random noise-driven blobs — no grid lines
+  let blobCount = 200;
+  
+  for (let b = 0; b < blobCount; b++) {
+    // Base position from noise
+    let bx = noise(b * 0.1, t * 0.01) * width * 1.2 - width * 0.1;
+    let by = noise(b * 0.1 + 200, t * 0.01) * height * 1.2 - height * 0.1;
+    
+    // Secondary drift
+    let drift = noise(b * 0.05, t * 0.02);
+    let driftAngle = drift * TWO_PI * 3;
+    let driftAmt = 30 + drift * 60;
+    
+    let cx = bx + Math.cos(driftAngle) * driftAmt;
+    let cy = by + Math.sin(driftAngle) * driftAmt;
+    
+    let nx = cx * CONFIG.noiseScale;
+    let ny = cy * CONFIG.noiseScale;
+    
+    // Domain warp
+    let warp = noise(nx * 1.5, ny * 1.5, t * 0.02) * 100;
+    let angle = noise(nx, ny, t * CONFIG.flowSpeed) * TWO_PI * 2;
+    let tx = cx + Math.cos(angle) * warp;
+    let ty = cy + Math.sin(angle) * warp;
+    
+    let n = noise(nx + warp * 0.01, ny + warp * 0.01, t * CONFIG.flowSpeed * 0.5);
+    
+    // Color from noise
+    let hue = (PALETTE.deepPurple[0] + n * 120) % 360;
+    let sat = 45 + n * 35;
+    let bri = 3 + n * 12;
+    
+    // Pulse glow at center
+    let distToCenter = Math.sqrt(Math.pow(cx - width/2, 2) + Math.pow(cy - height/2, 2));
+    let pulseRadius = width * 0.4;
+    if (distToCenter < pulseRadius) {
+      let influence = (1 - distToCenter / pulseRadius) * Math.abs(pulse) * 0.8;
+      bri += influence * 15;
+      sat += influence * 30;
+    }
+    
+    // Draw blob — size varies with noise
+    let baseSize = Math.min(width, height) * 0.04;
+    let blobSize = baseSize * (0.8 + n * 1.4);
+    g.noStroke();
+    g.fill(hue % 360, sat, bri, 40 + n * 50);
+    g.ellipse(tx, ty, blobSize, blobSize * 0.75);
+    
+    // Secondary smaller blob offset — different hue
+    let n2 = noise(nx + 50, ny + 50, t * CONFIG.flowSpeed + 10);
+    g.fill((hue + 60) % 360, sat * 0.6, bri * 1.5, (20 + n2 * 35));
+    g.ellipse(tx + blobSize * 0.4, ty - blobSize * 0.25, blobSize * 0.45, blobSize * 0.35);
+  }
+  
+  g.pop();
+}
+
+function renderMidground(g, t, pulse) {
+  g.push();
+  g.clear();
+  g.colorMode(HSB, 360, 100, 100, 100);
+  
+  // Draw flowing tendrils
+  for (let tendril of tendrils) {
+    tendril.update(t, pulse);
+    tendril.display(g, t, pulse);
+  }
+  
+  g.pop();
+}
+
+function renderForeground(g, t, pulse) {
+  g.push();
+  g.clear();
+  g.colorMode(HSB, 360, 100, 100, 100);
+  
+  // Draw particles
+  for (let p of particles) {
+    p.update(t, pulse);
+    p.display(g, t, pulse);
+  }
+  
+  g.pop();
+}
+
+function renderPulseGlow(t, pulse) {
+  if (Math.abs(pulse) < 0.01) return;
+  
+  let maxR = width * 0.4;
+  let r = maxR * Math.abs(pulse);
+  
+  noStroke();
+  
+  // Outer glow
+  for (let i = 5; i > 0; i--) {
+    let alpha = (1 - i / 5) * 8 * Math.abs(pulse);
+    let c = color(PALETTE.magenta[0], 60, 30, alpha);
+    fill(c);
+    ellipse(width / 2, height / 2, r * 2 + i * 50, r * 2 + i * 50);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PARTICLE — drifting thought fragments
+// ═══════════════════════════════════════════════════════════════
+class Particle {
+  constructor() {
+    this.reset();
+    // Stagger initial positions
+    this.pos = createVector(random(width), random(height));
+    this.history = [];
+    this.maxHistory = Math.floor(random(8, 18));
+  }
+  
+  reset() {
+    this.pos = createVector(random(width), random(height));
+    this.vel = createVector(0, 0);
+    this.acc = createVector(0, 0);
+    this.size = random(1.5, 5);
+    this.hue = random([PALETTE.deepPurple[0], PALETTE.magenta[0], PALETTE.cyan[0], PALETTE.gold[0]]);
+    this.sat = random(60, 90);
+    this.bri = random(20, 45);
+    this.noiseOffset = random(1000);
+    this.life = random(0.3, 1);
+    this.history = [];
+    this.maxHistory = Math.floor(random(8, 18));
+  }
+  
+  update(t, pulse) {
+    // Store history for trail
+    this.history.push(this.pos.copy());
+    if (this.history.length > this.maxHistory) {
+      this.history.shift();
+    }
+    
+    // Flow field force
+    let angle = noise(
+      this.pos.x * CONFIG.noiseScale + this.noiseOffset,
+      this.pos.y * CONFIG.noiseScale,
+      t * CONFIG.flowSpeed + this.noiseOffset
+    ) * TWO_PI * 3;
+    
+    let force = p5.Vector.fromAngle(angle);
+    force.mult(0.15);
+    
+    // Mouse influence — lightweight only
+    if (mouseIsPressed || true) {
+      let mx = width / 2 + (mouseX - width / 2) * 0.3;
+      let my = height / 2 + (mouseY - height / 2) * 0.3;
+      let mouse = createVector(mx, my);
+      let toMouse = p5.Vector.sub(mouse, this.pos);
+      let dist = toMouse.mag();
+      if (dist < width * 0.5 && dist > 20) {
+        toMouse.normalize();
+        toMouse.mult(CONFIG.mouseInfluence * (1 - dist / (width * 0.5)) * 0.5);
+        force.add(toMouse);
+      }
+    }
+    
+    // Simple center attraction to keep things in frame
+    let center = createVector(width / 2, height / 2);
+    let toCenter = p5.Vector.sub(center, this.pos);
+    let distToCenter = toCenter.mag();
+    if (distToCenter > width * 0.45) {
+      toCenter.normalize();
+      toCenter.mult(0.3);
+      force.add(toCenter);
+    }
+    
+    this.acc.add(force);
+    this.vel.add(this.acc);
+    this.vel.limit(2.5);
+    this.pos.add(this.vel);
+    this.acc.mult(0);
+    
+    // Wrap edges softly
+    if (this.pos.x < -20) this.pos.x = width + 20;
+    if (this.pos.x > width + 20) this.pos.x = -20;
+    if (this.pos.y < -20) this.pos.y = height + 20;
+    if (this.pos.y > height + 20) this.pos.y = -20;
+    
+    // Fade life
+    this.life += 0.001;
+    if (this.life > 1) this.life = 0.3;
+  }
+  
+  display(g, t, pulse) {
+    if (this.history.length < 2) return;
+    
+    g.push();
+    g.noFill();
+    
+    // Trail with gradient — skip lines that cross edges
+    for (let i = 1; i < this.history.length; i++) {
+      let prev = this.history[i - 1];
+      let curr = this.history[i];
+      
+      // Skip if particle wrapped around screen edge
+      let dx = Math.abs(curr.x - prev.x);
+      let dy = Math.abs(curr.y - prev.y);
+      if (dx > width * 0.5 || dy > height * 0.5) continue;
+      
+      let alpha = (i / this.history.length) * this.life * 55;
+      let weight = (i / this.history.length) * this.size * 0.7;
+      
+      let trailHue = (this.hue + i * 0.5) % 360;
+      let c = color(trailHue, this.sat, this.bri, alpha);
+      g.stroke(c);
+      g.strokeWeight(weight);
+      g.line(prev.x, prev.y, curr.x, curr.y);
+    }
+    
+    // Core bright point
+    let coreAlpha = this.life * (45 + pulse * 25);
+    let coreC = color(this.hue, this.sat * 0.7, this.bri + 30, coreAlpha);
+    g.noStroke();
+    g.fill(coreC);
+    g.ellipse(this.pos.x, this.pos.y, this.size * 1.5, this.size * 1.5);
+    
+    g.pop();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TENDRIL — ethereal flowing strands
+// ═══════════════════════════════════════════════════════════════
+class Tendril {
+  constructor() {
+    this.reset();
+  }
+  
+  reset() {
+    this.points = [];
+    let numPoints = Math.floor(random(12, 22));
+    
+    let startX = random(width);
+    let startY = random(height);
+    
+    for (let i = 0; i < numPoints; i++) {
+      this.points.push({
+        x: startX + random(-50, 50),
+        y: startY + random(-50, 50),
+        baseX: startX + random(-50, 50),
+        baseY: startY + random(-50, 50),
+        noiseOffset: random(1000),
+        hue: random([PALETTE.deepPurple[0], PALETTE.cyan[0], PALETTE.gold[0]]),
+        sat: random(50, 80),
+        bri: random(15, 35),
+        size: random(0.5, 2),
+      });
+    }
+    
+    this.life = random(0.5, 1);
+    this.decay = random(0.0003, 0.0008);
+    this.maxAge = 1 / this.decay;
+    this.age = random(this.maxAge);
+    this.seed = random(1000);
+  }
+  
+  update(t, pulse) {
+    this.age++;
+    this.life = Math.max(0, 1 - (this.age / this.maxAge));
+    
+    if (this.life <= 0) {
+      this.reset();
+      return;
+    }
+    
+    let time = t * 0.3 + this.seed;
+    
+    for (let i = 0; i < this.points.length; i++) {
+      let p = this.points[i];
+      
+      // Organic flowing motion
+      let nx = p.baseX * CONFIG.noiseScale + p.noiseOffset;
+      let ny = p.baseY * CONFIG.noiseScale + p.noiseOffset;
+      
+      let warpX = noise(nx * 1.5, ny * 1.5, time * 0.5) - 0.5;
+      let warpY = noise(nx * 1.5 + 50, ny * 1.5 + 50, time * 0.5) - 0.5;
+      
+      let speed = 80;
+      p.x = p.baseX + warpX * speed + Math.sin(time + i * 0.3) * 20;
+      p.y = p.baseY + warpY * speed + Math.cos(time + i * 0.3) * 20;
+      
+      // Pulse expansion
+      let center = createVector(width / 2, height / 2);
+      let ptPos = createVector(p.x, p.y);
+      let toCenter = p5.Vector.sub(center, ptPos);
+      let distToCenter = toCenter.mag();
+      
+      if (distToCenter < width * 0.4) {
+        let expansion = pulse * 30 * (1 - distToCenter / (width * 0.4));
+        let norm = p5.Vector.normalize(toCenter);
+        p.x += norm.x * expansion;
+        p.y += norm.y * expansion;
+      }
+    }
+  }
+  
+  display(g, t, pulse) {
+    if (this.points.length < 2 || this.life < 0.01) return;
+    
+    g.push();
+    g.noFill();
+    
+    // Simple smooth curve — no per-segment interpolation
+    g.beginShape();
+    g.strokeWeight(1.2 * this.life);
+    
+    for (let i = 0; i < this.points.length; i++) {
+      let p = this.points[i];
+      let alpha = this.life * 50 * (i / this.points.length);
+      let c = color(p.hue, p.sat, p.bri, alpha);
+      g.stroke(c);
+      g.vertex(p.x, p.y);
+    }
+    
+    g.endShape();
+    g.pop();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INTERACTION & RESIZE
+// ═══════════════════════════════════════════════════════════════
+function mousePressed() {
+  // Trigger new pulse
+  lastPulseTime = millis() / 1000 - CONFIG.pulseInterval * 0.5;
+}
+
+function keyPressed() {
+  if (key === 's' || key === 'S') saveCanvas('ephemeral-consciousness', 'png');
+  if (key === 'r' || key === 'R') {
+    randomSeed(millis());
+    noiseSeed(millis());
+    for (let p of particles) p.reset();
+    for (let t of tendrils) t.reset();
+  }
+  if (key === ' ') {
+    // Toggle slow motion
+    CONFIG.flowSpeed *= 0.1;
+    CONFIG.pulseInterval *= 5;
+  }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  bgLayer = createGraphics(width, height);
+  midLayer = createGraphics(width, height);
+  fgLayer = createGraphics(width, height);
+}
+</script>
+</body>
+</html>
