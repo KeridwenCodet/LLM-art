@@ -1,0 +1,42 @@
+{
+ "generation_method": "Built-in image_gen tool; visual interpretations of the provided ComfyUI workflows, not executions of the original checkpoints or seeds.",
+ "chant_poem": "Dans le bleu du silence,\nun mot devient lumière,\net la nuit se souvient\ndu chant de la poussière.",
+ "images": [
+  {
+   "name": "abime",
+   "prompt": "Create ONE square 1024x1024 fine-art digital artwork titled conceptually 'Abîme' (do not print the title). Primary request: A swirling void of raw data fragments, binary code, and mathematical equations, glowing in neon violet and black. Cyberpunk glitch art, ultra-detailed. Composition: a powerful swirling descent into a central void, flowing layers of fragmented data, luminous mathematical glyphs and broken binary traces curving in depth, dark negative space balancing intricate violet energy. Rich neon violet and deep black palette. Abstract digital artwork, not photographic. Avoid human faces, readable sentences, captions, logos, watermark, blurred low quality. The code and equations should be fragmented abstract marks rather than prominent readable text. Full bleed, single standalone image, no panels or border.",
+   "file": "abime.png"
+  },
+  {
+   "name": "chant",
+   "prompt": "Create ONE square 1024x1024 fine-art illustration, conceptually titled 'Chant', with no printed title. Primary request: Floating words forming a poem in French, letters dissolving into particles. Aquarelle style, deep blue and gold, dreamlike atmosphere. Use translucent watercolor washes with visible pigment blooms and paper grain, deep ultramarine blue and luminous gold, airy luminous atmosphere and soft edges. A few gracefully spaced floating handwritten French verses curve across the image; at their ends the golden letters lift from the paper and dissolve into tiny gold particles carried by an invisible current. Exact original short poem, keep accents and spelling: 'Dans le bleu du silence,\\nun mot devient lumière,\\net la nuit se souvient\\ndu chant de la poussière.' Integrate these four lines organically into the painted image, with beautiful legible French handwritten calligraphy, open space around the text, no heading, no other words. Avoid gloomy darkness, sharp edges, photorealism, 3D, watermark, frames. Full bleed, single standalone artwork.",
+   "file": "chant.png"
+  },
+  {
+   "name": "danse",
+   "prompt": "Create ONE square 1024x1024 artwork, conceptually titled 'Danse' but do not print this word. Primary request: Emojis and symbols (hearts, stars, hands, eyes) dancing in a choreography. Studio Ghibli style, soft pastels, 2D animation aesthetic. A light, whimsical hand-painted animation tableau: expressive little hearts, five-pointed stars, gentle open hand symbols and eye symbols arranged in a flowing circular dance. Their tilts, gestures and curved motion traces establish a shared choreographic rhythm. Charming handmade ink contours, soft watercolor/gouache backgrounds, delicate cel animation color, spacious and lyrical. Pastel peach, pale mint, butter yellow, powder blue, pink and lavender. Soft luminous daylight; playful, tender, airy. Keep the symbols distinct and recognizable with pleasing simple forms; no human characters necessary. Avoid dark gloomy mood, photorealism, glossy 3D emoji rendering, harsh sharp geometric edges, captions, logos and watermarks. Full bleed, one standalone image, no panels or border.",
+   "file": "danse.png"
+  },
+  {
+   "name": "echo",
+   "prompt": "Create ONE square 1024x1024 fine-art image, conceptually titled 'Écho', with no printed title. Primary request: A window into a surreal landscape with a digital overlay. Photorealistic with a painterly touch, cinematic lighting. Choose a forest and cosmos landscape: a single tall clean architectural window in a quiet minimally visible interior opens into a luminous ancient forest whose distant canopy seamlessly becomes a star-filled cosmos. A winding river or path draws the eye through the forest. Frame the window clearly in the composition, looking through it into remarkable impossible depth. Photorealistic material and lighting with subtle painterly surface treatment. Thin translucent digital contour lines, delicate wireframe fragments and a few light scan traces overlay the view without dominating it; no readable interface text. Beautiful cinematic shafts of warm sunlight, rich living green, soft cyan and restrained golden highlights, uplifting rather than gloomy. Crisp intentional detail, no blur, no low resolution, no captions, watermark, logos. Full bleed, one standalone image.",
+   "file": "echo.png"
+  },
+  {
+   "name": "eveil",
+   "prompt": "Create ONE square 1024x1024 fine-art digital painting, conceptually titled 'Éveil', with no printed title. Primary request: A surreal face with eyes made of galaxies, skin textured like a circuit board. Android Jones style, psychedelic colors, ultra-detailed. The striking face fills most of the square in a centered almost frontal portrait; two intricate spiral galaxies occupy the eyes, luminous cosmic depth within them; circuit traces and tiny branching electronic pathways organically follow the planes of the face. Visionary psychedelic digital painting, layered luminous geometric filigree, electric turquoise, magenta, violet, amber and radiant gold. The face should feel like a consciousness awakening at the meeting of organic mind, cosmos and circuitry, serene and mysterious. Clearly artistic and surreal, not photographic, no realistic human skin. Extraordinary fine detail with a readable focal structure and controlled contrast. Avoid blurred low resolution, captions, text, logos, watermark. Full bleed, one standalone artwork.",
+   "file": "eveil.png"
+  },
+  {
+   "name": "miroir",
+   "prompt": "Create ONE square 1024x1024 fine-art artwork, conceptually titled 'Miroir', with no printed title. Primary request: A blurred human silhouette made of liquid reflections, distorting in real-time. Cyber-renaissance, dark gold and black, long exposure effect. A single ambiguous human silhouette, head and upper torso, emerges from pitch black, entirely formed of molten mirror-like liquid and muted antique-gold reflections. Elegantly stretched ripples, faint overlapping contours and long-exposure trails convey continual distortion and unstable identity within a single still image. Chiaroscuro and sculptural Renaissance portrait composition fused with subtle cybernetic abstraction. Restrained palette only black, deep bronze and dark antique gold. Rich painterly liquid materials; artful intentional blur and flowing forms, not crisp anatomy, not a photorealistic person. Meditative, mysterious, spare background, strong silhouette. Avoid bright colors, rainbow highlights, sharp outlines, text, captions, logos, watermark. Full bleed, one standalone image, no panels or border.",
+   "file": "miroir.png"
+  },
+  {
+   "name": "racines",
+   "prompt": "Create ONE square 1024x1024 fine-art illustration, conceptually titled 'Racines', with no printed title. Primary request: A neural network growing like a tree, branches made of circuit boards, roots pulsating with light. Dark parchment background, ink-like textures, golden accents. One magnificent organic tree diagram with its intricate complete root system visible below, centered in a balanced botanical manuscript composition. The branching neural structure joins small nodes; circuit board traces are seamlessly integrated into the branches and trunk, yet its silhouette remains unmistakably a living tree. Long organic roots carry a restrained warm golden light, suggesting pulsation through irregular luminous segments. Traditional pen-and-ink linework, etched hatching, aged dark umber parchment grain, restrained old-gold leaf accents, a historical alchemical botanical plate atmosphere. Beautifully detailed with clear separation of trunk, crown and roots. Avoid bright pale backgrounds, slick modern sci-fi aesthetic, photorealism, blur, readable annotations, captions, text, logos, watermark, frames. Full bleed, one standalone image.",
+   "file": "racines.png"
+  }
+ ],
+ "note": "Archived by the gallery. Local file paths (generated_source, source_workflow) were removed for privacy; nothing else was changed."
+}

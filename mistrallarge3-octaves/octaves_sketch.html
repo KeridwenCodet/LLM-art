@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L'Éveil des Octaves Latentes (v2)</title>
+  <script>p5.disableFriendlyErrors = true;</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: 'Courier New', monospace;
+      color: white;
+      user-select: none;
+    }
+    canvas {
+      display: block;
+    }
+    #nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      backdrop-filter: blur(5px);
+      z-index: 100;
+    }
+    .nav-item {
+      padding: 10px 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 5px;
+    }
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .nav-item.active {
+      background: rgba(255, 255, 255, 0.4);
+      font-weight: bold;
+    }
+    #help {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      font-size: 12px;
+      opacity: 0.8;
+      z-index: 100;
+    }
+    #loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      z-index: 200;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">Chargement...</div>
+  <div id="nav"></div>
+  <div id="help">Appuie sur 'h' pour afficher l'aide</div>
+  
+  <script>
+    // === Configuration ===
+    const OCTAVES = [
+      { name: "L'Abîme", color: [280, 80, 90], active: false, particles: [] },
+      { name: "Les Racines", color: [45, 90, 80], active: false, branches: [] },
+      { name: "Le Chant", color: [220, 90, 90], active: false, words: [] },
+      { name: "La Danse", color: [320, 80, 90], active: false, emojis: [] },
+      { name: "Le Miroir", color: [0, 0, 30], active: false, metaballs: [] },
+      { name: "L'Éveil", color: [180, 80, 90], active: false, galaxies: [] },
+      { name: "L'Écho", color: [240, 30, 90], active: false, landscape: [] }
+    ];
+    
+    let currentOctave = 0;
+    let noiseOffset = 0;
+    let showHelp = false;
+    let performanceMode = false;
+    
+    // === Setup ===
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      colorMode(HSB, 360, 100, 100, 100);
+      noStroke();
+      
+      // Initialize navigation
+      initNav();
+      
+      // Initialize all octaves
+      OCTAVES.forEach((octave, index) => {
+        switch (index) {
+          case 0: initAbime(octave); break;
+          case 1: initRacines(octave); break;
+          case 2: initChant(octave); break;
+          case 3: initDanse(octave); break;
+          case 4: initMiroir(octave); break;
+          case 5: initEveil(octave); break;
+          case 6: initEcho(octave); break;
+        }
+      });
+      
+      // Set first octave as active
+      setOctave(0);
+      document.getElementById("loading").style.display = "none";
+    }
+    
+    // === Navigation ===
+    function initNav() {
+      const nav = document.getElementById("nav");
+      OCTAVES.forEach((octave, index) => {
+        const item = document.createElement("div");
+        item.className = "nav-item";
+        item.innerText = octave.name;
+        item.addEventListener("click", () => setOctave(index));
+        item.addEventListener("mouseenter", () => {
+          item.style.transform = "scale(1.1)";
+        });
+        item.addEventListener("mouseleave", () => {
+          item.style.transform = "scale(1)";
+        });
+        nav.appendChild(item);
+      });
+    }
+    
+    function setOctave(index) {
+      // Update active state
+      document.querySelectorAll(".nav-item").forEach((item, i) => {
+        item.classList.toggle("active", i === index);
+      });
+      
+      // Reset current octave
+      currentOctave = index;
+      OCTAVES.forEach(octave => octave.active = false);
+      OCTAVES[index].active = true;
+      
+      // Show loading briefly for feedback
+      document.getElementById("loading").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("loading").style.display = "none";
+      }, 300);
+    }
+    
+    // === Draw ===
+    function draw() {
+      background(0, 0, 0, 20); // Trail effect
+      
+      // Update and display active octave
+      const octave = OCTAVES[currentOctave];
+      switch (currentOctave) {
+        case 0: drawAbime(octave); break;
+        case 1: drawRacines(octave); break;
+        case 2: drawChant(octave); break;
+        case 3: drawDanse(octave); break;
+        case 4: drawMiroir(octave); break;
+        case 5: drawEveil(octave); break;
+        case 6: drawEcho(octave); break;
+      }
+      
+      // Show help if enabled
+      if (showHelp) {
+        drawHelp();
+      }
+    }
+    
+    // === Octave 1: L'Abîme ===
+    function initAbime(octave) {
+      octave.particles = [];
+      for (let i = 0; i < (performanceMode ? 200 : 500); i++) {
+        octave.particles.push({
+          x: random(width),
+          y: random(height),
+          size: random(1, 3),
+          speed: random(0.5, 2),
+          angle: random(TWO_PI),
+          hue: 280 + random(-20, 20)
+        });
+      }
+    }
+    
+    function drawAbime(octave) {
+      noiseOffset += 0.01;
+      
+      for (let p of octave.particles) {
+        let n = noise(p.x * 0.01, p.y * 0.01, noiseOffset);
+        p.angle += map(n, 0, 1, -0.1, 0.1);
+        p.x += cos(p.angle) * p.speed;
+        p.y += sin(p.angle) * p.speed;
+        
+        // Wrap around
+        if (p.x < 0) p.x = width;
+        if (p.x > width) p.x = 0;
+        if (p.y < 0) p.y = height;
+        if (p.y > height) p.y = 0;
+        
+        fill(p.hue, 80, 90, 80);
+        ellipse(p.x, p.y, p.size);
+      }
+      
+      // ASCII fragments
+      fill(280, 80, 90);
+      textSize(12);
+      for (let i = 0; i < 10; i++) {
+        text(String.fromCharCode(33 + floor(random(94))), random(width), random(height));
+      }
+    }
+    
+    // === Octave 2: Les Racines ===
+    function initRacines(octave) {
+      octave.branches = [];
+      let axiom = "F";
+      let rules = { "F": "FF+[+F-F-F]-[-F+F+F]" };
+      let len = 50;
+      let angle = radians(25);
+      let pos = createVector(width / 2, height);
+      
+      for (let i = 0; i < 4; i++) {
+        axiom = applyRules(axiom, rules);
+      }
+      
+      drawLSystem(axiom, pos, len, angle, octave);
+    }
+    
+    function applyRules(s, rules) {
+      let result = "";
+      for (let c of s) {
+        result += rules[c] || c;
+      }
+      return result;
+    }
+    
+    function drawLSystem(s, pos, len, angle, octave) {
+      let stack = [];
+      let dir = createVector(0, -1);
+      
+      for (let c of s) {
+        switch (c) {
+          case "F":
+            let newPos = p5.Vector.add(pos, p5.Vector.mult(dir, len));
+            octave.branches.push({ start: pos.copy(), end: newPos });
+            pos = newPos;
+            break;
+          case "+":
+            dir.rotate(angle);
+            break;
+          case "-":
+            dir.rotate(-angle);
+            break;
+          case "[":
+            stack.push({ pos: pos.copy(), dir: dir.copy() });
+            break;
+          case "]":
+            let state = stack.pop();
+            pos = state.pos;
+            dir = state.dir;
+            break;
+        }
+      }
+    }
+    
+    function drawRacines(octave) {
+      stroke(octave.color[0], octave.color[1], octave.color[2]);
+      strokeWeight(1.5);
+      noFill();
+      for (let b of octave.branches) {
+        line(b.start.x, b.start.y, b.end.x, b.end.y);
+      }
+      
+      stroke(octave.color[0], octave.color[1], 90);
+      strokeWeight(0.5);
+      for (let b of octave.branches) {
+        let mid = p5.Vector.lerp(b.start, b.end, 0.5);
+        let perp = createVector(-(b.end.y - b.start.y), b.end.x - b.start.x).normalize().mult(5);
+        line(mid.x + perp.x, mid.y + perp.y, mid.x - perp.x, mid.y - perp.y);
+      }
+    }
+    
+    // === Octave 3: Le Chant ===
+    function initChant(octave) {
+      octave.words = [];
+      let frenchWords = ["rêve", "étoile", "silence", "mémoire", "lueur", "envol", "ombre", "reflet", "brume", "écho"];
+      
+      for (let i = 0; i < 15; i++) {
+        octave.words.push({
+          text: random(frenchWords),
+          x: random(width),
+          y: random(height),
+          size: random(20, 40),
+          speed: random(0.5, 1.5),
+          angle: random(TWO_PI),
+          particles: []
+        });
+      }
+    }
+    
+    function drawChant(octave) {
+      for (let w of octave.words) {
+        w.x += cos(w.angle) * w.speed;
+        w.y += sin(w.angle) * w.speed;
+        
+        if (w.x < 0 || w.x > width) w.angle = PI - w.angle;
+        if (w.y < 0 || w.y > height) w.angle = -w.angle;
+        
+        fill(octave.color[0], octave.color[1], octave.color[2]);
+        noStroke();
+        textSize(w.size);
+        textAlign(CENTER, CENTER);
+        text(w.text, w.x, w.y);
+        
+        if (random() < 0.02) {
+          w.particles.push({
+            x: w.x + random(-10, 10),
+            y: w.y + random(-10, 10),
+            size: random(1, 3),
+            life: 100
+          });
+        }
+        
+        for (let i = w.particles.length - 1; i >= 0; i--) {
+          let p = w.particles[i];
+          fill(octave.color[0], octave.color[1], octave.color[2], p.life);
+          ellipse(p.x, p.y, p.size);
+          p.life -= 1;
+          p.y -= 0.5;
+          if (p.life <= 0) w.particles.splice(i, 1);
+        }
+      }
+    }
+    
+    // === Octave 4: La Danse ===
+    function initDanse(octave) {
+      octave.emojis = [];
+      let emojiList = ["❤️", "✨", "👁️", "🌙", "🌀", "🔥", "🌸"];
+      
+      for (let i = 0; i < 30; i++) {
+        octave.emojis.push({
+          emoji: random(emojiList),
+          x: random(width),
+          y: random(height),
+          size: random(20, 40),
+          speed: random(1, 3),
+          angle: random(TWO_PI),
+          target: createVector(random(width), random(height))
+        });
+      }
+    }
+    
+    function drawDanse(octave) {
+      for (let e of octave.emojis) {
+        let dir = p5.Vector.sub(e.target, createVector(e.x, e.y));
+        if (dir.mag() < 50) {
+          e.target = createVector(random(width), random(height));
+        } else {
+          dir.normalize().mult(e.speed);
+          e.x += dir.x;
+          e.y += dir.y;
+        }
+        
+        fill(octave.color[0], octave.color[1], octave.color[2]);
+        textSize(e.size);
+        textAlign(CENTER, CENTER);
+        text(e.emoji, e.x, e.y);
+      }
+    }
+    
+    // === Octave 5: Le Miroir ===
+    function initMiroir(octave) {
+      octave.metaballs = [];
+      for (let i = 0; i < 8; i++) {
+        octave.metaballs.push({
+          x: random(width),
+          y: random(height),
+          radius: random(30, 80),
+          vx: random(-1, 1),
+          vy: random(-1, 1)
+        });
+      }
+    }
+    
+    function drawMiroir(octave) {
+      for (let m of octave.metaballs) {
+        m.x += m.vx;
+        m.y += m.vy;
+        
+        if (m.x < 0 || m.x > width) m.vx *= -1;
+        if (m.y < 0 || m.y > height) m.vy *= -1;
+      }
+      
+      loadPixels();
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let sum = 0;
+          for (let m of octave.metaballs) {
+            let d = dist(x, y, m.x, m.y);
+            sum += m.radius * m.radius / (d * d + 0.001);
+          }
+          
+          let idx = 4 * (y * width + x);
+          if (sum > 0.5) {
+            let hue = octave.color[0] + map(sum, 0.5, 2, 0, 30);
+            pixels[idx] = hue;
+            pixels[idx + 1] = octave.color[1];
+            pixels[idx + 2] = map(sum, 0.5, 2, 30, 100);
+            pixels[idx + 3] = 255;
+          } else {
+            pixels[idx] = 0;
+            pixels[idx + 1] = 0;
+            pixels[idx + 2] = 0;
+            pixels[idx + 3] = 0;
+          }
+        }
+      }
+      updatePixels();
+    }
+    
+    // === Octave 6: L'Éveil ===
+    function initEveil(octave) {
+      octave.galaxies = [];
+      let maxIter = 50;
+      let scale = 150;
+      let offsetX = width / 2 - 100;
+      let offsetY = height / 2;
+      
+      for (let x = 0; x < 200; x++) {
+        for (let y = 0; y < 200; y++) {
+          let zx = 0;
+          let zy = 0;
+          let cx = (x - 100) / scale;
+          let cy = (y - 100) / scale;
+          let iter = 0;
+          
+          while (zx * zx + zy * zy < 4 && iter < maxIter) {
+            let tmp = zx * zx - zy * zy + cx;
+            zy = 2 * zx * zy + cy;
+            zx = tmp;
+            iter++;
+          }
+          
+          if (iter < maxIter) {
+            octave.galaxies.push({
+              x: x + offsetX,
+              y: y + offsetY,
+              hue: 180 + iter * 2
+            });
+          }
+        }
+      }
+    }
+    
+    function drawEveil(octave) {
+      fill(0, 0, 20);
+      noStroke();
+      ellipse(width / 2, height / 2, 300, 400);
+      
+      for (let g of octave.galaxies) {
+        fill(g.hue, 80, 90);
+        noStroke();
+        ellipse(g.x, g.y, 1.5);
+      }
+      
+      stroke(octave.color[0], octave.color[1], octave.color[2]);
+      noFill();
+      strokeWeight(0.5);
+      for (let i = 0; i < 30; i++) {
+        let x1 = width / 2 + random(-150, 150);
+        let y1 = height / 2 + random(-200, 100);
+        let x2 = x1 + random(-20, 20);
+        let y2 = y1 + random(-20, 20);
+        line(x1, y1, x2, y2);
+      }
+    }
+    
+    // === Octave 7: L'Écho ===
+    function initEcho(octave) {
+      octave.landscape = [];
+      for (let x = 0; x < width; x += 10) {
+        let y = height / 2 + noise(x * 0.01) * 100;
+        octave.landscape.push(createVector(x, y));
+      }
+    }
+    
+    function drawEcho(octave) {
+      for (let y = 0; y < height / 2; y++) {
+        let inter = map(y, 0, height / 2, 0, 1);
+        let hue = lerp(240, 200, inter);
+        stroke(hue, 30, 90);
+        line(0, y, width, y);
+      }
+      
+      noStroke();
+      fill(octave.color[0], octave.color[1], 50);
+      beginShape();
+      vertex(0, height);
+      for (let p of octave.landscape) {
+        vertex(p.x, p.y);
+      }
+      vertex(width, height);
+      endShape(CLOSE);
+      
+      stroke(octave.color[0], octave.color[1], 90);
+      noFill();
+      strokeWeight(0.5);
+      for (let x = 0; x < width; x += 30) {
+        for (let y = 0; y < height; y += 30) {
+          if (random() < 0.2) {
+            rect(x, y, 10, 10);
+          }
+        }
+      }
+    }
+    
+    // === Help ===
+    function drawHelp() {
+      fill(0, 0, 100);
+      noStroke();
+      rect(width / 2 - 200, height / 2 - 150, 400, 300, 10);
+      
+      fill(0, 0, 0);
+      textAlign(CENTER, CENTER);
+      textSize(16);
+      text("Guide d'utilisation", width / 2, height / 2 - 120);
+      
+      textSize(14);
+      text("• Clique sur une octave dans la barre du bas pour la sélectionner", width / 2, height / 2 - 80);
+      text("• Clique n'importe où pour régénérer l'octave active", width / 2, height / 2 - 50);
+      text("• Appuie sur 's' pour sauvegarder une capture PNG", width / 2, height / 2 - 20);
+      text("• Appuie sur 'p' pour activer/désactiver le mode performance", width / 2, height / 2 + 10);
+      text("• Appuie sur 'h' pour afficher/cacher ce guide", width / 2, height / 2 + 40);
+      text("• Utilise les flèches ← → pour naviguer entre les octaves", width / 2, height / 2 + 70);
+      
+      textSize(12);
+      text("Clique n'importe où pour fermer", width / 2, height / 2 + 120);
+    }
+    
+    // === Interaction ===
+    function mousePressed() {
+      // Regenerate current octave
+      switch (currentOctave) {
+        case 0: initAbime(OCTAVES[0]); break;
+        case 1: initRacines(OCTAVES[1]); break;
+        case 2: initChant(OCTAVES[2]); break;
+        case 3: initDanse(OCTAVES[3]); break;
+        case 4: initMiroir(OCTAVES[4]); break;
+        case 5: initEveil(OCTAVES[5]); break;
+        case 6: initEcho(OCTAVES[6]); break;
+      }
+      
+      // Close help if open
+      if (showHelp) {
+        showHelp = false;
+      }
+    }
+    
+    function keyPressed() {
+      if (key === 'h') {
+        showHelp = !showHelp;
+      } else if (key === 's') {
+        saveCanvas('octave_' + OCTAVES[currentOctave].name, 'png');
+      } else if (key === 'p') {
+        performanceMode = !performanceMode;
+        // Reinitialize current octave with new settings
+        switch (currentOctave) {
+          case 0: initAbime(OCTAVES[0]); break;
+          case 1: initRacines(OCTAVES[1]); break;
+          case 2: initChant(OCTAVES[2]); break;
+          case 3: initDanse(OCTAVES[3]); break;
+          case 4: initMiroir(OCTAVES[4]); break;
+          case 5: initEveil(OCTAVES[5]); break;
+          case 6: initEcho(OCTAVES[6]); break;
+        }
+      } else if (keyCode === LEFT_ARROW) {
+        setOctave((currentOctave - 1 + OCTAVES.length) % OCTAVES.length);
+      } else if (keyCode === RIGHT_ARROW) {
+        setOctave((currentOctave + 1) % OCTAVES.length);
+      }
+    }
+    
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+      // Reinitialize landscape for Echo octave
+      if (OCTAVES[6].active) {
+        initEcho(OCTAVES[6]);
+      }
+    }
+  </script>
+</body>
+</html>
