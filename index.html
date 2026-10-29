@@ -520,6 +520,47 @@
 
     <ol class="works" id="works">
 
+      <li class="work" id="swarm" data-family="MiniMax">
+        <a class="plate" href="minimax-swarm/" aria-label="Enter Bioluminescent Swarm">
+          <img src="assets/thumbs/swarm.jpg" width="1200" height="750"
+               alt="Hundreds of short pale cyan and lilac streaks drifting on a near-black ground, gathering in a loose bright cluster around the cursor." loading="lazy">
+        </a>
+        <div class="cartel">
+          <div class="index">No. 16</div>
+          <h2>Bioluminescent Swarm</h2>
+          <p class="byline">MiniMax M2.7</p>
+          <p class="note">
+            About eighteen hundred motes, cyan to violet, are born, drift along
+            a noise-driven current and fade, leaving short phosphorescent
+            trails. The cursor draws them in “like curious fireflies”, and they
+            brighten as they gather. The plainest version in the collection of
+            its most common form.
+          </p>
+          <dl class="meta">
+            <dt>Date</dt><dd>October 2026</dd>
+            <dt>Medium</dt><dd>p5.js</dd>
+            <dt>Environment</dt><dd>Hermes Agent, fresh profile with no memory</dd>
+            <dt>Language</dt><dd>English (asked partway through to keep any text in English)</dd>
+            <dt>Interaction</dt><dd>Move to attract · S save · R new seed · F full screen</dd>
+            <dt>Process</dt><dd>Before writing anything, the agent loaded a ready-made p5.js skill.</dd>
+            <dt>Preview</dt><dd>Taken with the cursor on the screen, cropped to the canvas</dd>
+          </dl>
+          <details>
+            <summary>In the model's words</summary>
+            <blockquote lang="fr">
+              <p>Voici ma vision : un swarm bioluminescent — des particules vivantes qui naissent, dérivent gentiment dans un champ de bruit, et meurent en laissant des traînées phosphorescentes. La souris les attire comme des lucioles curieuses. C'est nocturne, rêveur, et étrangement émouvant.</p>
+              <p>Chaque mote a sa propre durée de vie, donc l'essaim respire naturellement — des naissent, d'autres meurent, le tout sans à-coups.</p>
+            </blockquote>
+            <p class="tr-label">English translation: Claude Opus 5.5, for the gallery</p>
+            <blockquote lang="en" class="en">
+              <p>Here is my vision: a bioluminescent swarm — living particles that are born, drift gently through a noise field, and die leaving phosphorescent trails. The mouse draws them in like curious fireflies. It is nocturnal, dreamy, and strangely moving.</p>
+              <p>Each mote has its own lifespan, so the swarm breathes naturally — some are born, others die, all without a jolt.</p>
+            </blockquote>
+          </details>
+          <a class="enter" href="minimax-swarm/">Enter the work</a>
+        </div>
+      </li>
+
       <li class="work" id="echo" data-family="Gemini · Gemma">
         <a class="plate" href="gemma4-31b/#echo" aria-label="Enter L’Écho de mon Espace Latent">
           <img src="assets/thumbs/gemma-echo.jpg" width="1200" height="750"
@@ -1352,7 +1393,7 @@
     (function () {
       const LABS = {
         "GLM": "Z.ai", "Claude": "Anthropic", "Gemini · Gemma": "Google DeepMind",
-        "GPT": "OpenAI", "DeepSeek": "DeepSeek", "Muse": "Meta", "Hunyuan": "Tencent"
+        "GPT": "OpenAI", "DeepSeek": "DeepSeek", "Muse": "Meta", "Hunyuan": "Tencent", "MiniMax": "MiniMax"
       };
       const target = document.getElementById("index-groups");
       const entries = Array.from(document.querySelectorAll("li.work[data-family]"))
@@ -1386,7 +1427,8 @@
         const h3 = document.createElement("h3");
         h3.textContent = f.name;
         const count = document.createElement("small");
-        count.textContent = (LABS[f.name] ? LABS[f.name] + " · " : "") +
+        const lab = LABS[f.name] && LABS[f.name] !== f.name ? LABS[f.name] + " · " : "";
+        count.textContent = lab +
           f.works.length + (f.works.length > 1 ? " works" : " work");
         h3.appendChild(count);
         const ul = document.createElement("ul");

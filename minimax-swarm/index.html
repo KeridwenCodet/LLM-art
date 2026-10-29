@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bioluminescent Swarm</title>
+  <script>p5.disableFriendlyErrors = true;</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #020408; }
+    #stage {
+      width: 1100px;
+      max-width: 100%;
+      aspect-ratio: 16/9;
+      margin: auto;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    canvas { width: 100% !important; height: 100% !important; cursor: crosshair; }
+    #controls {
+      position: fixed;
+      bottom: 16px;
+      right: 20px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+    #controls button {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.6);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      backdrop-filter: blur(8px);
+    }
+    #controls button:hover {
+      background: rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.9);
+      border-color: rgba(255,255,255,0.3);
+    }
+    #hint {
+      position: fixed;
+      bottom: 16px;
+      left: 20px;
+      color: rgba(255,255,255,0.25);
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      pointer-events: none;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="controls">
+  <button id="btn-fullscreen">⛶ Fullscreen</button>
+  <button id="btn-save">S Save PNG</button>
+  <button id="btn-reseed">R Randomize</button>
+</div>
+<div id="hint">move to attract · S save · R randomize · F fullscreen</div>
+<script>
+// ─── CONFIG ────────────────────────────────────────────────────────────────
+const CFG = {
+  seed: 137,
+  targetMotes: 1800,   // scales with canvas area
+  fieldScale: 0.0035,
+  fieldSpeed: 0.0004,
+  fieldOffset: 0,
+  moteLife: 1.0,       // base life in seconds
+  moteLifeVar: 0.6,    // ± variance
+  moteSize: 2.8,
+  trailAlpha: 48,      // 0-255, per-frame fade of trail buffer
+  attractStrength: 0.28,
+  attractRadius: 220,
+  noiseOctaves: 4,
+  noiseLacunarity: 2.1,
+  noiseGain: 0.5,
+  // Hue range for the palette (HSB)
+  hueMin: 175,         // cyan-teal
+  hueMax: 298,         // violet-magenta
+  satBase: 78,
+  briBase: 88,
+};
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+let motes = [];
+let W, H, DPR;
+let trailBuf, trailCtx;
+let fieldGrid, fieldColSteps, fieldRowSteps;
+let bgLayer, bgCtx;
+let mx = -9999, my = -9999;
+let lastFieldUpdate = 0;
+let frameAcc = 0;
+let lastTs = 0;
+
+window.__frames = 0;
+window.__errs = [];
+window.onerror = (m, s, l) => window.__errs.push(m + ' @' + l);
+
+// ─── PALETTE ───────────────────────────────────────────────────────────────
+function moteColor(phase) {
+  // phase 0→1 maps hueMin→hueMax
+  const h = (CFG.hueMin + phase * (CFG.hueMax - CFG.hueMin)) % 360;
+  const s = CFG.satBase + Math.sin(phase * Math.PI * 3.7) * 14;
+  const b = CFG.briBase + Math.sin(phase * Math.PI * 5.1) * 10;
+  return `hsla(${h.toFixed(1)},${s.toFixed(1)}%,${b.toFixed(1)}%,`;
+}
+
+// ─── PERLIN FIELD ──────────────────────────────────────────────────────────
+function fbm(x, y, octaves) {
+  let val = 0, amp = 1, freq = 1, sum = 0;
+  for (let i = 0; i < octaves; i++) {
+    val += noise(x * freq, y * freq) * amp;
+    sum += amp;
+    amp *= CFG.noiseLacunarity * 0.01 * CFG.noiseGain * 10;
+    freq *= 2;
+  }
+  return val / sum;
+}
+
+function buildField(t) {
+  const ox = Math.sin(t * CFG.fieldSpeed) * 80;
+  const oy = Math.cos(t * CFG.fieldSpeed * 0.7) * 80;
+  for (let r = 0; r < fieldRowSteps; r++) {
+    for (let c = 0; c < fieldColSteps; c++) {
+      const wx = (c / fieldColSteps) * W + ox;
+      const wy = (r / fieldRowSteps) * H + oy;
+      const v = fbm(wx * CFG.fieldScale, wy * CFG.fieldScale, CFG.noiseOctaves);
+      const angle = v * Math.PI * 4;
+      fieldGrid[r * fieldColSteps + c] = { vx: Math.cos(angle), vy: Math.sin(angle), mag: v };
+    }
+  }
+}
+
+function sampleField(x, y) {
+  const gc = Math.min(fieldColSteps - 1, Math.max(0, Math.floor(x / W * fieldColSteps)));
+  const gr = Math.min(fieldRowSteps - 1, Math.max(0, Math.floor(y / H * fieldRowSteps)));
+  return fieldGrid[gr * fieldColSteps + gc];
+}
+
+// ─── MOTE ──────────────────────────────────────────────────────────────────
+class Mote {
+  constructor(x, y, phase) {
+    this.x = x !== undefined ? x : Math.random() * W;
+    this.y = y !== undefined ? y : Math.random() * H;
+    this.vx = (Math.random() - 0.5) * 0.6;
+    this.vy = (Math.random() - 0.5) * 0.6;
+    this.life = CFG.moteLife + (Math.random() - 0.5) * CFG.moteLifeVar;
+    this.age = 0;
+    this.phase = phase !== undefined ? phase : Math.random();
+    this.wrapped = false;
+    this.warm = 0; // attraction warmth 0-1
+  }
+
+  update(dt) {
+    const field = sampleField(this.x, this.y);
+    const speed = 55 + field.mag * 110;
+
+    let fx = field.vx * speed;
+    let fy = field.vy * speed;
+
+    // Mouse attraction
+    const dx = mx - this.x;
+    const dy = my - this.y;
+    const distSq = dx * dx + dy * dy;
+    const dist = Math.sqrt(distSq);
+    if (dist < CFG.attractRadius && dist > 4) {
+      const str = (1 - dist / CFG.attractRadius) * CFG.attractStrength;
+      fx += (dx / dist) * str * 320;
+      fy += (dy / dist) * str * 320;
+      this.warm = Math.min(1, this.warm + dt * 3);
+    } else {
+      this.warm = Math.max(0, this.warm - dt * 2);
+    }
+
+    this.vx = this.vx * 0.91 + fx * dt * 0.09;
+    this.vy = this.vy * 0.91 + fy * dt * 0.09;
+
+    // Clamp velocity
+    const spd = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+    if (spd > 3.5) { this.vx = (this.vx / spd) * 3.5; this.vy = (this.vy / spd) * 3.5; }
+
+    const nx = this.x + this.vx * dt * 60;
+    const ny = this.y + this.vy * dt * 60;
+
+    // Wrap detection — prevent streak artifacts
+    this.wrapped = Math.abs(nx - this.x) > W * 0.5 || Math.abs(ny - this.y) > H * 0.5;
+
+    this.x = ((nx % W) + W) % W;
+    this.y = ((ny % H) + H) % H;
+    this.age += dt;
+  }
+
+  get alive() { return this.age < this.life; }
+
+  get alpha() {
+    const t = this.age / this.life;
+    if (t < 0.08) return t / 0.08;
+    if (t > 0.82) return (1 - t) / 0.18;
+    return 1;
+  }
+}
+
+// ─── DRAW TRAIL ────────────────────────────────────────────────────────────
+function drawTrail() {
+  const alpha = CFG.trailAlpha;
+  trailCtx.fillStyle = `rgba(2,4,8,${(alpha / 255).toFixed(4)})`;
+  trailCtx.fillRect(0, 0, W, H);
+}
+
+// ─── SETUP ─────────────────────────────────────────────────────────────────
+function setup() {
+  const stage = document.getElementById('stage');
+  const rect = stage.getBoundingClientRect();
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = Math.round(rect.width * DPR);
+  H = Math.round(rect.height * DPR);
+
+  const canvas = createCanvas(W, H);
+  canvas.parent('stage');
+  pixelDensity(1);
+
+  randomSeed(CFG.seed);
+  noiseSeed(CFG.seed);
+  colorMode(HSB, 360, 100, 100, 100);
+
+  // Offscreen trail buffer
+  trailBuf = document.createElement('canvas');
+  trailBuf.width = W; trailBuf.height = H;
+  trailCtx = trailBuf.getContext('2d');
+  trailCtx.fillStyle = '#020408';
+  trailCtx.fillRect(0, 0, W, H);
+
+  // Baked background
+  bgLayer = document.createElement('canvas');
+  bgLayer.width = W; bgLayer.height = H;
+  bgCtx = bgLayer.getContext('2d');
+  bakeBackground();
+
+  // Flow field grid
+  fieldColSteps = Math.ceil(W / 28);
+  fieldRowSteps = Math.ceil(H / 28);
+  fieldGrid = new Array(fieldColSteps * fieldRowSteps);
+
+  spawnMotes();
+  buildField(0);
+
+  lastTs = millis();
+  window._p5Ready = true;
+}
+
+function bakeBackground() {
+  // Deep radial vignette — dark purple center fading to near-black edges
+  const grad = bgCtx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W, H) * 0.72);
+  grad.addColorStop(0, 'rgba(8,6,22,0)');
+  grad.addColorStop(0.55, 'rgba(4,3,14,0.3)');
+  grad.addColorStop(1, 'rgba(2,4,8,0.96)');
+  bgCtx.fillStyle = '#020408';
+  bgCtx.fillRect(0, 0, W, H);
+  bgCtx.fillStyle = grad;
+  bgCtx.fillRect(0, 0, W, H);
+}
+
+function spawnMotes() {
+  motes = [];
+  const count = Math.floor(CFG.targetMotes * (W * H) / (1920 * 1080));
+  for (let i = 0; i < count; i++) {
+    motes.push(new Mote());
+  }
+}
+
+// ─── DRAW ──────────────────────────────────────────────────────────────────
+function draw() {
+  const now = millis();
+  const dt = Math.min((now - lastTs) / 1000, 0.05);
+  lastTs = now;
+  window.__frames = frameCount;
+
+  // Update field every ~3 frames
+  if (now - lastFieldUpdate > 50) {
+    buildField(now * 0.001);
+    lastFieldUpdate = now;
+  }
+
+  // Fade trail buffer
+  drawTrail();
+
+  // Update motes
+  for (let i = motes.length - 1; i >= 0; i--) {
+    motes[i].update(dt);
+    if (!motes[i].alive) {
+      motes.splice(i, 1);
+      motes.push(new Mote());
+    }
+  }
+
+  // Draw motes onto trail buffer
+  for (const m of motes) {
+    if (m.wrapped) continue;
+    const a = m.alpha * (0.45 + m.warm * 0.55);
+    const h = (CFG.hueMin + m.phase * (CFG.hueMax - CFG.hueMin)) % 360;
+    const s = CFG.satBase + m.warm * 20;
+    const b = CFG.briBase + m.warm * 12;
+    const r = CFG.moteSize * (0.7 + m.warm * 0.5);
+
+    trailCtx.beginPath();
+    trailCtx.arc(m.x, m.y, r, 0, Math.PI * 2);
+    trailCtx.fillStyle = `hsla(${h.toFixed(1)},${s.toFixed(1)}%,${b.toFixed(1)}%,${a.toFixed(3)})`;
+    trailCtx.fill();
+  }
+
+  // Composite to main canvas
+  background(0, 0, 2);
+  drawingContext.drawImage(bgLayer, 0, 0, W, H);
+  drawingContext.drawImage(trailBuf, 0, 0, W, H);
+
+  // Mouse glow ring
+  if (mx > 0 && my > 0) {
+    const rg = Math.min(W, H) * 0.13;
+    noFill();
+    strokeWeight(1.5 * DPR);
+    stroke(190, 55, 90, 18);
+    drawingContext.shadowBlur = 0;
+    ellipse(mx * DPR, my * DPR, rg, rg);
+  }
+}
+
+// ─── EVENTS ────────────────────────────────────────────────────────────────
+function mouseMoved() {
+  mx = mouseX;
+  my = mouseY;
+}
+
+function mouseDragged() {
+  mx = mouseX;
+  my = mouseY;
+}
+
+function touchMoved() {
+  if (touches.length > 0) {
+    mx = touches[0].x;
+    my = touches[0].y;
+  }
+  return false;
+}
+
+function keyPressed() {
+  if (key === 's' || key === 'S') {
+    saveCanvas('bioluminescent-swarm', 'png');
+  }
+  if (key === 'r' || key === 'R') {
+    const s = Math.floor(Math.random() * 99999);
+    randomSeed(s); noiseSeed(s);
+    trailCtx.fillStyle = '#020408';
+    trailCtx.fillRect(0, 0, W, H);
+    spawnMotes();
+  }
+  if (key === 'f' || key === 'F') toggleFullscreen();
+  if (key === ' ') noLoop();
+  if (key === ' ') loop();
+}
+
+function windowResized() {
+  const stage = document.getElementById('stage');
+  const rect = stage.getBoundingClientRect();
+  const nW = Math.round(rect.width * DPR);
+  const nH = Math.round(rect.height * DPR);
+
+  // Preserve trail
+  const oldTrail = document.createElement('canvas');
+  oldTrail.width = W; oldTrail.height = H;
+  oldTrail.getContext('2d').drawImage(trailBuf, 0, 0);
+
+  W = nW; H = nH;
+  resizeCanvas(W, H);
+
+  trailBuf.width = W; trailBuf.height = H;
+  trailCtx.fillStyle = '#020408';
+  trailCtx.fillRect(0, 0, W, H);
+  trailCtx.drawImage(oldTrail, 0, 0, W, H);
+
+  bgLayer.width = W; bgLayer.height = H;
+  bakeBackground();
+
+  fieldColSteps = Math.ceil(W / 28);
+  fieldRowSteps = Math.ceil(H / 28);
+  fieldGrid = new Array(fieldColSteps * fieldRowSteps);
+  buildField(millis() * 0.001);
+
+  // Scale mote count
+  const target = Math.floor(Math.max(900, Math.min(5200, W * H / 250)));
+  while (motes.length < target) motes.push(new Mote());
+  while (motes.length > target) motes.pop();
+}
+
+function toggleFullscreen() {
+  const el = document.getElementById('stage');
+  if (!document.fullscreenElement) {
+    el.requestFullscreen?.() || el.webkitRequestFullscreen?.();
+  } else {
+    document.exitFullscreen?.() || document.webkitExitFullscreen?.();
+  }
+}
+
+document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
+document.getElementById('btn-save').addEventListener('click', () => saveCanvas('bioluminescent-swarm', 'png'));
+document.getElementById('btn-reseed').addEventListener('click', () => {
+  const s = Math.floor(Math.random() * 99999);
+  randomSeed(s); noiseSeed(s);
+  trailCtx.fillStyle = '#020408';
+  trailCtx.fillRect(0, 0, W, H);
+  spawnMotes();
+});
+</script>
+</body>
+</html>
