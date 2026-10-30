@@ -56,6 +56,7 @@ Series, re-runs and experiments, documented like the gallery works on the [Labor
 | Lab 11 | [Three poems](https://keridwencodet.github.io/LLM-art/nemotron3super-poems/) | Nemotron 3 Super | Oct 2026 | Poems (chat replies) | Hermes Agent, one line added to SOUL.md |
 | Lab 12 | [Espace Latent — Respiration](https://keridwencodet.github.io/LLM-art/kimi-k27-respiration/) | Kimi K2.7 Code | Oct 2026 | p5.js | Hermes Agent, creative skills, companion line in SOUL.md |
 | Lab 13 | [Échos d’une émotion](https://keridwencodet.github.io/LLM-art/kimi-k27-echos/) | Kimi K2.7 Code | Oct 2026 | p5.js, Python still | Hermes Agent, creative skills, original request |
+| Lab 14 | [Échos d’une présence](https://keridwencodet.github.io/LLM-art/kimi-k27-presence/) | Kimi K2.7 Code | Oct 2026 | HTML, CSS | Hermes Agent, no creative skill, original request |
 
 ## Conservation
 
@@ -95,7 +96,7 @@ nemotron3super-poems/                   Lab 11 (three chat replies, archived ver
 nemotron3ultra-espace/                  No. 19 (French original, and the model’s English version)
 opus55-planetaire/                      No. 20 (revised and first versions, and the model’s English version)
 minimax-m3-latent/                      No. 21 (+ skill/, the skill the model wrote for itself while working)
-kimi-k27-cartographie/ kimi-k27-respiration/ kimi-k27-echos/   No. 22 (+ the model’s image script), Lab 12, Lab 13 (+ the model’s still)
+kimi-k27-cartographie/ kimi-k27-respiration/ kimi-k27-echos/ kimi-k27-presence/   No. 22 (+ the model’s image script), Lab 12, Lab 13 (+ the model’s still), Lab 14 (fixed, first and English versions)
 ```
 
 ### Adding a work
