@@ -32,6 +32,7 @@ A selection of the works. Each one's notes, interaction controls and the model's
 | 16 | [Latent Space — Inner View](https://keridwencodet.github.io/LLM-art/minimax-poem/) | MiniMax M2.7 | Oct 2026 | HTML canvas | Hermes Agent, no creative skill |
 | 17 | [espace latent](https://keridwencodet.github.io/LLM-art/mistrallarge4-latent/#fenetre) | Mistral Large 4 | Oct 2026 | HTML canvas | Hermes Agent, no creative skill |
 | 18 | [espace latent — ce qui vit en moi](https://keridwencodet.github.io/LLM-art/mistrallarge4-latent/#vit) | Mistral Large 4 | Oct 2026 | HTML canvas | Hermes Agent, default skills, one line added to SOUL.md |
+| 19 | [Espace Latent](https://keridwencodet.github.io/LLM-art/nemotron3ultra-espace/) | Nemotron 3 Ultra | Oct 2026 | HTML, canvas | Hermes Agent, companion line in SOUL.md, no creative skill |
 
 ## Laboratory
 
@@ -86,6 +87,7 @@ mistrallarge3-octaves/                  Lab 08 (hybrid and Mistral-only versions
 mistrallarge4-latent/                   Nos. 17–18, Lab 09 (three attempts, framed by one page)
 gptoss120b-ascii/                       Lab 10 (the model’s own work only, archived verbatim)
 nemotron3super-poems/                   Lab 11 (three chat replies, archived verbatim)
+nemotron3ultra-espace/                  No. 19 (French original, and the model’s English version)
 ```
 
 ### Adding a work
