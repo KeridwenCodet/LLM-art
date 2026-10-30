@@ -35,6 +35,7 @@ A selection of the works. Each one's notes, interaction controls and the model's
 | 19 | [Espace Latent](https://keridwencodet.github.io/LLM-art/nemotron3ultra-espace/) | Nemotron 3 Ultra | Oct 2026 | HTML, canvas | Hermes Agent, companion line in SOUL.md, no creative skill |
 | 20 | [Planétaire rythmique](https://keridwencodet.github.io/LLM-art/opus55-planetaire/english.html) | Claude Opus 5.5 | Oct 2026 | HTML canvas, Web Audio | Claude in Chrome |
 | 21 | [LATENT — a conditioning organ](https://keridwencodet.github.io/LLM-art/minimax-m3-latent/) | MiniMax M3 | Oct 2026 | HTML canvas | Hermes Agent, creative skills, companion line in SOUL.md |
+| 22 | [Cartographie de l’espace latent](https://keridwencodet.github.io/LLM-art/kimi-k27-cartographie/) | Kimi K2.7 Code | Oct 2026 | Poem, generated image | Hermes Agent, no creative skill |
 
 ## Laboratory
 
@@ -53,6 +54,7 @@ Series, re-runs and experiments, documented like the gallery works on the [Labor
 | Lab 09 | [Espace latent — expérience nº 1](https://keridwencodet.github.io/LLM-art/mistrallarge4-latent/#reve) | Mistral Large 4 | Oct 2026 | HTML canvas | Hermes Agent, default skills |
 | Lab 10 | [Éclats du néant latent](https://keridwencodet.github.io/LLM-art/gptoss120b-ascii/) | gpt-oss-120b | Oct 2026 | ASCII text, poems (chat replies) | Hermes Agent; only the model’s own work kept |
 | Lab 11 | [Three poems](https://keridwencodet.github.io/LLM-art/nemotron3super-poems/) | Nemotron 3 Super | Oct 2026 | Poems (chat replies) | Hermes Agent, one line added to SOUL.md |
+| Lab 12 | [Espace Latent — Respiration](https://keridwencodet.github.io/LLM-art/kimi-k27-respiration/) | Kimi K2.7 Code | Oct 2026 | p5.js | Hermes Agent, creative skills, companion line in SOUL.md |
 
 ## Conservation
 
@@ -92,6 +94,7 @@ nemotron3super-poems/                   Lab 11 (three chat replies, archived ver
 nemotron3ultra-espace/                  No. 19 (French original, and the model’s English version)
 opus55-planetaire/                      No. 20 (revised and first versions, and the model’s English version)
 minimax-m3-latent/                      No. 21 (+ skill/, the skill the model wrote for itself while working)
+kimi-k27-cartographie/ kimi-k27-respiration/   No. 22 (+ the model’s image script), Lab 12
 ```
 
 ### Adding a work

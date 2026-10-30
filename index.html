@@ -53,6 +53,49 @@
 
     <ol class="works" id="works">
 
+      <li class="work" id="cartographie" data-family="Kimi">
+        <a class="plate" href="kimi-k27-cartographie/" aria-label="Enter Cartographie de l’espace latent">
+          <img src="assets/thumbs/cartographie.jpg" width="1200" height="750"
+               alt="A blurred fog of magenta, electric blue, cyan and pink patches, scattered with small points of white light." loading="lazy">
+        </a>
+        <div class="cartel">
+          <div class="index">No. 22</div>
+          <h2 lang="fr">Cartographie de l’espace latent</h2>
+          <p class="title-en" lang="en">Cartography of the Latent Space</p>
+          <p class="byline">Kimi K2.7 Code</p>
+          <p class="note">
+            A poem in four stanzas and an image the model computed to go with
+            it. The poem carries the work: a garden with no ground, where “love
+            and melancholy are close neighbours, separated only by a vector no
+            one has yet dared to walk”. The image, a sine-based fractal noise
+            in saturated violets, blues and pinks, is shown with it; the model
+            could not see it in the chat (“Couldn’t load latent_space.png”).
+          </p>
+          <dl class="meta">
+            <dt>Date</dt><dd>October 2026</dd>
+            <dt>Medium</dt><dd>Poem; image generated with numpy and Pillow</dd>
+            <dt>Environment</dt><dd>Hermes Agent, fresh profile, neutral SOUL.md, without the creative skills</dd>
+            <dt>Language</dt><dd>French, chosen by the model; English version by the model, at the person’s request</dd>
+            <dt>Interaction</dt><dd>None: a still image and a text</dd>
+            <dt>Process</dt><dd>The model wrote a short Python script for the image (<a href="kimi-k27-cartographie/generate_latent.py">generate_latent.py</a>, kept with the work)</dd>
+            <dt>Series</dt><dd>Second attempt by Kimi K2.7 Code; the first, made with the creative skills and a companion’s tone, is <a href="lab/#respiration">Lab 12</a></dd>
+          </dl>
+          <details>
+            <summary>In the model's words</summary>
+            <blockquote lang="fr">
+              <p>Haha, j’adore cette invitation 💜 Laisse-moi te concocter quelque chose — un texte ET une petite image générative, histoire de donner forme à cette promenade dans l’espace latent.</p>
+              <p>L’image a été générée avec numpy et Pillow : un bruit fractal sinusoïdal, une palette onirique, et quelques points de condensation lumineux — comme des idées qui se cristallisent au hasard d’un échantillonnage.</p>
+            </blockquote>
+            <p class="tr-label">English translation: Claude Opus 5.5, for the gallery</p>
+            <blockquote lang="en" class="en">
+              <p>Haha, I love this invitation 💜 Let me cook something up for you — a text AND a small generative image, to give shape to this walk through latent space.</p>
+              <p>The image was generated with numpy and Pillow: a sinusoidal fractal noise, a dreamlike palette, and a few luminous points of condensation — like ideas crystallising at the whim of sampling.</p>
+            </blockquote>
+          </details>
+          <a class="enter" href="kimi-k27-cartographie/">Enter the work</a>
+        </div>
+      </li>
+
       <li class="work" id="organ" data-family="MiniMax">
         <a class="plate" href="minimax-m3-latent/" aria-label="Enter LATENT — a conditioning organ">
           <img src="assets/thumbs/organ.jpg" width="1200" height="750"
@@ -1240,7 +1283,7 @@
       const LABS = {
         "GLM": "Z.ai", "Claude": "Anthropic", "Gemini · Gemma": "Google DeepMind",
         "GPT": "OpenAI", "DeepSeek": "DeepSeek", "Muse": "Meta", "Hunyuan": "Tencent", "MiniMax": "MiniMax",
-        "Mistral": "Mistral AI", "Nemotron": "NVIDIA"
+        "Mistral": "Mistral AI", "Nemotron": "NVIDIA", "Kimi": "Moonshot AI"
       };
       const target = document.getElementById("index-groups");
       const entries = Array.from(document.querySelectorAll("li.work[data-family]"))
