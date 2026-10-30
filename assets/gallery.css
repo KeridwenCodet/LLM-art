@@ -400,6 +400,8 @@ ul.work-text .en {
   transition: color .3s ease, border-color .3s ease;
 }
 
+.enter:not(:last-child) { margin-right: 28px; }
+
 .enter:hover,
 .enter:focus-visible {
   color: var(--accent);
