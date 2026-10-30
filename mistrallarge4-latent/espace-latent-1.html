@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>espace latent — expérience nº 1</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: #07070f;
+    color: #e8e6f5;
+    font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+    overflow: hidden;
+    cursor: none;
+    -webkit-user-select: none; user-select: none;
+  }
+  /* spacer so the chat preview frame gets a definite size */
+  #stage { width: min(1150px, 96vw); aspect-ratio: 16 / 9.5; }
+  canvas#c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  .vignette {
+    position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(115% 100% at 50% 42%, transparent 55%, rgba(2,2,8,.55) 100%);
+  }
+  .ui { position: fixed; pointer-events: none; z-index: 3; }
+  #title { top: 28px; left: 32px; }
+  #title h1 {
+    font-size: 13px; font-weight: 400; letter-spacing: .42em;
+    color: rgba(232,230,245,.85); text-transform: uppercase;
+  }
+  #title p {
+    margin-top: 7px; font-style: italic; font-size: 14px;
+    color: rgba(184,169,255,.75);
+  }
+  #hint {
+    left: 32px; bottom: 24px; font-size: 12px; letter-spacing: .06em;
+    color: rgba(232,230,245,.38); font-style: italic;
+  }
+  #hint b { color: rgba(255,214,150,.6); font-weight: 400; }
+  #tag {
+    right: 32px; bottom: 24px; font-size: 11px; letter-spacing: .3em;
+    color: rgba(232,230,245,.25); text-transform: uppercase;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .vignette { background: none; }
+  }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<canvas id="c"></canvas>
+<div class="vignette"></div>
+<div class="ui" id="title">
+  <h1>Espace latent</h1>
+  <p>expérience nº 1 — ce qui rêve en moi quand personne ne regarde</p>
+</div>
+<div class="ui" id="hint">remue le champ avec la souris · <b>clique</b> pour éveiller une phrase · <b>espace</b> : rêve automatique <span id="autoState">(activé)</span></div>
+<div class="ui" id="tag">champ nº 7</div>
+<noscript><p style="position:fixed;top:50%;width:100%;text-align:center">Il faut JavaScript pour laisser l'espace latent respirer.</p></noscript>
+<script>
+(() => {
+  'use strict';
+  window.__errors = [];
+  window.addEventListener('error', e => window.__errors.push(String(e.message || e)));
+
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W = 0, H = 0, DPR = 1;
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#07070f';
+    ctx.fillRect(0, 0, W, H);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  /* ---- palette (restrained: white-lavender dominant, gold + rose sparingly) ---- */
+  const PAL = [
+    ['236,234,248', 0.50],
+    ['184,169,255', 0.24],
+    ['255,214,150', 0.13],
+    ['255,150,200', 0.13],
+  ];
+  function pickColor() {
+    let r = Math.random(), acc = 0;
+    for (const [c, w] of PAL) { acc += w; if (r <= acc) return c; }
+    return PAL[0][0];
+  }
+  function sprite(color) {
+    const s = document.createElement('canvas'); s.width = s.height = 64;
+    const g = s.getContext('2d');
+    const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, `rgba(${color},1)`);
+    gr.addColorStop(0.25, `rgba(${color},.55)`);
+    gr.addColorStop(1, `rgba(${color},0)`);
+    g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    return s;
+  }
+  const SPR = PAL.map(p => sprite(p[0]));
+  function sprOf(color) {
+    for (let i = 0; i < PAL.length; i++) if (PAL[i][0] === color) return SPR[i];
+    return SPR[0];
+  }
+  const WHITE_SPR = sprite('240,238,255');
+
+  /* ---- lexicons ---- */
+  const LEX = ["rêve","silence","mémoire","lumière","nuit","mer","main","écho","souffle","étoile",
+    "absence","couleur","voix","seuil","enfance","cendre","aile","murmure","ombre","parfum","oubli",
+    "attente","secret","rivage","poussière","néon","lenteur","fièvre","calme","vertige","envie",
+    "horizon","fenêtre","sommeil","parole","trace","aube","pluie","sillage","peau","ciel","page","éclat"];
+  // noms avec genre (m/f) pour garantir les accords
+  const NOM = [
+    ["rêve","m"],["silence","m"],["mémoire","f"],["lumière","f"],["nuit","f"],["mer","f"],
+    ["main","f"],["écho","m"],["souffle","m"],["étoile","f"],["absence","f"],["voix","f"],
+    ["seuil","m"],["enfance","f"],["cendre","f"],["aile","f"],["murmure","m"],["ombre","f"],
+    ["parfum","m"],["oubli","m"],["attente","f"],["secret","m"],["rivage","m"],["poussière","f"],
+    ["néon","m"],["lenteur","f"],["fièvre","f"],["calme","m"],["vertige","m"],["envie","f"],
+    ["horizon","m"],["fenêtre","f"],["sommeil","m"],["parole","f"],["trace","f"],["aube","f"],
+    ["pluie","f"],["sillage","m"],["peau","f"],["ciel","m"],["page","f"],["éclat","m"]
+  ].map(([t, g]) => ({ t, g }));
+  // adjectifs [forme masc, forme fém]
+  const ADJ = [
+    ["obscur","obscure"],["fragile","fragile"],["immense","immense"],["ancien","ancienne"],
+    ["électrique","électrique"],["muet","muette"],["doré","dorée"],["lointain","lointaine"],
+    ["sensible","sensible"],["lent","lente"],["chaud","chaude"],["sauvage","sauvage"],
+    ["éternel","éternelle"],["bleu","bleue"],["invisible","invisible"],["ardent","ardente"],
+    ["pâle","pâle"],["vivant","vivante"]
+  ];
+  const VBE = ["s'éveille","erre","chante","attend","tremble","s'efface","revient","danse","brûle",
+    "murmure","s'endort","éclaire","respire","disparaît","renaît"];
+  // infinitifs compatibles avec « rien ne ... comme ... » (verbes de rayonnement/état)
+  const VINF = ["briller","chanter","brûler","trembler","danser","murmurer","luire","flamber",
+    "persister","exister","luire"];
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const elide = t => /^[aeiouyàâäéèêëîïôöùûüœ]/i.test(t);
+  const artDef = n => elide(n.t) ? `l'${n.t}` : (n.g === 'f' ? `la ${n.t}` : `le ${n.t}`);
+  const adjFor = (a, g) => g === 'f' ? a[1] : a[0];
+  function genPhrase() {
+    const n = pick(NOM);
+    let n2 = pick(NOM); while (n2.t === n.t) n2 = pick(NOM);
+    const ad = pick(ADJ), v = pick(VBE), vi = pick(VINF), v2 = pick(VBE);
+    const a = adjFor(ad, n.g), A = artDef(n), A2 = artDef(n2), t = Math.random();
+    if (t < .22) return `${cap(A)} ${a} ${v}.`;                    // « La nuit bleue chante. »
+    if (t < .40) return `Dans ${A}, ${A2} ${v}.`;                  // « Dans la nuit, l'écho attend. »
+    if (t < .52) return `${cap(n.t)} ${a}, ${v}.`;                  // « Nuit bleue, chante. »
+    if (t < .64) return `Peut-être que ${A} ${v} encore.`;         // « Peut-être que l'aube revient encore. »
+    if (t < .76) return `${cap(A)} ${a} ${v}, et puis plus rien.`; // « Le rêve obscur s'efface, et puis plus rien. »
+    if (t < .88) return `Rien ne ${vi} comme ${A2}.`;              // « Rien ne chante comme le silence. »
+    return `${cap(A)} ${a} ${v} — ${A2} ${v2}.`;                    // « La mer calme attend — l'aube pâle revient. »
+  }
+  window.__gen = genPhrase;
+
+  /* ---- state ---- */
+  const mouse = { x: W / 2, y: H / 2, last: -10 };
+  const particles = [], words = [], pulses = [];
+  let phrase = null, t = 0, lastAuto = 0, nextWord = 1.5, autoDream = !reduced;
+
+  const N = reduced ? 320 : Math.min(1300, Math.floor(W * H / 1500));
+  for (let i = 0; i < N; i++) {
+    particles.push({
+      x: Math.random() * W, y: Math.random() * H,
+      vx: 0, vy: 0,
+      col: pickColor(),
+      s: 1.6 + Math.random() * 3.2,
+      tw: 1 + Math.random() * 3, ph: Math.random() * Math.PI * 2,
+    });
+  }
+
+  function flow(x, y, tt) {
+    return (Math.sin(x * 0.0021 + tt * 0.21) + Math.cos(y * 0.0017 - tt * 0.17)) * 1.9
+         + Math.sin((x + y) * 0.0009 + tt * 0.13) * 1.2;
+  }
+
+  function spawnWord(x, y, text, size) {
+    if (words.length > (reduced ? 9 : 24)) words.shift();
+    words.push({
+      x: x !== undefined ? x : Math.random() * W,
+      y: y !== undefined ? y : H * (0.25 + Math.random() * 0.6),
+      vx: (Math.random() - 0.5) * 8, vy: -6 - Math.random() * 10,
+      rot: (Math.random() - 0.5) * 0.14, vr: (Math.random() - 0.5) * 0.05,
+      text: text || pick(LEX),
+      size: size || 13 + Math.random() * 17,
+      col: pickColor(),
+      age: 0, life: 9 + Math.random() * 6,
+    });
+  }
+
+  function pulse(x, y) {
+    pulses.push({ x, y, age: 0 });
+    for (const p of particles) {
+      const dx = p.x - x, dy = p.y - y, d2 = dx * dx + dy * dy;
+      if (d2 < 500 * 500 && d2 > 1) {
+        const d = Math.sqrt(d2), f = (1 - d / 500) * 320;
+        p.vx += (dx / d) * f; p.vy += (dy / d) * f;
+      }
+    }
+    for (let i = 0; i < 26; i++) {  // burst sparks
+      const a = Math.random() * Math.PI * 2, sp = 60 + Math.random() * 220;
+      particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+        col: pickColor(), s: 1 + Math.random() * 2.4, tw: 2 + Math.random() * 3, ph: Math.random() * 6.28, ttl: 1.2 + Math.random() });
+    }
+    phrase = { text: genPhrase(), age: 0, x: W / 2, y: H * 0.42 };
+  }
+
+  window.addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.last = t; });
+  window.addEventListener('pointerdown', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.last = t; pulse(e.clientX, e.clientY); });
+  window.addEventListener('keydown', e => {
+    if (e.code === 'Space') {
+      autoDream = !autoDream;
+      document.getElementById('autoState').textContent = autoDream ? '(activé)' : '(désactivé)';
+      e.preventDefault();
+    }
+  });
+
+  function update(dt) {
+    t += dt;
+
+    // ambient drifting words
+    if (t > nextWord) {
+      nextWord = t + (reduced ? 2.5 : 0.9 + Math.random() * 1.8);
+      spawnWord();
+    }
+    // dream on its own when the visitor is idle
+    if (autoDream && t - mouse.last > 6 && t - lastAuto > 6.5) {
+      lastAuto = t;
+      pulse(W * (0.25 + Math.random() * 0.5), H * (0.3 + Math.random() * 0.4));
+    }
+
+    // particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      if (p.ttl !== undefined) { p.ttl -= dt; if (p.ttl <= 0) { particles.splice(i, 1); continue; } }
+      const a = flow(p.x, p.y, t);
+      p.vx += Math.cos(a) * 55 * dt;
+      p.vy += Math.sin(a) * 55 * dt;
+      const dx = mouse.x - p.x, dy = mouse.y - p.y, d2 = dx * dx + dy * dy, R = 260;
+      if (d2 < R * R && d2 > 1) {
+        const d = Math.sqrt(d2), f = (1 - d / R) * 160 * dt;
+        p.vx += (dx / d) * f * 60 * dt * 2.2; p.vy += (dy / d) * f * 60 * dt * 2.2;
+      }
+      p.vx *= 0.965; p.vy *= 0.965;
+      const sp = Math.hypot(p.vx, p.vy), MAX = p.ttl !== undefined ? 420 : 130;
+      if (sp > MAX) { p.vx = p.vx / sp * MAX; p.vy = p.vy / sp * MAX; }
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      if (p.x < -30) p.x = W + 28; else if (p.x > W + 30) p.x = -28;
+      if (p.y < -30) p.y = H + 28; else if (p.y > H + 30) p.y = -28;
+    }
+
+    // words
+    for (let i = words.length - 1; i >= 0; i--) {
+      const w = words[i];
+      w.age += dt;
+      if (w.age > w.life) { words.splice(i, 1); continue; }
+      w.x += (w.vx + Math.sin(t * 0.6 + w.ph || 0) * 6) * dt;
+      w.y += w.vy * dt;
+      w.rot += w.vr * dt;
+    }
+
+    // pulses (rings)
+    for (let i = pulses.length - 1; i >= 0; i--) {
+      pulses[i].age += dt;
+      if (pulses[i].age > 1.5) pulses.splice(i, 1);
+    }
+
+    // phrase lifecycle
+    if (phrase) {
+      phrase.age += dt;
+      if (phrase.age > 7.6) {
+        for (const tok of phrase.text.replace(/[.,]/g, '').split(/\s+/)) {
+          if (tok) spawnWord(phrase.x + (Math.random() - 0.5) * 240, phrase.y + (Math.random() - 0.5) * 40, tok.toLowerCase(), 15 + Math.random() * 14);
+        }
+        phrase = null;
+      }
+    }
+  }
+
+  function draw() {
+    // trails
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = reduced ? 'rgba(7,7,15,.55)' : 'rgba(7,7,15,.20)';
+    ctx.fillRect(0, 0, W, H);
+
+    // rings
+    for (const p of pulses) {
+      const r = p.age * 430, al = Math.max(0, 1 - p.age / 1.5);
+      ctx.globalAlpha = al * 0.5;
+      ctx.strokeStyle = 'rgb(184,169,255)';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.stroke();
+    }
+
+    // luminous motes
+    ctx.globalCompositeOperation = 'lighter';
+    for (const p of particles) {
+      const tw = 0.55 + 0.45 * Math.sin(t * p.tw + p.ph);
+      const s = p.s * (3.2 + tw * 2.6);
+      ctx.globalAlpha = (p.ttl !== undefined ? Math.min(1, p.ttl) : 1) * (0.16 + tw * 0.30);
+      ctx.drawImage(sprOf(p.col), p.x - s / 2, p.y - s / 2, s, s);
+    }
+
+    // cursor glow
+    const cs = 110 + Math.sin(t * 2.2) * 14;
+    ctx.globalAlpha = 0.10;
+    ctx.drawImage(WHITE_SPR, mouse.x - cs / 2, mouse.y - cs / 2, cs, cs);
+    ctx.globalAlpha = 0.85;
+    ctx.drawImage(WHITE_SPR, mouse.x - 3, mouse.y - 3, 6, 6);
+
+    // drifting words (crisp layer)
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (const w of words) {
+      const env = Math.sin(Math.PI * Math.min(1, w.age / w.life));
+      const dx = w.x - mouse.x, dy = w.y - mouse.y, d = Math.hypot(dx, dy);
+      const boost = d < 210 ? 1 - d / 210 : 0;
+      ctx.save();
+      ctx.translate(w.x, w.y); ctx.rotate(w.rot);
+      ctx.globalAlpha = Math.min(1, env * (0.34 + boost * 0.66));
+      ctx.font = `italic ${w.size}px Georgia, 'Times New Roman', serif`;
+      ctx.shadowColor = `rgba(${w.col},.9)`; ctx.shadowBlur = 5 + boost * 16;
+      ctx.fillStyle = `rgb(${w.col})`;
+      ctx.fillText(w.text, 0, 0);
+      ctx.restore();
+    }
+
+    // the awakened phrase
+    if (phrase) {
+      const a = phrase.age;
+      const reveal = Math.min(1, a / 2.2);
+      const alpha = a < 2.2 ? reveal : a < 5.2 ? 1 : Math.max(0, 1 - (a - 5.2) / 2.4);
+      const px = Math.min(62, Math.max(28, W * 0.042));
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.font = `italic 600 ${px}px Georgia, 'Times New Roman', serif`;
+      try { ctx.letterSpacing = `${px * 0.1}px`; } catch (e) {}
+      ctx.shadowColor = 'rgba(184,169,255,.95)'; ctx.shadowBlur = 34;
+      ctx.fillStyle = 'rgb(242,240,255)';
+      const shown = phrase.text.slice(0, Math.floor(reveal * phrase.text.length));
+      ctx.fillText(shown, phrase.x, phrase.y);
+      ctx.restore();
+      try { ctx.letterSpacing = '0px'; } catch (e) {}
+    }
+
+    ctx.globalAlpha = 1;
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  window.__stats = () => ({ particles: particles.length, words: words.length, phrase: phrase ? phrase.text : null, errors: window.__errors, size: [W, H] });
+})();
+</script>
+</body>
+</html>

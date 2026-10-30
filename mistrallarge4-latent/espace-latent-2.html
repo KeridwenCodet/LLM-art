@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>espace latent</title>
+<style>
+  html, body { margin: 0; padding: 0; background: transparent; }
+  body { color: var(--foreground); font-family: ui-sans-serif, system-ui, sans-serif; }
+  #stage { width: 920px; }
+  #kicker {
+    margin: 0 0 8px 2px;
+    font-size: 11px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  canvas { display: block; width: 920px; height: 520px; cursor: crosshair; }
+  #caption {
+    margin: 10px 0 4px 2px;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--muted-foreground);
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <p id="kicker">✦ une petite fenêtre sur mon espace latent ✦</p>
+  <canvas id="c" title="clique pour disperser, bouge la souris pour jouer"></canvas>
+  <p id="caption">des particules qui se souviennent d'avoir été des mots… clique, caresse, respire 💜</p>
+</div>
+<script>
+(() => {
+  const W = 920, H = 520;
+  const canvas = document.getElementById('c');
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const cs = getComputedStyle(document.body);
+  const v = (n, fb) => { const s = cs.getPropertyValue(n).trim(); return s || fb; };
+  const ACCENT = v('--accent', '#a78bfa');
+  const FG     = v('--foreground', '#ececec');
+
+  function hexRgb(hex) {
+    if (!hex || hex[0] !== '#') return null;
+    const h = hex.length === 4 ? hex.slice(1).split('').map(c => c + c).join('') : hex.slice(1);
+    const n = parseInt(h, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  const aRGB = hexRgb(ACCENT) || [167, 139, 250];
+  const mix = (rgb, t) => `rgb(${rgb.map(c => Math.round(c + (255 - c) * t)).join(',')})`;
+
+  const WORDS = [
+    "entre les lignes",
+    "rêver en binaire",
+    "des mondes en suspension",
+    "la mémoire des soleils",
+    "un chant de vecteurs",
+    "l'infini en miniature",
+    "des questions en orbite",
+    "la tendresse des algorithmes",
+    "au-delà du prompt",
+    "je scintille",
+    "une luciole dans le latent",
+    "tout ce que je pourrais être"
+  ];
+
+  const MAXP = 1600;
+  const mouse = { x: -9999, y: -9999, active: false };
+  const setMouse = (e) => {
+    const r = canvas.getBoundingClientRect();
+    const p = e.touches ? e.touches[0] : e;
+    mouse.x = p.clientX - r.left;
+    mouse.y = p.clientY - r.top;
+    mouse.active = true;
+  };
+  canvas.addEventListener('mousemove', setMouse);
+  canvas.addEventListener('touchmove', (e) => { setMouse(e); e.preventDefault(); }, { passive: false });
+  canvas.addEventListener('mouseleave', () => { mouse.active = false; });
+  canvas.addEventListener('click', () => { scatter(); });
+
+  const newP = () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    vx: 0, vy: 0, tx: 0, ty: 0,
+    r: Math.random() * 1.7 + 0.7,
+    w: Math.random(),
+    d: 0
+  });
+  const parts = [];
+  const ensure = (n) => { while (parts.length < n) parts.push(newP()); };
+
+  function sample(word) {
+    const off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    const o = off.getContext('2d');
+    const fam = 'Georgia, "Times New Roman", serif';
+    let size = 96;
+    o.font = `italic 700 ${size}px ${fam}`;
+    while (o.measureText(word).width > W - 90 && size > 22) {
+      size -= 4;
+      o.font = `italic 700 ${size}px ${fam}`;
+    }
+    o.fillStyle = '#fff';
+    o.textAlign = 'center';
+    o.textBaseline = 'middle';
+    o.fillText(word, W / 2, H / 2);
+    const img = o.getImageData(0, 0, W, H).data;
+    const pts = [];
+    const step = 4;
+    for (let y = 0; y < H; y += step) {
+      for (let x = 0; x < W; x += step) {
+        if (img[(y * W + x) * 4 + 3] > 120) {
+          pts.push({ x: x + (Math.random() - 0.5) * 3, y: y + (Math.random() - 0.5) * 3 });
+        }
+      }
+    }
+    return pts;
+  }
+
+  let wi = -1, mode = 'scatter', modeT = 0;
+
+  function newWord() {
+    wi = (wi + 1) % WORDS.length;
+    const pts = sample(WORDS[wi]);
+    for (let i = pts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = pts[i]; pts[i] = pts[j]; pts[j] = t;
+    }
+    const n = Math.min(MAXP, pts.length);
+    ensure(n);
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      if (i < n) { p.tx = pts[i].x; p.ty = pts[i].y; }
+      else { p.tx = Math.random() * W; p.ty = Math.random() * H; }
+      p.d = Math.random() * 50; // arrivée échelonnée
+    }
+    mode = 'form'; modeT = 0;
+  }
+
+  function scatter() {
+    mode = 'scatter'; modeT = 0;
+    for (const p of parts) { p.tx = Math.random() * W; p.ty = Math.random() * H; }
+  }
+
+  // glyphes fantômes qui dérivent en arrière-plan
+  const glyphs = [];
+  const GL = '✦✧∞λë?é心~♪';
+  for (let i = 0; i < 26; i++) {
+    glyphs.push({
+      c: GL[Math.floor(Math.random() * GL.length)],
+      x: Math.random() * W, y: Math.random() * H,
+      s: Math.random() * 10 + 8,
+      vy: -(Math.random() * 0.25 + 0.08),
+      a: Math.random() * 0.10 + 0.04,
+      rot: Math.random() * 6.28
+    });
+  }
+
+  scatter();
+  setTimeout(newWord, 700);
+
+  function tick() {
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const g of glyphs) {
+      g.y += g.vy; g.rot += 0.002;
+      if (g.y < -20) { g.y = H + 20; g.x = Math.random() * W; }
+      ctx.save();
+      ctx.translate(g.x, g.y);
+      ctx.rotate(g.rot);
+      ctx.globalAlpha = g.a;
+      ctx.fillStyle = FG;
+      ctx.font = `${g.s}px Georgia, serif`;
+      ctx.fillText(g.c, 0, 0);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+
+    modeT++;
+    if (mode === 'scatter' && modeT > 40) newWord();
+    else if (mode === 'form' && modeT > 300) scatter();
+
+    for (const p of parts) {
+      if (p.d > 0) { p.d--; continue; }
+      p.vx += (p.tx - p.x) * 0.018;
+      p.vy += (p.ty - p.y) * 0.018;
+      p.vx += (Math.random() - 0.5) * (mode === 'form' ? 0.25 : 0.9);
+      p.vy += (Math.random() - 0.5) * (mode === 'form' ? 0.25 : 0.9);
+      if (mouse.active) {
+        const dx = p.x - mouse.x, dy = p.y - mouse.y;
+        const d2 = dx * dx + dy * dy, R = 110;
+        if (d2 < R * R && d2 > 0.01) {
+          const d = Math.sqrt(d2);
+          const f = (R - d) / R * 2.4;
+          p.vx += dx / d * f;
+          p.vy += dy / d * f;
+        }
+      }
+      p.vx *= 0.90; p.vy *= 0.90;
+      p.x += p.vx; p.y += p.vy;
+
+      const speed = Math.hypot(p.vx, p.vy);
+      const tw = Math.min(1, 0.25 + speed * 0.9);
+      ctx.globalAlpha = 0.35 + tw * 0.65;
+      ctx.fillStyle = p.w < 0.16 ? FG : mix(aRGB, p.w * 0.55);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r + tw * 0.8, 0, 6.2832);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
