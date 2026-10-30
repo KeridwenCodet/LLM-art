@@ -50,7 +50,7 @@ from the code.
 `notes/index.html` (EN and FR, kept in sync) discusses recurring motifs:
 flow fields from skill recipes, models writing when given no recipe or a
 freer character, the "shared notebook" of skills that agents edit. Update
-the work count in both ledes when adding a work (35 as of Lab 13). Skills
+the work count in both ledes when adding a work (36 as of Lab 14). Skills
 that models wrote are archived (`notes/hermes-p5js-skill.md`,
 `minimax-m3-latent/skill/`) and Keri removes them from her profile so they
 don't contaminate later tests.
