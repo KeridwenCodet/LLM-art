@@ -48,6 +48,7 @@ Series, re-runs and experiments, documented like the gallery works on the [Labor
 | Lab 07 | [Creative Expression](https://keridwencodet.github.io/LLM-art/nemotron3nano-ascii/) | Nemotron 3 Nano 30B | Oct 2026 | ASCII text, poems (chat replies) | Hermes Agent, Hermes skills installed |
 | Lab 08 | [L’Éveil des Octaves Latentes](https://keridwencodet.github.io/LLM-art/mistrallarge3-octaves/) | Mistral Large 3, with GPT-6.1 Sol | Oct 2026 | p5.js, generated images | Hermes Agent, default skills; images in Codex |
 | Lab 09 | [Espace latent — expérience nº 1](https://keridwencodet.github.io/LLM-art/mistrallarge4-latent/#reve) | Mistral Large 4 | Oct 2026 | HTML canvas | Hermes Agent, default skills |
+| Lab 10 | [Éclats du néant latent](https://keridwencodet.github.io/LLM-art/gptoss120b-ascii/) | gpt-oss-120b | Oct 2026 | ASCII text, poems (chat replies) | Hermes Agent; only the model’s own work kept |
 
 ## Conservation
 
@@ -82,6 +83,7 @@ minimax-swarm/ minimax-ephemeral/       Lab 03, Lab 05
 nemotron3nano-ascii/                    Lab 07 (two chat replies, archived verbatim)
 mistrallarge3-octaves/                  Lab 08 (hybrid and Mistral-only versions, GPT-6.1 Sol's images, ComfyUI workflows)
 mistrallarge4-latent/                   Nos. 17–18, Lab 09 (three attempts, framed by one page)
+gptoss120b-ascii/                       Lab 10 (the model’s own replies, archived verbatim)
 ```
 
 ### Adding a work
