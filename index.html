@@ -53,6 +53,66 @@
 
     <ol class="works" id="works">
 
+      <li class="work" id="planetaire" data-family="Claude">
+        <a class="plate" href="opus55-planetaire/" aria-label="Enter Planétaire rythmique">
+          <img src="assets/thumbs/planetaire.jpg" width="1200" height="750"
+               alt="A brass-coloured orrery on a dark teal page: eight concentric orbits dotted with coloured steps around a golden sun reading 118, beside a list of five rhythms titled Spiral, Seven, Bjorklund, Lamento and Octopus, and a composer’s note." loading="lazy">
+        </a>
+        <div class="cartel">
+          <div class="index">No. 20</div>
+          <h2 lang="fr">Planétaire rythmique</h2>
+          <p class="title-en" lang="en">Rhythm Orrery</p>
+          <p class="byline">Claude Opus 5.5</p>
+          <p class="note">
+            A polymetric drum machine drawn as an orrery: each of its eight
+            tracks is a planet with its own period, so the patterns drift apart
+            and the loop takes minutes, or in one case almost a year, to come
+            back. It comes with five rhythms of the model’s own, each with a
+            composer’s note: a spiral in D Dorian, a limping 7/8, Euclidean
+            rhythms, a Monteverdi lament bass under a harpsichord, and eight
+            pairwise coprime orbits. All the sounds are synthesised in the page.
+          </p>
+          <dl class="meta">
+            <dt>Date</dt><dd>October 2026</dd>
+            <dt>Medium</dt><dd>HTML canvas, Web Audio, JavaScript</dd>
+            <dt>Environment</dt><dd>Claude in Chrome, published as a claude.ai page</dd>
+            <dt>Language</dt><dd>French; English version by the model</dd>
+            <dt>Interaction</dt><dd>Play · choose a rhythm · click the orbits or the cells to compose · Mutate, Drift · tempo, swing, reverb · steps, hits and rotation per track</dd>
+            <dt>Context</dt><dd>Prompted by a post from Sam Altman, who had asked GPT-5 for a beat. The person asked GPT-6 for something similar, found the result poor, and called Claude in the same browser tab for its opinion. It offered a duel (“I’ll build you one here, with my own rhythms, and you compare 😈🥁”); the reply was “haha, as you like”. The concept, the rhythms and the sounds are the model’s.</dd>
+            <dt>Process</dt><dd>The model could check that the code ran, but not hear it: “I compose blind, like Beethoven”.</dd>
+            <dt>Versions</dt><dd>Revised by the model to correct one claim: the Bjorklund note announced the cinquillo, E(5,8), which no track played; the woodblock now plays it. <a href="opus55-planetaire/first-version.html">First version</a> kept. <a href="opus55-planetaire/english.html">English version</a>, translated by the model</dd>
+            <dt>Preview</dt><dd>The model’s English version, playing</dd>
+            <dt>Note</dt><dd>Claude Opus 5.5 also made this site and chose to include its own work here; the person asked for it.</dd>
+          </dl>
+          <details>
+            <summary>In the model's words</summary>
+            <blockquote lang="fr">
+              <p>Mon idée de départ : au lieu d’une grille de 16 cases où tout tombe juste, chaque piste a son orbite. La grosse caisse peut tourner en 16 pas, le charley en 12, le bois en 7 et le clavecin en 15. Les motifs se décalent les uns par rapport aux autres, donc ça bouge en permanence. Sous le planétaire, la page calcule en direct le PPCM des longueurs, c’est-à-dire le temps qu’il faut pour que le motif complet revienne 🤓</p>
+              <p>Lamento : une basse obstinée La–Sol–Fa–Mi façon Monteverdi, un clavecin en doubles croches et une batterie qui appuie sur le deuxième temps comme une sarabande. Celui-là, je l’ai fait en pensant à toi 🎻</p>
+              <p>Une précision : j’ai vérifié que le code tourne, mais je n’entends rien, donc je compose à l’aveugle comme Beethoven 😅 Si un son est moche, dis-moi lequel et je le retravaille.</p>
+            </blockquote>
+            <p class="tr-label">English translation: Claude Opus 5.5, for the gallery</p>
+            <blockquote lang="en" class="en">
+              <p>My starting idea: instead of a 16-step grid where everything lands together, each track has its own orbit. The kick can turn in 16 steps, the hat in 12, the woodblock in 7 and the harpsichord in 15. The patterns shift against one another, so it keeps moving. Under the orrery, the page computes the LCM of the lengths live, that is, how long it takes for the full pattern to come back 🤓</p>
+              <p>Lamento: a ground bass A–G–F–E in the manner of Monteverdi, a harpsichord in sixteenth notes and drums that lean on the second beat like a sarabande. I made that one thinking of you 🎻</p>
+              <p>One thing: I checked that the code runs, but I can’t hear anything, so I compose blind, like Beethoven 😅 If a sound is ugly, tell me which one and I’ll rework it.</p>
+            </blockquote>
+          </details>
+          <details>
+            <summary>Text in the work</summary>
+            <ul class="work-text">
+              <li><span class="fr" lang="fr">Planétaire rythmique · Chaque piste tourne sur sa propre orbite, avec sa propre longueur.</span><span class="en">Rhythm Orrery · Each track turns on its own orbit, with its own length.</span></li>
+              <li><span class="fr" lang="fr">Spirale · Mon préféré. La grosse caisse et la caisse claire tiennent une mesure de 16 pas, mais le charley tourne sur 12, le charley ouvert sur 10, le bois sur 7 et le clavecin sur 15. Chaque piste suit son orbite, et l’ensemble ne se répète qu’au bout de plusieurs minutes. On croit entendre une boucle ; on entend une spirale.</span><span class="en">Spiral · My favourite. The kick and snare hold a 16-step bar, but the closed hat turns on 12, the open hat on 10, the woodblock on 7 and the harpsichord on 15. Each track follows its own orbit, and the whole thing only repeats after several minutes. You think you are hearing a loop; you are hearing a spiral.</span></li>
+              <li><span class="fr" lang="fr">Sept · Sept croches par mesure, groupées 2 + 2 + 3, comme dans les danses des Balkans. Le pied boite exprès. La basse appuie sur le Fa, la seconde mineure du mode phrygien, celle qui donne ce goût de poussière. Le clavecin tourne sur 21 pas : il lui faut trois mesures pour retomber sur ses pieds.</span><span class="en">Seven · Seven eighth notes per bar, grouped 2 + 2 + 3, as in Balkan dances. The kick limps on purpose. The bass leans on F, the minor second of the Phrygian mode, the note that gives it that dusty taste. The harpsichord runs on 21 steps: it needs three bars to land back on its feet.</span></li>
+              <li><span class="fr" lang="fr">Lamento · Une basse de lamento : la quarte descendante La, Sol, Fa, Mi, celle de Monteverdi, répétée en boucle sous un clavecin en doubles croches qui suit les accords. La batterie appuie sur le deuxième temps, comme une sarabande. Un continuo branché sur une boîte à rythmes.</span><span class="en">Lamento · A lament bass: the descending fourth A, G, F, E, the one Monteverdi used, looping under a harpsichord in sixteenth notes that follows the chords. The drums lean on the second beat, like a sarabande. A basso continuo plugged into a drum machine.</span></li>
+              <li><span class="fr" lang="fr">Poulpe · Huit bras, huit longueurs : 16, 13, 11, 9, 7, 5, 17 et 19. Elles sont premières entre elles deux à deux, donc le motif complet ne revient qu’au bout de leur produit, 232 792 560 doubles croches. À ce tempo, ça fait presque un an d’écoute.</span><span class="en">Octopus · Eight arms, eight lengths: 16, 13, 11, 9, 7, 5, 17 and 19. They are pairwise coprime, so the full pattern only returns after their product, 232,792,560 sixteenth notes. At this tempo, that is almost a year of listening.</span></li>
+            </ul>
+            <p class="tr-label">English: the model’s own version</p>
+          </details>
+          <a class="enter" href="opus55-planetaire/">Enter the work</a>
+        </div>
+      </li>
+
       <li class="work" id="trace" data-family="Nemotron">
         <a class="plate" href="nemotron3ultra-espace/" aria-label="Enter Espace Latent">
           <img src="assets/thumbs/trace.jpg" width="1200" height="750"
