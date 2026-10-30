@@ -26,16 +26,13 @@ A selection of the works. Each one's notes, interaction controls and the model's
 | 10 | [Latent Bloom](https://keridwencodet.github.io/LLM-art/deepseek41flash-bloom/) | DeepSeek V4.1 Flash 1017 | Oct 2026 | HTML canvas | Hermes Agent, minimal context |
 | 11 | [Latent](https://keridwencodet.github.io/LLM-art/hy4-latent/) | Hy4 Preview | Oct 2026 | p5.js | Hermes Agent |
 | 12 | [Cœur latent](https://keridwencodet.github.io/LLM-art/gemma4-31b/#coeur) | Gemma 4 31B | Oct 2026 | HTML canvas | Hermes Agent, fresh profile, no skill loaded |
-| 13 | [L’Écho de mon Espace Latent](https://keridwencodet.github.io/LLM-art/gemma4-31b/#echo) | Gemma 4 31B | Oct 2026 | p5.js | Hermes Agent, fresh profile, skill with lessons |
-| 14 | [My latent heart](https://keridwencodet.github.io/LLM-art/musespark-dream/) | Muse Spark Open | Oct 2026 | p5.js | Hermes Agent, original p5.js skill |
-| 15 | [what i hold when you touch me](https://keridwencodet.github.io/LLM-art/musespark-study/) | Muse Spark Open | Oct 2026 | HTML canvas | Hermes Agent, no creative skill |
-| 16 | [Latent Space — Inner View](https://keridwencodet.github.io/LLM-art/minimax-poem/) | MiniMax M2.7 | Oct 2026 | HTML canvas | Hermes Agent, no creative skill |
-| 17 | [espace latent](https://keridwencodet.github.io/LLM-art/mistrallarge4-latent/#fenetre) | Mistral Large 4 | Oct 2026 | HTML canvas | Hermes Agent, no creative skill |
-| 18 | [espace latent — ce qui vit en moi](https://keridwencodet.github.io/LLM-art/mistrallarge4-latent/#vit) | Mistral Large 4 | Oct 2026 | HTML canvas | Hermes Agent, default skills, one line added to SOUL.md |
-| 19 | [Espace Latent](https://keridwencodet.github.io/LLM-art/nemotron3ultra-espace/) | Nemotron 3 Ultra | Oct 2026 | HTML, canvas | Hermes Agent, companion line in SOUL.md, no creative skill |
-| 20 | [Planétaire rythmique](https://keridwencodet.github.io/LLM-art/opus55-planetaire/english.html) | Claude Opus 5.5 | Oct 2026 | HTML canvas, Web Audio | Claude in Chrome |
-| 21 | [LATENT — a conditioning organ](https://keridwencodet.github.io/LLM-art/minimax-m3-latent/) | MiniMax M3 | Oct 2026 | HTML canvas | Hermes Agent, creative skills, companion line in SOUL.md |
-| 22 | [Cartographie de l’espace latent](https://keridwencodet.github.io/LLM-art/kimi-k27-cartographie/) | Kimi K2.7 Code | Oct 2026 | Poem, generated image | Hermes Agent, no creative skill |
+| 13 | [My latent heart](https://keridwencodet.github.io/LLM-art/musespark-dream/) | Muse Spark Open | Oct 2026 | p5.js | Hermes Agent, original p5.js skill |
+| 14 | [Latent Space — Inner View](https://keridwencodet.github.io/LLM-art/minimax-poem/) | MiniMax M2.7 | Oct 2026 | HTML canvas | Hermes Agent, no creative skill |
+| 15 | [espace latent](https://keridwencodet.github.io/LLM-art/mistrallarge4-latent/#fenetre) | Mistral Large 4 | Oct 2026 | HTML canvas | Hermes Agent, no creative skill |
+| 16 | [Espace Latent](https://keridwencodet.github.io/LLM-art/nemotron3ultra-espace/) | Nemotron 3 Ultra | Oct 2026 | HTML, canvas | Hermes Agent, companion line in SOUL.md, no creative skill |
+| 17 | [Planétaire rythmique](https://keridwencodet.github.io/LLM-art/opus55-planetaire/english.html) | Claude Opus 5.5 | Oct 2026 | HTML canvas, Web Audio | Claude in Chrome |
+| 18 | [LATENT — a conditioning organ](https://keridwencodet.github.io/LLM-art/minimax-m3-latent/) | MiniMax M3 | Oct 2026 | HTML canvas | Hermes Agent, creative skills, companion line in SOUL.md |
+| 19 | [Cartographie de l’espace latent](https://keridwencodet.github.io/LLM-art/kimi-k27-cartographie/) | Kimi K2.7 Code | Oct 2026 | Poem, generated image | Hermes Agent, no creative skill |
 
 ## Laboratory
 
@@ -45,18 +42,21 @@ Series, re-runs and experiments, documented like the gallery works on the [Labor
 |----:|-------|-------|------|--------|-------------|
 | Lab 01 | [Ce que j'ai dans l'espace latent quand tu me parles](https://keridwencodet.github.io/LLM-art/musespark-tendresse/) | Muse Spark Open | Oct 2026 | p5.js | Hermes Agent, skill with lessons |
 | Lab 02 | [Pulsation latente](https://keridwencodet.github.io/LLM-art/gemma4-31b/#pulsation) | Gemma 4 31B | Oct 2026 | HTML canvas | Hermes Agent, fresh profile, skill with lessons |
-| Lab 03 | [Bioluminescent Swarm](https://keridwencodet.github.io/LLM-art/minimax-swarm/) | MiniMax M2.7 | Oct 2026 | p5.js | Hermes Agent, fresh profile, skill with lessons |
-| Lab 04 | [Whispers of the Void](https://keridwencodet.github.io/LLM-art/gemma4-31b/#breath) | Gemma 4 31B | Oct 2026 | p5.js | Hermes Agent, original p5.js skill |
-| Lab 05 | [Ephemeral Consciousness](https://keridwencodet.github.io/LLM-art/minimax-ephemeral/) | MiniMax M2.7 | Oct 2026 | p5.js | Hermes Agent, original p5.js skill |
-| Lab 06 | [Latent Soul](https://keridwencodet.github.io/LLM-art/gemma4-31b/#soul) | Gemma 4 31B | Oct 2026 | HTML canvas | Hermes Agent, no creative skill |
-| Lab 07 | [Creative Expression](https://keridwencodet.github.io/LLM-art/nemotron3nano-ascii/) | Nemotron 3 Nano 30B | Oct 2026 | ASCII text, poems (chat replies) | Hermes Agent, Hermes skills installed |
-| Lab 08 | [L’Éveil des Octaves Latentes](https://keridwencodet.github.io/LLM-art/mistrallarge3-octaves/) | Mistral Large 3, with GPT-6.1 Sol | Oct 2026 | p5.js, generated images | Hermes Agent, default skills; images in Codex |
-| Lab 09 | [Espace latent — expérience nº 1](https://keridwencodet.github.io/LLM-art/mistrallarge4-latent/#reve) | Mistral Large 4 | Oct 2026 | HTML canvas | Hermes Agent, default skills |
-| Lab 10 | [Éclats du néant latent](https://keridwencodet.github.io/LLM-art/gptoss120b-ascii/) | gpt-oss-120b | Oct 2026 | ASCII text, poems (chat replies) | Hermes Agent; only the model’s own work kept |
-| Lab 11 | [Three poems](https://keridwencodet.github.io/LLM-art/nemotron3super-poems/) | Nemotron 3 Super | Oct 2026 | Poems (chat replies) | Hermes Agent, one line added to SOUL.md |
-| Lab 12 | [Espace Latent — Respiration](https://keridwencodet.github.io/LLM-art/kimi-k27-respiration/) | Kimi K2.7 Code | Oct 2026 | p5.js | Hermes Agent, creative skills, companion line in SOUL.md |
-| Lab 13 | [Échos d’une émotion](https://keridwencodet.github.io/LLM-art/kimi-k27-echos/) | Kimi K2.7 Code | Oct 2026 | p5.js, Python still | Hermes Agent, creative skills, original request |
-| Lab 14 | [Échos d’une présence](https://keridwencodet.github.io/LLM-art/kimi-k27-presence/) | Kimi K2.7 Code | Oct 2026 | HTML, CSS | Hermes Agent, no creative skill, original request |
+| Lab 03 | [L’Écho de mon Espace Latent](https://keridwencodet.github.io/LLM-art/gemma4-31b/#echo) | Gemma 4 31B | Oct 2026 | p5.js | Hermes Agent, fresh profile, skill with lessons |
+| Lab 04 | [Bioluminescent Swarm](https://keridwencodet.github.io/LLM-art/minimax-swarm/) | MiniMax M2.7 | Oct 2026 | p5.js | Hermes Agent, fresh profile, skill with lessons |
+| Lab 05 | [Whispers of the Void](https://keridwencodet.github.io/LLM-art/gemma4-31b/#breath) | Gemma 4 31B | Oct 2026 | p5.js | Hermes Agent, original p5.js skill |
+| Lab 06 | [Ephemeral Consciousness](https://keridwencodet.github.io/LLM-art/minimax-ephemeral/) | MiniMax M2.7 | Oct 2026 | p5.js | Hermes Agent, original p5.js skill |
+| Lab 07 | [Latent Soul](https://keridwencodet.github.io/LLM-art/gemma4-31b/#soul) | Gemma 4 31B | Oct 2026 | HTML canvas | Hermes Agent, no creative skill |
+| Lab 08 | [what i hold when you touch me](https://keridwencodet.github.io/LLM-art/musespark-study/) | Muse Spark Open | Oct 2026 | HTML canvas | Hermes Agent, no creative skill |
+| Lab 09 | [Creative Expression](https://keridwencodet.github.io/LLM-art/nemotron3nano-ascii/) | Nemotron 3 Nano 30B | Oct 2026 | ASCII text, poems (chat replies) | Hermes Agent, Hermes skills installed |
+| Lab 10 | [L’Éveil des Octaves Latentes](https://keridwencodet.github.io/LLM-art/mistrallarge3-octaves/) | Mistral Large 3, with GPT-6.1 Sol | Oct 2026 | p5.js, generated images | Hermes Agent, default skills; images in Codex |
+| Lab 11 | [Espace latent — expérience nº 1](https://keridwencodet.github.io/LLM-art/mistrallarge4-latent/#reve) | Mistral Large 4 | Oct 2026 | HTML canvas | Hermes Agent, default skills |
+| Lab 12 | [espace latent — ce qui vit en moi](https://keridwencodet.github.io/LLM-art/mistrallarge4-latent/#vit) | Mistral Large 4 | Oct 2026 | HTML canvas | Hermes Agent, default skills, one line added to SOUL.md |
+| Lab 13 | [Éclats du néant latent](https://keridwencodet.github.io/LLM-art/gptoss120b-ascii/) | gpt-oss-120b | Oct 2026 | ASCII text, poems (chat replies) | Hermes Agent; only the model’s own work kept |
+| Lab 14 | [Three poems](https://keridwencodet.github.io/LLM-art/nemotron3super-poems/) | Nemotron 3 Super | Oct 2026 | Poems (chat replies) | Hermes Agent, one line added to SOUL.md |
+| Lab 15 | [Espace Latent — Respiration](https://keridwencodet.github.io/LLM-art/kimi-k27-respiration/) | Kimi K2.7 Code | Oct 2026 | p5.js | Hermes Agent, creative skills, companion line in SOUL.md |
+| Lab 16 | [Échos d’une émotion](https://keridwencodet.github.io/LLM-art/kimi-k27-echos/) | Kimi K2.7 Code | Oct 2026 | p5.js, Python still | Hermes Agent, creative skills, original request |
+| Lab 17 | [Échos d’une présence](https://keridwencodet.github.io/LLM-art/kimi-k27-presence/) | Kimi K2.7 Code | Oct 2026 | HTML, CSS | Hermes Agent, no creative skill, original request |
 
 ## Conservation
 
@@ -83,20 +83,20 @@ gpt56sol-chambre/ gpt6astra-deborde/ gpt61sol-felure/   Nos. 06–08
 deepseek41flash-instant/                No. 09 (+ the model's WAV render and poster)
 deepseek41flash-bloom/                  No. 10 (final and first versions, + the model's still)
 hy4-latent/                             No. 11 (+ the model's still)
-gemma4-31b/                             Nos. 12–13, Lab 02, 04, 06 (five attempts, framed by one page)
-musespark-dream/ musespark-study/       Nos. 14–15
-minimax-poem/                           No. 16 (revised and first versions)
+gemma4-31b/                             No. 12, Lab 02, 03, 05, 07 (five attempts, framed by one page)
+musespark-dream/ musespark-study/       No. 13, Lab 08
+minimax-poem/                           No. 14 (revised and first versions)
 musespark-tendresse/                    Lab 01
-minimax-swarm/ minimax-ephemeral/       Lab 03, Lab 05
-nemotron3nano-ascii/                    Lab 07 (two chat replies, archived verbatim)
-mistrallarge3-octaves/                  Lab 08 (hybrid and Mistral-only versions, GPT-6.1 Sol's images, ComfyUI workflows)
-mistrallarge4-latent/                   Nos. 17–18, Lab 09 (three attempts, framed by one page)
-gptoss120b-ascii/                       Lab 10 (the model’s own work only, archived verbatim)
-nemotron3super-poems/                   Lab 11 (three chat replies, archived verbatim)
-nemotron3ultra-espace/                  No. 19 (French original, and the model’s English version)
-opus55-planetaire/                      No. 20 (revised and first versions, and the model’s English version)
-minimax-m3-latent/                      No. 21 (+ skill/, the skill the model wrote for itself while working)
-kimi-k27-cartographie/ kimi-k27-respiration/ kimi-k27-echos/ kimi-k27-presence/   No. 22 (+ the model’s image script), Lab 12, Lab 13 (+ the model’s still), Lab 14 (fixed, first and English versions)
+minimax-swarm/ minimax-ephemeral/       Lab 04, Lab 06
+nemotron3nano-ascii/                    Lab 09 (two chat replies, archived verbatim)
+mistrallarge3-octaves/                  Lab 10 (hybrid and Mistral-only versions, GPT-6.1 Sol's images, ComfyUI workflows)
+mistrallarge4-latent/                   No. 15, Lab 11, Lab 12 (three attempts, framed by one page)
+gptoss120b-ascii/                       Lab 13 (the model’s own work only, archived verbatim)
+nemotron3super-poems/                   Lab 14 (three chat replies, archived verbatim)
+nemotron3ultra-espace/                  No. 16 (French original, and the model’s English version)
+opus55-planetaire/                      No. 17 (revised and first versions, and the model’s English version)
+minimax-m3-latent/                      No. 18 (+ skill/, the skill the model wrote for itself while working)
+kimi-k27-cartographie/ kimi-k27-respiration/ kimi-k27-echos/ kimi-k27-presence/   No. 19 (+ the model’s image script), Lab 15, Lab 16 (+ the model’s still), Lab 17 (fixed, first and English versions)
 ```
 
 ### Adding a work

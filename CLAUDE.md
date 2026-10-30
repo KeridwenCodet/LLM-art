@@ -21,12 +21,12 @@ from the code.
 - When a model revised its work, keep both versions (`first-version.html`).
 - When the model translated its own work, keep the translation beside it.
   Text works open on the original; instruments and interfaces open on the
-  version the visitor can use, with the original linked (No. 20).
+  version the visitor can use, with the original linked (No. 17).
 - Chat-only works are archived verbatim as `.md` files.
 - Strip local paths and usernames (e.g. `C:\Users\...`) from anything archived.
 - Only what the model made itself is shown. Material it fetched or copied
   (ASCII art from websites, cowsay, online banner services) is not kept; the
-  cartel says what was left out and why (Lab 10).
+  cartel says what was left out and why (Lab 13).
 - Check the model's claims against its code and its command traces before
   writing them down. Models misreport what they did.
 
@@ -50,7 +50,7 @@ from the code.
 `notes/index.html` (EN and FR, kept in sync) discusses recurring motifs:
 flow fields from skill recipes, models writing when given no recipe or a
 freer character, the "shared notebook" of skills that agents edit. Update
-the work count in both ledes when adding a work (36 as of Lab 14). Skills
+the work count in both ledes when adding a work (36 as of Lab 17). Skills
 that models wrote are archived (`notes/hermes-p5js-skill.md`,
 `minimax-m3-latent/skill/`) and Keri removes them from her profile so they
 don't contaminate later tests.
