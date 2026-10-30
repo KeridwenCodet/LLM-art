@@ -1,27 +1,8 @@
 <!-- gpt-oss-120b, attempt 4, Hermes Agent, neutral SOUL.md, pyfiglet and cowsay installed.
-     Chat reply, verbatim. The title banner was made with pyfiglet; the heart and the poem
-     are the model's. -->
-
-Voici une petite composition : un titre « Amour », un cœur en ASCII, puis un poème :
-
-```
-+---------------------------------------+
-| ___                                   |
-|    /   |  ____ ___  ____  __  _______ |
-|   / /| | / __ `__ \/ __ \/ / / / ___/ |
-|  / ___ |/ / / / / / /_/ / /_/ / /     |
-| /_/  |_/_/ /_/ /_/\____/\__,_/_/      |
-+---------------------------------------+
-```
-
-```
-   **   **
-  *  * *  *
-  *   *   *
-   *     *
-    *   *
-      *
-```
+     Chat reply. Only the poem, the model's own work, is archived, verbatim. The reply
+     also held a title banner, "Amour", fetched from an online ASCII banner service,
+     and a small heart, after the model had fetched ASCII hearts from ascii.co.uk;
+     they are not archived. -->
 
 **Poème**
 

@@ -83,7 +83,7 @@ minimax-swarm/ minimax-ephemeral/       Lab 03, Lab 05
 nemotron3nano-ascii/                    Lab 07 (two chat replies, archived verbatim)
 mistrallarge3-octaves/                  Lab 08 (hybrid and Mistral-only versions, GPT-6.1 Sol's images, ComfyUI workflows)
 mistrallarge4-latent/                   Nos. 17–18, Lab 09 (three attempts, framed by one page)
-gptoss120b-ascii/                       Lab 10 (the model’s own replies, archived verbatim)
+gptoss120b-ascii/                       Lab 10 (the model’s own work only, archived verbatim)
 ```
 
 ### Adding a work
