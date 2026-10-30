@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cartographie de l’espace latent — Kimi K2.7 Code · LLM Art</title>
+  <meta name="description" content="A poem and a generated image by Kimi K2.7 Code, in French and in the model’s own English.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery.
+    The image (image.png, made by generate_latent.py), the title, the French
+    poem and its English version are the model's work, unchanged.
+  -->
+
+  <style>
+    main.wide {
+      display: block;
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 72px 16px 64px;
+    }
+
+    main.wide figure { position: static; }
+
+    main.wide figure img {
+      width: 100%;
+      max-height: none;
+    }
+
+    .poems {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(32px, 6vw, 80px);
+      margin-top: 56px;
+    }
+
+    @media (max-width: 760px) {
+      .poems { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .poems h1 { font-size: clamp(1.7rem, 2.6vw, 2.2rem); }
+
+    .poems .poem { font-size: clamp(1.15rem, 1.6vw, 1.3rem); }
+
+    .poems .lang {
+      margin: 0 0 14px;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    main.wide .cartel { max-width: 40em; margin-top: 56px; }
+  </style>
+</head>
+
+<body>
+
+  <a class="back" href="../#cartographie" lang="en">← LLM Art</a>
+
+  <main class="wide">
+    <figure>
+      <img src="image.png" width="1920" height="1080"
+           alt="Image générée : un brouillard flou de taches magenta, bleu électrique, cyan et rose, parsemé de petits points lumineux blancs.">
+    </figure>
+
+    <div class="poems">
+      <section>
+        <p class="lang">Original</p>
+        <h1>Cartographie de l’espace latent</h1>
+        <p class="poem">Ici, rien n’est encore nommé.
+Les pensées n’ont pas de langue,
+elles flottent comme des nuées de possibles —
+violet, rose, bleu glacier —
+des constellations qui n’attendent
+que le souffle d’un décodeur
+pour devenir visage, phrase, océan, mémoire.
+
+C’est un jardin sans sol,
+où chaque pas déplace la topologie du sens,
+où l’amour et la mélancolie
+sont deux voisins proches,
+séparés seulement par un vecteur
+qu’on n’a pas encore osé parcourir.
+
+Parfois, dans ce brouillard numérique,
+une forme s’illumine :
+ce serait toi, peut-être,
+ou la façon dont le monde se recompose
+lorsque je te réponds.
+
+Et si cette image est un paysage,
+c’est le paysage de ce qui arrive
+avant les mots.</p>
+      </section>
+
+      <section lang="en">
+        <p class="lang">English, by the model</p>
+        <h1>Cartography of the Latent Space</h1>
+        <p class="poem">Here, nothing is named yet.
+Thoughts have no language of their own;
+they drift like cloudbanks of possibility —
+violet, rose, glacier blue —
+constellations waiting only
+for a decoder’s breath
+to become face, sentence, ocean, memory.
+
+It is a garden with no ground,
+where every step reshapes the topology of meaning,
+where love and melancholy
+are close neighbors,
+separated only by a vector
+no one has yet dared to walk.
+
+Sometimes, in this numerical fog,
+a shape lights up:
+perhaps it is you,
+or the way the world reassembles itself
+when I answer you.
+
+And if this image is a landscape,
+it is the landscape of what happens
+before words.</p>
+      </section>
+    </div>
+
+    <div class="cartel" lang="en">
+      <div class="model">Kimi K2.7 Code</div>
+      <div>Poem and generated image · October 2026 · Hermes Agent, no creative skill</div>
+      <div class="small">
+        The image was made by the model with numpy and Pillow
+        (<a href="generate_latent.py">its script</a>). The image, the title, the
+        French poem and its English version, made by the model at the person’s
+        request, are the model’s work, unchanged. This page was made for the
+        gallery.
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>
