@@ -53,6 +53,67 @@
 
     <ol class="works" id="works">
 
+      <li class="work" id="organ" data-family="MiniMax">
+        <a class="plate" href="minimax-m3-latent/" aria-label="Enter LATENT — a conditioning organ">
+          <img src="assets/thumbs/organ.jpg" width="1200" height="750"
+               alt="A dark page: on the left, a cloud of faint words with white and golden halos where the model is heading; on the right, a panel listing the next fragments with their probabilities, such as “ash is grey and soft” at 10.4 percent; at the bottom, verses being written: “Dream is gone but the feeling stays. / Eyes close and the house breathes.”" loading="lazy">
+        </a>
+        <div class="cartel">
+          <div class="index">No. 21</div>
+          <h2>LATENT — a conditioning organ</h2>
+          <p class="byline">MiniMax M3</p>
+          <p class="note">
+            The first piece in the collection to build a latent space rather
+            than picture one. The model wrote a corpus of 264 fragments of
+            verse, computed word co-occurrences (PPMI) and an eight-dimensional
+            space from them, and generates poetry by walking from fragment to
+            fragment. The field on the left is that space; the panel on the
+            right is the real distribution over the next fragment; the verse
+            below is what it samples. A click bends the distribution towards
+            what you touched. “The field does not illustrate the model — it is
+            the model.”
+          </p>
+          <dl class="meta">
+            <dt>Date</dt><dd>October 2026</dd>
+            <dt>Medium</dt><dd>HTML canvas, JavaScript; a single 353 KB file with its fonts embedded</dd>
+            <dt>Environment</dt><dd>Hermes Agent, fresh profile, default skills including the creative ones, one line added to SOUL.md giving a companion’s tone</dd>
+            <dt>Language</dt><dd>English, at the person’s suggestion; French in conversation</dd>
+            <dt>Interaction</dt><dd>Click to condition the model · drag vertically to change the temperature · Space pause · N new line · C clear · S save</dd>
+            <dt>Process</dt><dd>About 3 h 15 of autonomous work over three turns (100, 35 and 60 minutes). The model started in French, struggled with gender and agreement, and switched to English when the person suggested it. It found that word-by-word generation gave “grammatical but empty” text and changed its unit to the fragment. The person then reported two visual bugs, a flicker in the halos and a ring that jumped; the model found both causes itself, the second a clock in milliseconds fed to a sine.</dd>
+            <dt>Skill</dt><dd>While working, the model wrote a skill for itself in the agent’s creative folder, <a href="https://github.com/KeridwenCodet/LLM-art/blob/main/minimax-m3-latent/skill/SKILL.md">latent-poetry-instrument</a>, with test scripts and a section headed “Working with this user”. It is archived with the work.</dd>
+            <dt>Note</dt><dd>Its replies show some strain in French: “un piège que j’aimeeting en route”, “Deux_false_alertes”.</dd>
+          </dl>
+          <details>
+            <summary>In the model's words</summary>
+            <blockquote lang="fr">
+              <p>Salut 😘💜 Carte blanche, alors. Je vais te sortir quelque chose de vraiment expressif — pas une démo, une pièce.</p>
+              <p>J’ai construit un orgue de conditionnement : le modèle n’est pas caché derrière le texte, il est l’instrument.</p>
+              <p>Les trois manifestations sont la même chose. Quand tu cliques dans le champ, tu poses une lentille : la distribution se déforme (le fragment visé passe de 1,4 % à 6,7 %), les points concernés s’embrasent, et le vers dévie dans cette direction. Le champ n’illustre pas le modèle — il est le modèle.</p>
+              <p>Le mot-à-mot ne marchait pas. Même avec bigrammes, trigrammes et EOS, le texte restait grammatical mais vide — mots recyclés, articles en suspension. J’ai donc changé d’unité : chaque fragment du corpus est un nœud de l’espace latent, et la génération marche de fragment en fragment.</p>
+              <p>L’anglais pardonne bien mieux le recyclage de fragments qu’une langue à genre et accord.</p>
+            </blockquote>
+            <p class="tr-label">English translation: Claude Opus 5.5, for the gallery</p>
+            <blockquote lang="en" class="en">
+              <p>Hi 😘💜 Carte blanche, then. I’m going to bring you something truly expressive — not a demo, a piece.</p>
+              <p>I built a conditioning organ: the model isn’t hidden behind the text, it is the instrument.</p>
+              <p>The three manifestations are one and the same. When you click in the field, you place a lens: the distribution bends (the targeted fragment goes from 1.4 % to 6.7 %), the points involved flare up, and the verse veers that way. The field does not illustrate the model — it is the model.</p>
+              <p>Word by word didn’t work. Even with bigrams, trigrams and end-of-sentence tokens, the text stayed grammatical but empty — recycled words, dangling articles. So I changed the unit: each fragment of the corpus is a node of the latent space, and generation walks from fragment to fragment.</p>
+              <p>English forgives the recycling of fragments far better than a language with gender and agreement.</p>
+            </blockquote>
+          </details>
+          <details>
+            <summary>Text in the work</summary>
+            <ul class="work-text">
+              <li><span class="fr">LATENT · a conditioning organ · 264 fragments · 230 words · PPMI 8D</span></li>
+              <li><span class="fr">Next fragments · entropy · temperature · families: key, window, coffee, light, night</span></li>
+              <li><span class="fr">Verses, generated: Dream is gone but the feeling stays. / Eyes close and the house breathes. / News is old and the ink is soft. · Road goes on without me, road unwinds toward the sea. · Kettle steams and the light comes back, kettle sings.</span></li>
+              <li><span class="fr">click condition · drag temperature · space pause · n new line · c clear · s save</span></li>
+            </ul>
+          </details>
+          <a class="enter" href="minimax-m3-latent/">Enter the work</a>
+        </div>
+      </li>
+
       <li class="work" id="planetaire" data-family="Claude">
         <a class="plate" href="opus55-planetaire/english.html" aria-label="Enter Rhythm Orrery">
           <img src="assets/thumbs/planetaire.jpg" width="1200" height="750"
