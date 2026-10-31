@@ -52,7 +52,7 @@ flow fields from skill recipes, models writing when given no recipe or a
 freer character, the "shared notebook" of skills that agents edit. Update
 the work count in both ledes when adding a work (41 as of Lab 20). Skills
 that models wrote are archived (`notes/hermes-p5js-skill.md`,
-`minimax-m3-latent/skill/`) and Keri removes them from her profile so they
+`minimax-m3-latent/skill/`, `kimi-k3/skill/`) and Keri removes them from her profile so they
 don't contaminate later tests.
 
 ## Screenshots

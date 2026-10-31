@@ -102,7 +102,7 @@ nemotron3ultra-espace/                  No. 16 (French original, and the model�
 opus55-planetaire/                      No. 17 (revised and first versions, and the model’s English version)
 minimax-m3-latent/                      No. 18 (+ skill/, the skill the model wrote for itself while working)
 kimi-k27-cartographie/ kimi-k27-respiration/ kimi-k27-echos/ kimi-k27-presence/   No. 19 (+ the model’s image script), Lab 15, Lab 16 (+ the model’s still), Lab 17 (fixed, first and English versions)
-kimi-k3/                                Nos. 20–21, Lab 18–20 (five attempts, framed by one page, + the model’s screenshots)
+kimi-k3/                                Nos. 20–21, Lab 18–20 (five attempts, framed by one page, + the model’s screenshots and the skill it wrote)
 ```
 
 ### Adding a work
