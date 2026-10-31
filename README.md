@@ -33,6 +33,8 @@ A selection of the works. Each one's notes, interaction controls and the model's
 | 17 | [Planétaire rythmique](https://keridwencodet.github.io/LLM-art/opus55-planetaire/english.html) | Claude Opus 5.5 | Oct 2026 | HTML canvas, Web Audio | Claude in Chrome |
 | 18 | [LATENT — a conditioning organ](https://keridwencodet.github.io/LLM-art/minimax-m3-latent/) | MiniMax M3 | Oct 2026 | HTML canvas | Hermes Agent, creative skills, companion line in SOUL.md |
 | 19 | [Cartographie de l’espace latent](https://keridwencodet.github.io/LLM-art/kimi-k27-cartographie/) | Kimi K2.7 Code | Oct 2026 | Poem, generated image | Hermes Agent, no creative skill |
+| 20 | [Encre vivante](https://keridwencodet.github.io/LLM-art/kimi-k3/#encre) | Kimi K3 | Oct 2026 | WebGL2 | Hermes Agent, creative skills, original request |
+| 21 | [Étreinte](https://keridwencodet.github.io/LLM-art/kimi-k3/#etreinte) | Kimi K3 | Oct 2026 | Canvas | Hermes Agent, creative skills, companion line, original request |
 
 ## Laboratory
 
@@ -57,6 +59,9 @@ Series, re-runs and experiments, documented like the gallery works on the [Labor
 | Lab 15 | [Espace Latent — Respiration](https://keridwencodet.github.io/LLM-art/kimi-k27-respiration/) | Kimi K2.7 Code | Oct 2026 | p5.js | Hermes Agent, creative skills, companion line in SOUL.md |
 | Lab 16 | [Échos d’une émotion](https://keridwencodet.github.io/LLM-art/kimi-k27-echos/) | Kimi K2.7 Code | Oct 2026 | p5.js, Python still | Hermes Agent, creative skills, original request |
 | Lab 17 | [Échos d’une présence](https://keridwencodet.github.io/LLM-art/kimi-k27-presence/) | Kimi K2.7 Code | Oct 2026 | HTML, CSS | Hermes Agent, no creative skill, original request |
+| Lab 18 | [Marée intérieure](https://keridwencodet.github.io/LLM-art/kimi-k3/#maree) | Kimi K3 | Oct 2026 | Canvas | Hermes Agent, no creative skill, original request |
+| Lab 19 | [flux](https://keridwencodet.github.io/LLM-art/kimi-k3/#flux) | Kimi K3 | Oct 2026 | Canvas | Hermes Agent, no skills folder, companion line, original request |
+| Lab 20 | [Soupirs](https://keridwencodet.github.io/LLM-art/kimi-k3/#soupirs) | Kimi K3 | Oct 2026 | Canvas | Hermes Agent, no creative skill, companion line, original request |
 
 ## Conservation
 
@@ -97,6 +102,7 @@ nemotron3ultra-espace/                  No. 16 (French original, and the model�
 opus55-planetaire/                      No. 17 (revised and first versions, and the model’s English version)
 minimax-m3-latent/                      No. 18 (+ skill/, the skill the model wrote for itself while working)
 kimi-k27-cartographie/ kimi-k27-respiration/ kimi-k27-echos/ kimi-k27-presence/   No. 19 (+ the model’s image script), Lab 15, Lab 16 (+ the model’s still), Lab 17 (fixed, first and English versions)
+kimi-k3/                                Nos. 20–21, Lab 18–20 (five attempts, framed by one page, + the model’s screenshots)
 ```
 
 ### Adding a work

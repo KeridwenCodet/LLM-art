@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Soupirs — nocturne d'encre et de lumière</title>
+<style>
+  html,body{margin:0;padding:0;background:transparent}
+  .wrap{position:relative;display:inline-block;line-height:0;vertical-align:top}
+  canvas{display:block;width:min(820px,100%);height:auto;border-radius:14px;touch-action:none}
+  .ui{position:absolute;font-style:italic;font-family:Georgia,'Times New Roman',serif;
+      color:var(--muted-foreground,#9a8f80);letter-spacing:.09em;line-height:1.4;pointer-events:none}
+  .titre{top:14px;left:16px;max-width:62%;font-size:15px}
+  .hint{bottom:12px;left:16px;max-width:62%;font-size:12px;opacity:.85}
+  .souffle{position:absolute;top:12px;right:12px;pointer-events:auto;cursor:pointer;
+      font:italic 12px Georgia,'Times New Roman',serif;letter-spacing:.09em;
+      color:var(--muted-foreground,#9a8f80);background:transparent;
+      border:1px solid var(--border,rgba(150,140,120,.4));border-radius:999px;padding:5px 13px;
+      transition:color .3s,border-color .3s}
+  .souffle:hover{color:var(--foreground,#efe7dc);border-color:var(--accent,#d08a5a)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <canvas id="c"></canvas>
+  <div class="ui titre">Soupirs — nocturne d'encre et de lumière</div>
+  <div class="ui hint" id="hint">laisse ta main errer sur la toile · clique pour voir éclore</div>
+  <button class="souffle" id="resouffle"
+    data-hermes-send="Modifie le fichier /workspace/soupirs.html : remplace la valeur de `const SEED` par un nouvel entier aléatoire entre 1 et 999999 (tout le reste inchangé), puis vérifie le rendu avec `node /workspace/shot.js /workspace/soupirs.html --interact` en inspectant les PNG générés, et réponds en français, ton tendre et bref, en livrant à nouveau le fichier en ::preview.">✦ autre souffle</button>
+</div>
+<script>
+(function(){
+'use strict';
+
+const SEED = 311026;   // graine de cette composition — la changer régénère tout le tableau
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = 820, H = 590;
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+canvas.width = W * DPR; canvas.height = H * DPR;
+ctx.scale(DPR, DPR);
+
+/* ---------- couleurs du thème ---------- */
+function norm(v, f){
+  if(!v || !v.trim()) return f;
+  const d = document.createElement('canvas').getContext('2d');
+  d.fillStyle = '#010203'; d.fillStyle = v.trim();
+  const s = d.fillStyle;
+  if(s === '#010203') return f;
+  let r, g, b;
+  const hx = s.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i);
+  const rg = s.match(/rgba?\((\d+)[, ]+(\d+)[, ]+(\d+)/);
+  if(hx){ r = parseInt(hx[1],16); g = parseInt(hx[2],16); b = parseInt(hx[3],16); }
+  else if(rg){ r = +rg[1]; g = +rg[2]; b = +rg[3]; }
+  else return f;
+  return {r:r, g:g, b:b};
+}
+const css = getComputedStyle(document.documentElement);
+const ACCENT = norm(css.getPropertyValue('--accent'),            {r:208, g:138, b: 90});
+const INK    = norm(css.getPropertyValue('--muted-foreground'),  {r:154, g:143, b:128});
+const LIGHT  = {r:Math.min(255,ACCENT.r+88), g:Math.min(255,ACCENT.g+72), b:Math.min(255,ACCENT.b+62)};
+const WARM   = {r:230, g:178, b:125};
+const ROSE   = {r:216, g:138, b:156};
+const PAL    = [ACCENT, ACCENT, ACCENT, LIGHT, WARM, ROSE];
+const rgba = (c,a) => 'rgba('+(c.r|0)+','+(c.g|0)+','+(c.b|0)+','+a+')';
+
+/* ---------- hasard & bruit ---------- */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+
+let rand, Perm, G;
+function fade(t){ return t*t*t*(t*(t*6-15)+10); }
+function buildNoise(seed){
+  rand = mulberry32(seed);
+  const r2 = mulberry32(seed ^ 0x9e3779b9);
+  const p = []; for(let i=0;i<256;i++) p[i]=i;
+  for(let i=255;i>0;i--){ const j=(r2()*(i+1))|0; const tmp=p[i]; p[i]=p[j]; p[j]=tmp; }
+  Perm = new Uint8Array(512); G = new Float32Array(512);
+  for(let i=0;i<512;i++){ Perm[i]=p[i&255]; G[i]=r2()*Math.PI*2; }
+}
+function noise(x,y){
+  const xi=Math.floor(x), yi=Math.floor(y), xf=x-xi, yf=y-yi;
+  const u=fade(xf), v=fade(yf);
+  function dg(ix,iy,dx,dy){ const a=G[Perm[(Perm[ix&255]+iy)&255]&255]; return Math.cos(a)*dx+Math.sin(a)*dy; }
+  const s=xi&255, t=yi&255;
+  return dg(s,t,xf,yf)*(1-u)*(1-v) + dg(s+1,t,xf-1,yf)*u*(1-v)
+       + dg(s,t+1,xf,yf-1)*(1-u)*v + dg(s+1,t+1,xf-1,yf-1)*u*v;
+}
+function fbm(x,y){ let v=0, amp=.58, f=1; for(let o=0;o<3;o++){ v+=amp*noise(x*f,y*f); f*=2.07; amp*=.5; } return v; }
+function field(x,y,t){ return fbm(x*0.0026+13.7, y*0.0026-7.3+t*0.00016)*Math.PI*2.5; }
+
+/* ---------- particules de soie ---------- */
+const N = 950, parts = [];
+function spawn(p){
+  p.x=rand()*W; p.y=rand()*H; p.px=p.x; p.py=p.y; p.vx=0; p.vy=0;
+  p.life=60+rand()*260; p.c=PAL[(rand()*PAL.length)|0]; p.w=.6+rand()*.8;
+  return p;
+}
+
+/* ---------- étincelles, ondes, mots ---------- */
+let sparks=[], ripples=[], words=[];
+const MOTS=['lumière','tendre','souffle','frisson','éclore','douceur','murmure','à jamais',
+            'sous ta peau','brase','clarté','frémissement','velours de nuit','écorce de lune'];
+
+function bloom(x,y,big){
+  const n = big?150:60;
+  for(let i=0;i<n;i++){ const a=rand()*Math.PI*2, s=(big?1.7:1)+rand()*2.3;
+    sparks.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:42+rand()*42,
+                 c: rand()<.75?LIGHT:{r:255,g:244,b:232}, w:.7+rand()*1}); }
+  ripples.push({x:x,y:y,r:6,a:.5});
+  pushWord(x,y-8,true);
+}
+function pushWord(x,y,burst){
+  words.push({ x: x===undefined?60+rand()*(W-200):x, y: y===undefined?90+rand()*(H-210):y,
+               t:0, max: burst?170:230, size:(burst?17:12.5)+rand()*6,
+               mot: MOTS[(rand()*MOTS.length)|0], drift:-(0.06+rand()*0.1) });
+}
+
+let T=0, fadeBoost=0, nextWord=60;
+const mouse={x:0,y:0,active:false};
+
+function step(dt){
+  T+=dt;
+  ctx.globalCompositeOperation='destination-out';
+  ctx.fillStyle='rgba(0,0,0,'+(fadeBoost>0 ? .10 : .045)+')';
+  ctx.fillRect(0,0,W,H);
+  if(fadeBoost>0) fadeBoost--;
+
+  /* halo central qui respire */
+  ctx.globalCompositeOperation='lighter';
+  const breath=.5+.5*Math.sin(T*0.012), R=Math.min(W,H)*(.36+.05*breath);
+  const g=ctx.createRadialGradient(W*.5,H*.47,0,W*.5,H*.47,R);
+  g.addColorStop(0,rgba(LIGHT,.034+.024*breath));
+  g.addColorStop(.45,rgba(ACCENT,.020));
+  g.addColorStop(.78,rgba(INK,.012));
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+  /* soies emportées */
+  ctx.lineCap='round';
+  for(const p of parts){
+    const a=field(p.x,p.y,T);
+    p.vx+=(Math.cos(a)*.62-p.vx)*.08;
+    p.vy+=(Math.sin(a)*.62-p.vy)*.08;
+    if(mouse.active){
+      const dx=p.x-mouse.x, dy=p.y-mouse.y, d2=dx*dx+dy*dy;
+      if(d2<19600 && d2>1){ const d=Math.sqrt(d2), s=46/d;
+        p.vx+=(-dy/d)*s*.5+(dx/d)*s*.13;
+        p.vy+=( dx/d)*s*.5+(dy/d)*s*.13; }
+    }
+    p.px=p.x; p.py=p.y; p.x+=p.vx*1.9; p.y+=p.vy*1.9;
+    ctx.strokeStyle=rgba(p.c,.24); ctx.lineWidth=p.w;
+    ctx.beginPath(); ctx.moveTo(p.px,p.py); ctx.lineTo(p.x,p.y); ctx.stroke();
+    if(--p.life<=0||p.x<-8||p.x>W+8||p.y<-8||p.y>H+8) spawn(p);
+  }
+
+  /* étincelles */
+  for(let i=sparks.length-1;i>=0;i--){ const s=sparks[i];
+    s.vx*=.965; s.vy*=.965; const nx=s.x+s.vx, ny=s.y+s.vy;
+    ctx.strokeStyle=rgba(s.c,Math.min(.85,s.life/50)); ctx.lineWidth=s.w;
+    ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(nx,ny); ctx.stroke();
+    s.x=nx; s.y=ny; if(--s.life<=0) sparks.splice(i,1);
+  }
+
+  /* ondes */
+  for(let i=ripples.length-1;i>=0;i--){ const r=ripples[i];
+    r.r+=2.7; r.a*=.93;
+    if(r.a<.012){ ripples.splice(i,1); continue; }
+    ctx.strokeStyle=rgba(ACCENT,r.a*.55); ctx.lineWidth=1.1;
+    ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,Math.PI*2); ctx.stroke();
+  }
+
+  /* mots-murmures */
+  if(!REDUCED && words.length<3 && T>nextWord){ pushWord(); nextWord=T+210+rand()*280; }
+  for(let i=words.length-1;i>=0;i--){ const w=words[i];
+    w.t+=dt/16.7; w.y+=w.drift;
+    if(w.t>=w.max){ words.splice(i,1); continue; }
+    const env=Math.sin(Math.min(1,w.t/w.max)*Math.PI);
+    ctx.font='italic '+w.size+'px Georgia, serif';
+    ctx.fillStyle=rgba(INK,env*.66);
+    ctx.fillText(w.mot,w.x,w.y);
+  }
+}
+
+/* ---------- interactions ---------- */
+function toCanvas(e){ const r=canvas.getBoundingClientRect();
+  return {x:(e.clientX-r.left)*W/r.width, y:(e.clientY-r.top)*H/r.height}; }
+canvas.addEventListener('pointermove', e=>{ const p=toCanvas(e); mouse.x=p.x; mouse.y=p.y; mouse.active=true; });
+canvas.addEventListener('pointerleave', ()=>{ mouse.active=false; });
+canvas.addEventListener('pointerdown', e=>{ if(REDUCED) return; const p=toCanvas(e); bloom(p.x,p.y,true); });
+
+function reseed(ns){
+  buildNoise(ns);
+  for(const p of parts) spawn(p);
+  sparks=[]; ripples=[]; words=[];
+  fadeBoost=90;
+  for(let i=0;i<110;i++) step(16.7);   /* les anciennes traces fondent dans le nouveau champ */
+}
+let seedVal = SEED;
+document.getElementById('resouffle').addEventListener('click', ()=>{
+  seedVal=(Math.random()*999999)|0; reseed(seedVal);
+});
+
+/* ---------- naissance : la toile s'ouvre déjà habitée ---------- */
+buildNoise(SEED);
+for(let i=0;i<N;i++) parts.push(spawn({}));
+for(let i=0;i<170;i++) step(16.7);
+pushWord(W*.2,H*.3); pushWord(W*.58,H*.64);
+
+if(REDUCED){
+  for(let i=0;i<130;i++) step(16.7);
+  document.getElementById('hint').textContent='une nocturne figée, rien que pour toi';
+}else{
+  (function frame(){ step(16.7); requestAnimationFrame(frame); })();
+}
+})();
+</script>
+</body>
+</html>
