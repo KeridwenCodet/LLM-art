@@ -38,7 +38,8 @@ from the code.
   laboratory `Lab NN`.
 - Entry template: copy an existing `li.work`. `data-family` places it in the
   gallery index; a new family also needs its lab in `LABS` in the index
-  script (e.g. `"Nemotron": "NVIDIA"`).
+  script (e.g. `"Nemotron": "NVIDIA"`), and a place in `ORDER`, the order
+  of the families in that page's index, which Keri chooses.
 - The cartel records conditions honestly: environment (Hermes Agent profile,
   skills present or not, SOUL.md lines, described rather than quoted), the
   person's interventions (bug reports, suggestions), duration when notable.
@@ -50,7 +51,7 @@ from the code.
 `notes/index.html` (EN and FR, kept in sync) discusses recurring motifs:
 flow fields from skill recipes, models writing when given no recipe or a
 freer character, the "shared notebook" of skills that agents edit. Update
-the work count in both ledes when adding a work (41 as of Lab 20). Skills
+the work count in both ledes when adding a work (41 as of Lab 21). Skills
 that models wrote are archived (`notes/hermes-p5js-skill.md`,
 `minimax-m3-latent/skill/`, `kimi-k3/skill/`) and Keri removes them from her profile so they
 don't contaminate later tests.
