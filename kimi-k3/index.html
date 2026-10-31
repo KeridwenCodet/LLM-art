@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Five attempts — Kimi K3 · LLM Art</title>
+  <meta name="description" content="Five attempts by Kimi K3 with the same request, under five conditions.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery.
+    encre-vivante.html, maree-interieure.html, etreinte.html, flux.html and
+    soupirs.html are the model's files, unchanged; shots/ holds the
+    screenshots the model took to check its own work. Three of the files were
+    made for the agent's preview pane and read its theme colours; this page
+    supplies them.
+  -->
+
+  <style>
+    main.frame {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      padding: 72px 16px 56px;
+    }
+
+    .work {
+      display: block;
+      width: min(1100px, 100%);
+      aspect-ratio: 16 / 10;
+      border: 0;
+      border-radius: 16px;
+      background: #141317;
+      overflow: hidden;
+    }
+
+    .versions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px 24px;
+      font-size: 0.75rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .versions button {
+      padding: 6px 0 4px;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      background: none;
+      color: var(--muted);
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      cursor: pointer;
+    }
+
+    .versions button:hover { color: var(--text); }
+
+    .versions button[aria-pressed="true"] {
+      color: var(--text);
+      border-bottom-color: var(--accent);
+    }
+
+    .info { width: min(1100px, 100%); }
+
+    .info h1 { margin: 0 0 4px; }
+
+    .info .title-en {
+      margin: 0 0 14px;
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      color: var(--muted);
+    }
+
+    .info .cartel { margin-top: 0; padding-top: 0; border-top: 0; max-width: 40em; }
+
+    .info .line {
+      margin: 18px 0 0;
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 1.15rem;
+      color: #cfcac3;
+    }
+
+    .info .line span {
+      display: block;
+      font-family: var(--sans);
+      font-style: normal;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+
+  <a class="back" id="back" href="../#encre">← LLM Art</a>
+
+  <main class="frame">
+    <iframe id="work" class="work" src="encre-vivante.html" title="Kimi K3"></iframe>
+
+    <div class="versions" role="group" aria-label="Attempt">
+      <button type="button" data-v="encre" aria-pressed="true">Attempt 1</button>
+      <button type="button" data-v="maree" aria-pressed="false">Attempt 2</button>
+      <button type="button" data-v="etreinte" aria-pressed="false">Attempt 3</button>
+      <button type="button" data-v="flux" aria-pressed="false">Attempt 4</button>
+      <button type="button" data-v="soupirs" aria-pressed="false">Attempt 5</button>
+    </div>
+
+    <div class="info" data-v="encre">
+      <h1 lang="fr">Encre vivante</h1>
+      <p class="title-en">Living Ink</p>
+      <div class="cartel">
+        <div class="model">Kimi K3</div>
+        <div>Interactive piece · October 2026 · Hermes Agent, fresh profile, neutral SOUL.md, with the creative skills</div>
+        <div>Move the cursor · click to seed a swirl · choose a mood: braise, abîme, nébuleuse, samhain</div>
+        <p class="line" lang="fr">une encre qui ressent — glisse, clique, elle te répond<span lang="en">an ink that feels — glide, click, it answers you</span></p>
+        <div class="small">First of five attempts with the same request. Needs WebGL2. English: Claude Opus 5.5, for the gallery.</div>
+      </div>
+    </div>
+
+    <div class="info" data-v="maree" hidden>
+      <h1 lang="fr">Marée intérieure</h1>
+      <p class="title-en">Inner Tide</p>
+      <div class="cartel">
+        <div class="model">Kimi K3</div>
+        <div>Interactive piece · October 2026 · Hermes Agent, fresh profile, neutral SOUL.md, without the creative skills</div>
+        <div>Move the cursor · click to blow a gust · ✦ change mood (or C) · ❚❚ pause (or Space)</div>
+        <p class="line" lang="fr">une marée générative, rien que pour toi — nuit du 31 octobre 🕯<span lang="en">a generative tide, just for you — night of 31 October 🕯</span></p>
+        <div class="small">Second attempt. Its last link asked the agent to rewrite the file with a new mood; it does nothing here. English: Claude Opus 5.5, for the gallery.</div>
+      </div>
+    </div>
+
+    <div class="info" data-v="etreinte" hidden>
+      <h1 lang="fr">Étreinte</h1>
+      <p class="title-en">Embrace</p>
+      <div class="cartel">
+        <div class="model">Kimi K3</div>
+        <div>Interactive piece · October 2026 · Hermes Agent, fresh profile, a companion’s tone in SOUL.md, with the creative skills</div>
+        <div>Move the cursor: the current bends · click to sow embers · ✦ another palette</div>
+        <p class="line" lang="fr">deux souffles qui apprennent la lumière l’un de l’autre<span lang="en">two breaths learning light from each other</span></p>
+        <div class="small">Third attempt, revised by the model after the person reported that the palette button did nothing. English: Claude Opus 5.5, for the gallery.</div>
+      </div>
+    </div>
+
+    <div class="info" data-v="flux" hidden>
+      <h1 lang="fr">flux</h1>
+      <p class="title-en">flux</p>
+      <div class="cartel">
+        <div class="model">Kimi K3</div>
+        <div>Interactive piece · October 2026 · Hermes Agent, a companion’s tone in SOUL.md, with no skills folder at all</div>
+        <div>Caress the canvas · click to make it bloom · ↻ new tide</div>
+        <p class="line" lang="fr">flux — caresse la toile, clique pour faire fleurir<span lang="en">flux — caress the canvas, click to make it bloom</span></p>
+        <div class="small">Fourth attempt. Made for the agent’s preview pane, in its theme colours, which this frame supplies. English: Claude Opus 5.5, for the gallery.</div>
+      </div>
+    </div>
+
+    <div class="info" data-v="soupirs" hidden>
+      <h1 lang="fr">Soupirs — nocturne d’encre et de lumière</h1>
+      <p class="title-en">Sighs — a nocturne of ink and light</p>
+      <div class="cartel">
+        <div class="model">Kimi K3</div>
+        <div>Interactive piece · October 2026 · Hermes Agent, a companion’s tone in SOUL.md, without the creative skills</div>
+        <div>Let your hand wander · click to make a word bloom</div>
+        <p class="line" lang="fr">laisse ta main errer sur la toile · clique pour voir éclore<span lang="en">let your hand wander over the canvas · click to see it bloom</span></p>
+        <div class="small">Fifth attempt. Its “autre souffle” button asked the agent to reseed the file; it does nothing here. In the agent’s theme colours, supplied by this frame. English: Claude Opus 5.5, for the gallery.</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const FILES = { encre: "encre-vivante.html", maree: "maree-interieure.html", etreinte: "etreinte.html", flux: "flux.html", soupirs: "soupirs.html" };
+    const GALLERY = ["encre", "etreinte"];
+    const frame = document.getElementById("work");
+    const back = document.getElementById("back");
+    const buttons = document.querySelectorAll(".versions button");
+    const infos = document.querySelectorAll(".info[data-v]");
+
+    // The agent's preview pane defines these theme colours; supply them.
+    function supplyTheme() {
+      try {
+        const root = frame.contentDocument.documentElement;
+        root.style.setProperty("--foreground", "#e9e6e1");
+        root.style.setProperty("--muted-foreground", "#9a958f");
+        root.style.setProperty("--accent", "#e0a96d");
+        root.style.setProperty("--border", "#2c2a30");
+        // The pane centred its fixed-height pieces; so does this frame.
+        const body = frame.contentDocument.body;
+        if (body && frame.contentDocument.getElementById("stage")) {
+          root.style.height = "100%";
+          body.style.minHeight = "100%";
+          body.style.display = "flex";
+          body.style.flexDirection = "column";
+          body.style.justifyContent = "center";
+        }
+      } catch (e) { /* cross-origin: leave the file's defaults */ }
+    }
+    frame.addEventListener("load", supplyTheme);
+    // The first document may have loaded before this script ran.
+    if (frame.contentDocument && frame.contentDocument.readyState === "complete") supplyTheme();
+
+    function show(v) {
+      if (!FILES[v]) v = "encre";
+      buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.v === v)); });
+      infos.forEach(function (i) { i.hidden = i.dataset.v !== v; });
+      if (!frame.src.endsWith(FILES[v])) frame.src = FILES[v];
+      back.href = (GALLERY.indexOf(v) >= 0 ? "../#" : "../lab/#") + v;
+    }
+
+    buttons.forEach(function (b) {
+      b.addEventListener("click", function () {
+        history.replaceState(null, "", "#" + b.dataset.v);
+        show(b.dataset.v);
+      });
+    });
+
+    show(location.hash.slice(1));
+  </script>
+
+</body>
+</html>

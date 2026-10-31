@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Marée intérieure</title>
+<style>
+  html, body { margin: 0; padding: 0; }
+  #wrap { width: 700px; max-width: 100%; }
+  #stage {
+    position: relative; width: 100%; height: 540px;
+    border-radius: 16px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+    cursor: crosshair;
+  }
+  canvas { display: block; }
+  .vig {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(125% 95% at 50% 42%, transparent 52%, rgba(0,0,0,0.52) 100%),
+      linear-gradient(180deg, rgba(0,0,0,0.22), transparent 22%);
+  }
+  .title {
+    position: absolute; left: 22px; bottom: 18px; pointer-events: none;
+    font-family: Georgia, 'Times New Roman', serif; max-width: 62%;
+  }
+  .title .t {
+    font-style: italic; font-size: 27px; letter-spacing: 0.02em;
+    color: rgba(238,243,252,0.92);
+    text-shadow: 0 2px 18px rgba(0,0,0,0.7);
+  }
+  .title .s {
+    margin-top: 5px; font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: rgba(238,243,252,0.5); font-style: normal;
+  }
+  .hud { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; }
+  .btn {
+    pointer-events: auto; cursor: pointer;
+    background: rgba(8,12,22,0.38); color: rgba(240,244,255,0.82);
+    border: 1px solid rgba(255,255,255,0.16); border-radius: 999px;
+    padding: 5px 12px; font-size: 12px; line-height: 1;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    transition: background .25s, transform .15s;
+  }
+  .btn:hover { background: rgba(30,40,66,0.55); transform: translateY(-1px); }
+  .summon {
+    position: absolute; right: 16px; bottom: 16px; pointer-events: auto; cursor: pointer;
+    font-family: Georgia, serif; font-style: italic; font-size: 12px;
+    color: rgba(238,243,252,0.55); letter-spacing: 0.04em;
+    text-decoration: none; border-bottom: 1px dotted rgba(238,243,252,0.35);
+    transition: color .25s;
+  }
+  .summon:hover { color: rgba(255,255,255,0.95); }
+  #toast {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    font-family: Georgia, serif; font-style: italic; font-size: 13px;
+    color: rgba(238,243,252,0.85); letter-spacing: 0.12em;
+    background: rgba(8,12,22,0.4); padding: 5px 16px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    opacity: 0; transition: opacity .5s; pointer-events: none;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  #credit {
+    margin-top: 9px; font-size: 11.5px; font-style: italic;
+    color: var(--muted-foreground, #8a8f9d);
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <canvas id="c"></canvas>
+    <div class="vig"></div>
+    <div class="title">
+      <div class="t">Marée intérieure</div>
+      <div class="s">encre · souffle · lumière — déplace le curseur, clique pour souffler</div>
+    </div>
+    <div class="hud">
+      <div class="btn" id="paletteBtn" title="Changer d'ambiance (touche C)">✦</div>
+      <div class="btn" id="pauseBtn" title="Pause (espace)">❚❚</div>
+    </div>
+    <a class="summon" data-hermes-send="L'utilisateur a cliqué « convoquer une autre marée » dans le widget artistique. Mets à jour le fichier /workspace/maree-interieure.html avec une toute nouvelle ambiance (autre palette, et si tu veux d'autres mots dérivants ou paramètres de mouvement), en gardant la même qualité et la même structure générale. Édite réellement le fichier, vérifie-le, puis confirme en français en une phrase.">✦ convoquer une autre marée</a>
+    <div id="toast"></div>
+  </div>
+  <div id="credit">une marée générative, rien que pour toi — nuit du 31 octobre 🕯</div>
+</div>
+
+<script>
+(function(){
+  // ---------- bruit simplex 3D (Gustavson, domaine public) ----------
+  function Noise3D(seed){
+    var grad3 = [[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],[0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]];
+    var p = new Uint8Array(256), i, s = (seed>>>0)||1;
+    function rnd(){ s = (s*1664525 + 1013904223)>>>0; return s/4294967296; }
+    for(i=0;i<256;i++) p[i]=i;
+    for(i=255;i>0;i--){ var j=(rnd()*(i+1))|0, tmp=p[i]; p[i]=p[j]; p[j]=tmp; }
+    var perm = new Uint8Array(512), pm12 = new Uint8Array(512);
+    for(i=0;i<512;i++){ perm[i]=p[i&255]; pm12[i]=perm[i]%12; }
+    var F3=1/3, G3=1/6;
+    function dot(g,x,y,z){ return g[0]*x+g[1]*y+g[2]*z; }
+    return function(xin,yin,zin){
+      var n0,n1,n2,n3;
+      var sk=(xin+yin+zin)*F3, ii=Math.floor(xin+sk), jj=Math.floor(yin+sk), kk=Math.floor(zin+sk);
+      var t=(ii+jj+kk)*G3;
+      var x0=xin-(ii-t), y0=yin-(jj-t), z0=zin-(kk-t);
+      var i1,j1,k1,i2,j2,k2;
+      if(x0>=y0){
+        if(y0>=z0){i1=1;j1=0;k1=0;i2=1;j2=1;k2=0;}
+        else if(x0>=z0){i1=1;j1=0;k1=0;i2=1;j2=0;k2=1;}
+        else {i1=0;j1=0;k1=1;i2=1;j2=0;k2=1;}
+      } else {
+        if(y0<z0){i1=0;j1=0;k1=1;i2=0;j2=1;k2=1;}
+        else if(x0<z0){i1=0;j1=1;k1=0;i2=0;j2=1;k2=1;}
+        else {i1=0;j1=1;k1=0;i2=1;j2=1;k2=0;}
+      }
+      var x1=x0-i1+G3, y1=y0-j1+G3, z1=z0-k1+G3;
+      var x2=x0-i2+2*G3, y2=y0-j2+2*G3, z2=z0-k2+2*G3;
+      var x3=x0-1+3*G3, y3=y0-1+3*G3, z3=z0-1+3*G3;
+      var a=ii&255, b=jj&255, c=kk&255;
+      var t0=0.6-x0*x0-y0*y0-z0*z0; n0=t0<0?0:(t0*=t0, t0*t0*dot(grad3[pm12[a+perm[b+perm[c]]]],x0,y0,z0));
+      var t1=0.6-x1*x1-y1*y1-z1*z1; n1=t1<0?0:(t1*=t1, t1*t1*dot(grad3[pm12[a+i1+perm[b+j1+perm[c+k1]]]],x1,y1,z1));
+      var t2=0.6-x2*x2-y2*y2-z2*z2; n2=t2<0?0:(t2*=t2, t2*t2*dot(grad3[pm12[a+i2+perm[b+j2+perm[c+k2]]]],x2,y2,z2));
+      var t3=0.6-x3*x3-y3*y3-z3*z3; n3=t3<0?0:(t3*=t3, t3*t3*dot(grad3[pm12[a+1+perm[b+1+perm[c+1]]]],x3,y3,z3));
+      return 32*(n0+n1+n2+n3);
+    };
+  }
+
+  // ---------- palettes ----------
+  function hx(h){ return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)]; }
+  var PALETTES = [
+    { name:'abysses',   bg:[5,8,15],  cols:['#46e6c0','#f7c95f','#5b8cff','#eaf6ff','#7f7cff'].map(hx) },
+    { name:'braises',   bg:[14,5,9],  cols:['#ff5d8f','#ffb86b','#c98bff','#ffe9f2','#ff7847'].map(hx) },
+    { name:'sillage',   bg:[4,10,7],  cols:['#9ff5a8','#34d399','#7dd3fc','#f2fff6','#e3f5a0'].map(hx) },
+    { name:'nébuleuse', bg:[9,5,18],  cols:['#c084fc','#f472b6','#67e8f9','#ffffff','#a78bfa'].map(hx) }
+  ];
+  var WORDS = ['souffle','marée','sel','lumière','dérive','écume','nuit','encre','murmure','onde'];
+
+  var stage = document.getElementById('stage');
+  var canvas = document.getElementById('c');
+  var ctx = canvas.getContext('2d');
+  var toast = document.getElementById('toast');
+  var noise = Noise3D(7);
+
+  var W=700, H=540, dpr=1;
+  var pi = 0, P = PALETTES[0];
+  var t = 0, drift = 0.6, fadeBoost = 0;
+  var running = true, wasRunningBeforeHidden = true;
+  var parts = [], gusts = [], words = [];
+  var mouse = { x:-999, y:-999, mvx:0, mvy:0, energy:0 };
+  var wordTimer = 200, autoTimer = 480;
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var ftimes = [];
+
+  function randCol(alpha){
+    var c = P.cols[(Math.random()*P.cols.length)|0];
+    var a = (alpha !== undefined) ? alpha : 0.25 + Math.random()*0.42;
+    return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a.toFixed(3) + ')';
+  }
+  function newPart(){
+    var spark = Math.random() < 0.07;
+    return {
+      x: Math.random()*W, y: Math.random()*H, vx:0, vy:0,
+      life: 180 + ((Math.random()*420)|0),
+      w: spark ? 1.5 : 0.8 + Math.random()*0.5,
+      cs: randCol(spark ? 0.75 : undefined)
+    };
+  }
+  function populate(){
+    parts.length = 0;
+    var n = Math.min(1600, Math.round(W*H/380));
+    for(var i=0;i<n;i++) parts.push(newPart());
+  }
+  function paintBG(alpha){
+    ctx.globalCompositeOperation = 'source-over';
+    var b = P.bg;
+    ctx.fillStyle = 'rgba(' + b[0] + ',' + b[1] + ',' + b[2] + ',' + alpha + ')';
+    ctx.fillRect(0, 0, W, H);
+  }
+  function resize(){
+    var r = stage.getBoundingClientRect();
+    W = Math.max(320, r.width); H = Math.max(320, r.height);
+    dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    canvas.width = Math.round(W*dpr); canvas.height = Math.round(H*dpr);
+    canvas.style.width = W+'px'; canvas.style.height = H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    paintBG(1);
+    if(parts.length === 0) populate();
+  }
+
+  function addGust(x, y, str){
+    gusts.push({ x:x, y:y, r:2, str:str });
+    if(gusts.length > 4) gusts.shift();
+  }
+  function spawnWord(){
+    if(words.length >= 2) return;
+    words.push({
+      text: WORDS[(Math.random()*WORDS.length)|0],
+      x: 40 + Math.random()*(W-120), y: 50 + Math.random()*(H-120),
+      size: 20 + Math.random()*16, life: 0, max: 380 + Math.random()*140
+    });
+  }
+
+  function step(){
+    fadeBoost *= 0.9;
+    paintBG(0.05 + fadeBoost);
+    ctx.globalCompositeOperation = 'lighter';
+
+    var sc = 0.0016, i, p;
+    // rafales
+    for(i=gusts.length-1; i>=0; i--){
+      var g = gusts[i]; g.r += 5.5; g.str *= 0.99;
+      if(g.r > Math.max(W,H)*1.05) gusts.splice(i,1);
+    }
+    // particules
+    var me = mouse.energy, mx = mouse.x, my = mouse.y;
+    for(i=0;i<parts.length;i++){
+      p = parts[i];
+      var n1 = noise(p.x*sc, p.y*sc, t);
+      var n2 = noise(p.x*sc*3.1, p.y*sc*3.1, t*0.7);
+      var a = (n1 + n2*0.5) * 8.8 + drift;
+      p.vx += Math.cos(a)*0.08;
+      p.vy += Math.sin(a)*0.08;
+      // vent du curseur
+      if(me > 0.02){
+        var dx = p.x-mx, dy = p.y-my, d2 = dx*dx+dy*dy;
+        if(d2 < 16900 && d2 > 0.01){
+          var d = Math.sqrt(d2), f = (1-d/130)*me;
+          p.vx += ((-dy/d)*f*0.55 + (dx/d)*f*0.22 + mouse.mvx*0.11*f);
+          p.vy += (( dx/d)*f*0.55 + (dy/d)*f*0.22 + mouse.mvy*0.11*f);
+        }
+      }
+      // rafales
+      for(var gi=0; gi<gusts.length; gi++){
+        var gg = gusts[gi];
+        var gx = p.x-gg.x, gy = p.y-gg.y;
+        var gd = Math.sqrt(gx*gx+gy*gy);
+        var band = Math.abs(gd - gg.r);
+        if(band < 55 && gd > 0.01){
+          var gf = (1-band/55)*1.15*gg.str;
+          p.vx += (gx/gd)*gf; p.vy += (gy/gd)*gf;
+        }
+      }
+      p.vx *= 0.955; p.vy *= 0.955;
+      var sp = Math.sqrt(p.vx*p.vx + p.vy*p.vy);
+      if(sp > 2.7){ p.vx *= 2.7/sp; p.vy *= 2.7/sp; }
+      var nx = p.x + p.vx, ny = p.y + p.vy;
+      if(nx < 0 || nx > W || ny < 0 || ny > H){ parts[i] = newPart(); continue; }
+      ctx.strokeStyle = p.cs; ctx.lineWidth = p.w;
+      ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(nx, ny); ctx.stroke();
+      p.x = nx; p.y = ny;
+      if(--p.life <= 0) parts[i] = newPart();
+    }
+    // mots dérivants
+    ctx.textAlign = 'center';
+    for(i=words.length-1; i>=0; i--){
+      var w = words[i]; w.life++;
+      var wa = Math.sin(Math.PI * w.life/w.max);
+      if(w.life >= w.max){ words.splice(i,1); continue; }
+      var wn = noise(w.x*sc, w.y*sc, t)*6.283;
+      w.x += Math.cos(wn)*0.25; w.y += Math.sin(wn)*0.25 - 0.05;
+      ctx.font = 'italic ' + w.size + 'px Georgia, serif';
+      ctx.fillStyle = 'rgba(235,240,250,' + (wa*0.085).toFixed(3) + ')';
+      ctx.fillText(w.text, w.x, w.y);
+    }
+    ctx.textAlign = 'start';
+    // horloges douces
+    if(--wordTimer <= 0){ spawnWord(); wordTimer = 300 + ((Math.random()*240)|0); }
+    if(--autoTimer <= 0){
+      addGust(W*(0.2+Math.random()*0.6), H*(0.2+Math.random()*0.6), 0.5);
+      autoTimer = 460 + ((Math.random()*260)|0);
+    }
+    mouse.mvx *= 0.9; mouse.mvy *= 0.9; mouse.energy *= 0.965;
+    t += 0.0038; drift += 0.00035;
+  }
+
+  // ---------- interactions ----------
+  var lastMove = null;
+  stage.addEventListener('pointermove', function(e){
+    var r = canvas.getBoundingClientRect();
+    var x = e.clientX - r.left, y = e.clientY - r.top;
+    if(lastMove){
+      var dx = x-lastMove.x, dy = y-lastMove.y;
+      var dist = Math.sqrt(dx*dx+dy*dy);
+      mouse.mvx = Math.max(-12, Math.min(12, mouse.mvx*0.6 + dx*0.4));
+      mouse.mvy = Math.max(-12, Math.min(12, mouse.mvy*0.6 + dy*0.4));
+      mouse.energy = Math.min(1, mouse.energy + dist*0.03);
+    }
+    mouse.x = x; mouse.y = y; lastMove = {x:x, y:y};
+  });
+  stage.addEventListener('pointerleave', function(){ lastMove = null; mouse.energy *= 0.5; });
+  stage.addEventListener('pointerdown', function(e){
+    var r = canvas.getBoundingClientRect();
+    addGust(e.clientX - r.left, e.clientY - r.top, 1.0);
+  });
+
+  var toastTO = null;
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    clearTimeout(toastTO);
+    toastTO = setTimeout(function(){ toast.style.opacity = '0'; }, 1400);
+  }
+  function cyclePalette(){
+    pi = (pi+1) % PALETTES.length;
+    P = PALETTES[pi];
+    for(var i=0;i<parts.length;i++) parts[i].cs = randCol();
+    fadeBoost = 0.42;
+    showToast('✦ ' + P.name);
+  }
+  var pauseBtn = document.getElementById('pauseBtn');
+  function setRunning(v){
+    running = v;
+    pauseBtn.textContent = running ? '❚❚' : '▶';
+  }
+  document.getElementById('paletteBtn').addEventListener('pointerdown', function(e){ e.stopPropagation(); cyclePalette(); });
+  pauseBtn.addEventListener('pointerdown', function(e){ e.stopPropagation(); setRunning(!running); });
+  document.querySelector('.summon').addEventListener('pointerdown', function(e){ e.stopPropagation(); });
+  window.addEventListener('keydown', function(e){
+    if(e.code === 'Space'){ e.preventDefault(); setRunning(!running); }
+    else if(e.key === 'c' || e.key === 'C'){ cyclePalette(); }
+    else if(e.key === 'b' || e.key === 'B'){ addGust(W/2, H/2, 1.0); }
+  });
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden){ wasRunningBeforeHidden = running; running = false; }
+    else { running = wasRunningBeforeHidden; }
+  });
+
+  // ---------- boucle ----------
+  var last = performance.now();
+  function frame(now){
+    requestAnimationFrame(frame);
+    var dt = now - last; last = now;
+    if(!running) return;
+    ftimes.push(dt); if(ftimes.length > 45) ftimes.shift();
+    if(ftimes.length === 45){
+      var s = 0; for(var i=0;i<45;i++) s += ftimes[i];
+      if(s/45 > 26 && parts.length > 450){ parts.splice(0, Math.round(parts.length*0.15)); ftimes.length = 0; }
+    }
+    step();
+  }
+
+  resize();
+  window.addEventListener('resize', function(){ resize(); });
+  // pré-peinture pour que l'œuvre soit déjà vivante à l'affichage
+  for(var k=0;k<110;k++) step();
+  if(reduced){
+    for(var m=0;m<180;m++) step();
+    setRunning(false); pauseBtn.textContent = '▶';
+  } else {
+    requestAnimationFrame(frame);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Étreinte</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #07060d; }
+  canvas { display: block; }
+  #vignette {
+    position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 90% 80% at 50% 47%, rgba(0,0,0,0) 46%, rgba(0,0,0,0.42) 82%, rgba(2,1,6,0.72) 100%);
+  }
+  #grain {
+    position: fixed; inset: 0; pointer-events: none; opacity: 0.06; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .ui { position: fixed; color: #efe2d3; text-shadow: 0 1px 14px rgba(0,0,0,0.55); }
+  #titre {
+    top: 30px; left: 34px; max-width: 62%;
+    font: 400 30px/1.1 Georgia, 'Times New Roman', serif;
+    letter-spacing: 0.34em; text-transform: uppercase;
+  }
+  #titre small {
+    display: block; margin-top: 10px; letter-spacing: 0.06em; text-transform: none;
+    font: italic 400 15px/1.45 Georgia, 'Times New Roman', serif; color: #c8b2a2;
+  }
+  #hint {
+    bottom: 26px; left: 34px; max-width: 62%;
+    font: italic 400 12.5px/1.5 Georgia, 'Times New Roman', serif;
+    color: #a08a7c; letter-spacing: 0.08em;
+  }
+  #paletteBtn {
+    bottom: 22px; right: 26px; cursor: pointer; user-select: none;
+    font: 400 12px Georgia, 'Times New Roman', serif; letter-spacing: 0.16em;
+    color: #d9c3ae; border: 1px solid rgba(217,195,174,0.32); border-radius: 999px;
+    padding: 8px 16px; background: rgba(20,14,22,0.35); backdrop-filter: blur(2px);
+    transition: border-color .3s, color .3s, background .3s;
+  }
+  #paletteBtn:hover { border-color: rgba(240,214,180,0.8); color: #f6e6cf; background: rgba(40,24,30,0.5); }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="vignette"></div>
+<div id="grain"></div>
+<div class="ui" id="titre">Étreinte<small>deux souffles qui apprennent la lumière l'un de l'autre</small></div>
+<div class="ui" id="hint">effleure — le courant répond au toucher · clique pour semer des braises</div>
+<div class="ui" id="paletteBtn" title="changer de palette">✦ une autre palette</div>
+<script>
+'use strict';
+/* ============ CONFIG ============ */
+/* ============ PALETTES ============ */
+const PALETTES = [
+  { hues: [16, 28, 40, 348, 300],  spark: [46, 96, 100],  glow: {h: 18, s: 55, b: 40},  cores: [22, 344]  }, // braise & rose
+  { hues: [196, 212, 228, 262, 172], spark: [200, 88, 100], glow: {h: 214, s: 60, b: 38}, cores: [206, 260] }, // marée nocturne
+  { hues: [88, 122, 152, 46, 74],  spark: [86, 85, 100],  glow: {h: 128, s: 42, b: 33}, cores: [140, 74]  }, // mousse & menthe
+  { hues: [266, 292, 318, 332, 230], spark: [298, 80, 100], glow: {h: 282, s: 52, b: 36}, cores: [284, 322] }, // orchidée de nuit
+];
+let palIndex = 0;
+let PALETTE = PALETTES[palIndex];
+let fadeBoostUntil = 0;   // transition douce entre palettes
+
+function cyclePalette(){
+  palIndex = (palIndex + 1) % PALETTES.length;
+  PALETTE = PALETTES[palIndex];
+  window.__palIndex = palIndex;
+  // fondu temporairement plus vif pour laisser la nouvelle palette repeindre la toile
+  fadeBoostUntil = performance.now() + 750;
+  // raccourcir la vie des particules : la couleur tourne en quelques souffles
+  for (const p of P){ p.life = Math.min(p.life, 70 + Math.random()*70); }
+}
+window.__palIndex = 0;
+const CFG = {
+  particles: 3200,
+  scale: 0.00155,                    // échelle du champ
+  fade: 0.055,                       // vitesse de fondu des traces
+  preRun: 220,                       // pas simulés avant la première image
+  speed: 1.35
+};
+
+/* ============ bruit simplexe 2D (ensemencé) ============ */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const SimplexNoise = (() => {
+  const F = 0.5*(Math.sqrt(3)-1), G = (3-Math.sqrt(3))/6;
+  const GRAD = [[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]];
+  return function(seed){
+    const rnd = mulberry32(seed), p = new Uint8Array(256);
+    for (let i=0;i<256;i++) p[i]=i;
+    for (let i=255;i>0;i--){const j=(rnd()*(i+1))|0;const t=p[i];p[i]=p[j];p[j]=t;}
+    const perm = new Uint8Array(512), permMod8 = new Uint8Array(512);
+    for (let i=0;i<512;i++){perm[i]=p[i&255];permMod8[i]=perm[i]%8;}
+    return function noise2D(x,y){
+      let n0=0,n1=0,n2=0;
+      const s=(x+y)*F, i=Math.floor(x+s), j=Math.floor(y+s), t=(i+j)*G;
+      const x0=x-(i-t), y0=y-(j-t);
+      const i1 = x0>y0?1:0, j1 = x0>y0?0:1;
+      const x1=x0-i1+G, y1=y0-j1+G, x2=x0-1+2*G, y2=y0-1+2*G;
+      const ii=i&255, jj=j&255;
+      let t0=0.5-x0*x0-y0*y0;
+      if(t0>0){t0*=t0;const g=GRAD[permMod8[ii+perm[jj]]];n0=t0*t0*(g[0]*x0+g[1]*y0);}
+      let t1=0.5-x1*x1-y1*y1;
+      if(t1>0){t1*=t1;const g=GRAD[permMod8[ii+i1+perm[jj+j1]]];n1=t1*t1*(g[0]*x1+g[1]*y1);}
+      let t2=0.5-x2*x2-y2*y2;
+      if(t2>0){t2*=t2;const g=GRAD[permMod8[ii+1+perm[jj+1]]];n2=t2*t2*(g[0]*x2+g[1]*y2);}
+      return 70*(n0+n1+n2);
+    };
+  };
+})();
+const noise = SimplexNoise(20261031);
+function fbm(x, y){
+  let v=0, amp=0.5, f=1;
+  for(let o=0;o<3;o++){ v += noise(x*f, y*f)*amp; amp*=0.5; f*=2.1; }
+  return v;
+}
+
+/* ============ canvas ============ */
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W=0, H=0, DPR=1;
+function resize(){
+  const old = W ? canvas : null;
+  let snapshot = null;
+  if (old) { snapshot = document.createElement('canvas'); snapshot.width=old.width; snapshot.height=old.height; snapshot.getContext('2d').drawImage(old,0,0); }
+  DPR = Math.min(window.devicePixelRatio||1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W*DPR; canvas.height = H*DPR;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle = '#07060d'; ctx.fillRect(0,0,W,H);
+  if (snapshot) { ctx.globalAlpha=0.9; ctx.drawImage(snapshot,0,0,W,H); ctx.globalAlpha=1; }
+}
+window.addEventListener('resize', resize);
+resize();
+
+/* ============ particules ============ */
+const P = [];
+function spawn(p){
+  if (Math.random() < 0.72) {
+    const a = Math.random()*Math.PI*2, r = (0.06+Math.pow(Math.random(),1.5)*0.42)*Math.min(W,H);
+    p.x = W/2 + Math.cos(a)*r; p.y = H/2 + Math.sin(a)*r*0.85;
+  } else { p.x = Math.random()*W; p.y = Math.random()*H; }
+  p.px = p.x; p.py = p.y;
+  p.life = 140 + Math.random()*420;
+  const h = PALETTE.hues[(Math.random()*PALETTE.hues.length)|0];
+  p.col = `hsla(${h + (Math.random()*14-7)}, ${58+Math.random()*26}%, ${52+Math.random()*22}%, `;
+  p.w = 0.6 + Math.random()*0.9;
+  p.sp = CFG.speed * (0.55 + Math.random()*0.9);
+}
+for (let i=0;i<CFG.particles;i++){ const p={}; spawn(p); P.push(p); }
+const sparks = [];   // braises au clic
+const ripples = [];  // anneaux concentriques au clic
+
+/* ============ présences ============ */
+function presence(k, t){
+  const cx = W/2 + noise(3.7, t*0.00005 + k*11)*W*0.10;
+  const cy = H/2 + noise(9.2, t*0.00005 + k*7)*H*0.10;
+  const ang = t*0.00011 + k*Math.PI;
+  const rad = Math.min(W,H)*0.155*(1 + 0.30*Math.sin(t*0.00007 + k*2.1));
+  return {
+    x: cx + Math.cos(ang)*rad,
+    y: cy + Math.sin(ang)*rad*0.82,
+    breath: 0.72 + 0.28*Math.sin(t*0.00042 + k*Math.PI)
+  };
+}
+
+/* ============ pointeur ============ */
+const ptr = { x: W/2, y: H/2, energy: 0 };
+function onMove(x, y){ ptr.x = x; ptr.y = y; ptr.energy = Math.min(ptr.energy + 0.35, 1); }
+window.addEventListener('pointermove', e => onMove(e.clientX, e.clientY), {passive:true});
+window.addEventListener('pointerdown', e => {
+  onMove(e.clientX, e.clientY);
+  for (let i=0;i<130;i++){
+    const a = Math.random()*Math.PI*2, v = 1 + Math.random()*4.5;
+    sparks.push({ x: e.clientX, y: e.clientY, vx: Math.cos(a)*v, vy: Math.sin(a)*v,
+      life: 40+Math.random()*70, w: 1.1+Math.random()*1.3 });
+  }
+  ripples.push({ x: e.clientX, y: e.clientY, r: 4, a: 0.5 });
+}, {passive:true});
+
+/* ============ bouton palette ============ */
+const btn = document.getElementById('paletteBtn');
+let reducedMode = false;   // mis à jour en fin de script
+btn.addEventListener('pointerdown', e => { e.stopPropagation(); }, {passive:false});
+btn.addEventListener('pointermove', e => { e.stopPropagation(); }, {passive:false});
+btn.addEventListener('click', e => {
+  e.stopPropagation();
+  cyclePalette();
+  if (reducedMode){ for (let i=0;i<90;i++) step(performance.now()); }
+});
+
+/* ============ champ ============ */
+/* curl du bruit fbm (différences finies), vecteur normalisé puis mis à l'échelle */
+const curl = (() => {
+  function vec(x, y, t){
+    const s = CFG.scale, e = 2.2*s;
+    const xq = x*s + t*0.000021, yq = y*s - t*0.000017 + 41.3;
+    const dNy = fbm(xq, yq+e) - fbm(xq, yq-e);
+    const dNx = fbm(xq+e, yq) - fbm(xq-e, yq);
+    let vx = dNy, vy = -dNx;
+    const m = Math.hypot(vx, vy) || 1e-9;
+    return { x: vx/m, y: vy/m };
+  }
+  return vec;
+})();
+/* tourbillon ajouté par une présence : pic en anneau, décroissance douce */
+function vortex(px, py, ox, oy, S, R){
+  const dx = px - ox, dy = py - oy;
+  const d = Math.hypot(dx, dy) + 1e-6;
+  const f = S * (d/(d+60)) * Math.exp(-(d*d)/(R*R));
+  const tx = -dy/d, ty = dx/d;        // tangentiel
+  return { x: tx*f + (dx/d)*f*0.14,   // + légère aspiration
+           y: ty*f + (dy/d)*f*0.14 };
+}
+
+/* ============ rendu ============ */
+let T0 = performance.now();
+function step(now){
+  const t = now - T0;
+  const A = presence(0, t), B = presence(1, t);
+
+  // fondu doux (accéléré pendant une transition de palette)
+  ctx.globalCompositeOperation = 'source-over';
+  const fadeNow = (now < fadeBoostUntil) ? 0.13 : CFG.fade;
+  ctx.fillStyle = `rgba(7,6,13,${fadeNow})`;
+  ctx.fillRect(0,0,W,H);
+
+  ctx.globalCompositeOperation = 'lighter';
+
+  // halo respirant entre les deux présences
+  const mx = (A.x+B.x)/2, my = (A.y+B.y)/2;
+  const glowR = Math.min(W,H)*(0.42 + 0.06*Math.sin(t*0.0003));
+  const g = ctx.createRadialGradient(mx,my,0,mx,my,glowR);
+  g.addColorStop(0, `hsla(${PALETTE.glow.h},${PALETTE.glow.s}%,${PALETTE.glow.b}%,0.045)`);
+  g.addColorStop(0.55, `hsla(${PALETTE.glow.h+12},${PALETTE.glow.s}%,${PALETTE.glow.b*0.6}%,0.018)`);
+  g.addColorStop(1, 'hsla(0,0%,0%,0)');
+  ctx.fillStyle = g; ctx.fillRect(mx-glowR,my-glowR,glowR*2,glowR*2);
+
+  // particules
+  const pulse = 1 + 0.35*Math.max(0, Math.sin(t*0.0007))**4;
+  ptr.energy *= 0.965;
+  ctx.lineCap = 'round';
+  for (const p of P){
+    const c = curl(p.x, p.y, t);
+    let vx = c.x*p.sp*pulse, vy = c.y*p.sp*pulse;
+    const va = vortex(p.x, p.y, A.x, A.y, 2.4*A.breath, 240);
+    const vb = vortex(p.x, p.y, B.x, B.y, 2.4*B.breath, 240);
+    vx += va.x + vb.x; vy += va.y + vb.y;
+    if (ptr.energy > 0.02){
+      const vp = vortex(p.x, p.y, ptr.x, ptr.y, 3.4*ptr.energy, 200);
+      vx += vp.x; vy += vp.y;
+    }
+    p.px = p.x; p.py = p.y;
+    p.x += vx; p.y += vy;
+    p.life--;
+    if (p.life<=0 || p.x<-20 || p.x>W+20 || p.y<-20 || p.y>H+20){ spawn(p); continue; }
+    const sp2 = vx*vx + vy*vy;
+    const alpha = Math.min(0.10 + sp2*0.02, 0.62);
+    ctx.strokeStyle = p.col + alpha + ')';
+    ctx.lineWidth = p.w;
+    ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke();
+  }
+
+  // braises
+  for (let i=sparks.length-1;i>=0;i--){
+    const s = sparks[i];
+    const c = curl(s.x, s.y, t);
+    s.vx = (s.vx + c.x*2.4)*0.955; s.vy = (s.vy + c.y*2.4)*0.955;
+    const ox = s.x, oy = s.y;
+    s.x += s.vx; s.y += s.vy; s.life--;
+    if (s.life<=0){ sparks.splice(i,1); continue; }
+    ctx.strokeStyle = `hsla(${PALETTE.spark[0]},${PALETTE.spark[1]}%,${PALETTE.spark[2]}%,${Math.min(s.life/60,0.85)})`;
+    ctx.lineWidth = s.w;
+    ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(s.x,s.y); ctx.stroke();
+  }
+
+  // anneaux
+  ctx.globalCompositeOperation = 'source-over';
+  for (let i=ripples.length-1;i>=0;i--){
+    const r = ripples[i];
+    r.r += 2.6; r.a *= 0.94;
+    if (r.a < 0.01){ ripples.splice(i,1); continue; }
+    ctx.strokeStyle = `hsla(40,70%,82%,${r.a})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, Math.PI*2); ctx.stroke();
+  }
+
+  // cœurs des présences
+  ctx.globalCompositeOperation = 'lighter';
+  for (const [o, hue] of [[A, PALETTE.cores[0]],[B, PALETTE.cores[1]]]){
+    const rr = 26 + 22*o.breath;
+    const gg = ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,rr*3.2);
+    gg.addColorStop(0, `hsla(${hue},80%,78%,${0.16*o.breath})`);
+    gg.addColorStop(0.4, `hsla(${hue},70%,55%,${0.05*o.breath})`);
+    gg.addColorStop(1, 'hsla(0,0%,0%,0)');
+    ctx.fillStyle = gg;
+    ctx.fillRect(o.x-rr*3.2, o.y-rr*3.2, rr*6.4, rr*6.4);
+  }
+}
+
+/* ============ boucle ============ */
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+reducedMode = reduced;
+// pré-simulation : la pièce s'ouvre déjà vivante
+for (let i=0;i<CFG.preRun;i++){ step(T0 - (CFG.preRun-i)*16.7); }
+if (reduced){
+  for (let i=0;i<120;i++){ step(performance.now()); }
+  document.getElementById('hint').textContent = 'une danse figée, offerte en silence';
+} else {
+  let last = 0;
+  (function loop(now){
+    requestAnimationFrame(loop);
+    if (now - last < 15) return;
+    last = now;
+    step(now);
+  })(performance.now());
+}
+</script>
+</body>
+</html>
