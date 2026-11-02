@@ -34,6 +34,7 @@ A selection of the works. Each one's notes, interaction controls and the model's
 | 18 | [LATENT — a conditioning organ](https://keridwencodet.github.io/LLM-art/minimax-m3-latent/) | MiniMax M3 | Oct 2026 | HTML canvas | Hermes Agent, creative skills, companion line in SOUL.md |
 | 19 | [Encre vivante](https://keridwencodet.github.io/LLM-art/kimi-k3/#encre) | Kimi K3 | Oct 2026 | WebGL2 | Hermes Agent, creative skills, original request |
 | 20 | [Étreinte](https://keridwencodet.github.io/LLM-art/kimi-k3/#etreinte) | Kimi K3 | Oct 2026 | Canvas | Hermes Agent, creative skills, companion line, original request |
+| 21 | [Résonance — planche IV](https://keridwencodet.github.io/LLM-art/minimax-m31-resonance/) | MiniMax M3.1 Flash | Nov 2026 | Canvas | Hermes Agent, no skills folder, original request |
 
 ## Laboratory
 
@@ -103,6 +104,7 @@ opus55-planetaire/                      No. 17 (revised and first versions, and 
 minimax-m3-latent/                      No. 18 (+ skill/, the skill the model wrote for itself while working)
 kimi-k27-cartographie/ kimi-k27-respiration/ kimi-k27-echos/ kimi-k27-presence/   Lab 16 (+ the model’s image script), Lab 15, Lab 17 (+ the model’s still), Lab 18 (fixed, first and English versions)
 kimi-k3/                                Nos. 19–20, Lab 19–21 (five attempts, framed by one page, + the model’s screenshots and the skill it wrote)
+minimax-m31-resonance/                  No. 21 (+ the skill the model wrote, a local path removed)
 ```
 
 ### Adding a work
