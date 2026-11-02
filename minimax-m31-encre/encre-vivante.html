@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Encre vivante — suminagashi génératif</title>
+<style>
+  :root{
+    --fg:#eaf0f8; --muted:#a8b8cc; --accent:#e8a24a; --line:rgba(234,240,248,.15);
+    --panel:rgba(8,12,20,.55); --scrim:rgba(3,6,12,.70);
+  }
+  body.paper{ --fg:#2a241c; --muted:#6b6053; --accent:#b0402f; --line:rgba(42,36,28,.20);
+    --panel:rgba(252,248,240,.66); --scrim:rgba(250,246,236,.84); }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;overflow:hidden;background:#02040a}
+  body.paper{background:#dfd3ba}
+  #stage{position:relative;width:100%;height:580px;overflow:hidden;background:#02040a;isolation:isolate}
+  @media (max-width:640px){ #stage{height:450px} }
+  canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+  #glow{filter:blur(20px) saturate(1.55);mix-blend-mode:screen;opacity:.38;pointer-events:none}
+  body.paper #glow{opacity:0}
+  .grain{position:absolute;inset:0;pointer-events:none;opacity:.15;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='170' height='170'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='170' height='170' filter='url(%23n)'/></svg>");
+    background-size:170px 170px}
+  body.paper .grain{opacity:.22;mix-blend-mode:multiply}
+  .ui{position:absolute;inset:0;pointer-events:none;color:var(--fg);z-index:3}
+  .ui::before{content:'';position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(125% 100% at 40% 44%,rgba(0,0,0,0) 40%,rgba(0,0,0,.42) 100%),
+               linear-gradient(to bottom,var(--scrim) 0%,rgba(0,0,0,0) 26%,rgba(0,0,0,0) 68%,var(--scrim) 100%);}
+  body.paper .ui::before{background:linear-gradient(to bottom,var(--scrim) 0%,rgba(255,255,255,0) 24%,rgba(255,255,255,0) 70%,var(--scrim) 100%);}
+  .title{position:absolute;top:24px;left:28px;max-width:52%}
+  .title h1{margin:0;font-size:clamp(20px,2.6vw,30px);font-weight:400;letter-spacing:.05em;font-style:italic;
+    text-shadow:0 2px 26px rgba(0,0,0,.85)}
+  body.paper .title h1{text-shadow:0 2px 20px rgba(255,252,244,.85)}
+  .title p{margin:.6em 0 0;font-size:10px;letter-spacing:.36em;text-transform:uppercase;color:var(--muted);
+    font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+    text-shadow:0 1px 14px rgba(0,0,0,.8)}
+  body.paper .title p{text-shadow:0 1px 12px rgba(255,252,244,.9)}
+  .hint{position:absolute;left:28px;bottom:24px;max-width:58%;font-size:10.5px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);white-space:nowrap;
+    font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+    text-shadow:0 1px 14px rgba(0,0,0,.85);
+    transition:opacity .9s ease;opacity:1}
+  /* écran étroit : l'indice passe au-dessus des boutons */
+  @media (max-width:720px){
+    .hint{white-space:normal;max-width:calc(100% - 56px);bottom:60px;line-height:1.5}
+    .tools{left:28px;right:auto}
+  }
+  body.paper .hint{text-shadow:0 1px 12px rgba(255,252,244,.9)}
+  .hint b{color:var(--accent);font-weight:600}
+  .hint.gone{opacity:0}
+  .tools{position:absolute;right:24px;bottom:22px;display:flex;gap:8px;pointer-events:auto}
+  .tools button{font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+    font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--fg);
+    background:var(--panel);border:1px solid var(--line);border-radius:999px;
+    padding:7px 14px;cursor:pointer;
+    transition:border-color .25s,color .25s}
+  .tools button:hover{border-color:var(--accent);color:var(--accent)}
+  .tools button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  .mark{position:absolute;top:26px;right:26px;width:34px;height:34px;border:1px solid var(--line);
+    border-radius:50%;display:grid;place-items:center;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="c"></canvas>
+  <canvas id="glow"></canvas>
+  <div class="grain"></div>
+  <div class="ui">
+    <div class="title">
+      <h1>Encre vivante</h1>
+      <p>suminagashi · turbulence captive</p>
+    </div>
+    <div class="mark">墨</div>
+    <div class="hint" id="hint">bougez — <b>cliquez</b> pour semer une goutte</div>
+    <div class="tools">
+      <button id="btn-nuit" aria-pressed="true">Nuit</button>
+      <button id="btn-papier" aria-pressed="false">Papier</button>
+      <button id="btn-grain">Graine</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  const cv=document.getElementById('c'), ctx=cv.getContext('2d',{alpha:false});
+  const gcv=document.getElementById('glow'), gctx=gcv.getContext('2d');
+  const stage=document.getElementById('stage'), hint=document.getElementById('hint');
+
+  /* =================================================================== thèmes */
+  const THEME={
+    nuit:{
+      bgStops:[[0,'#102140'],[0.38,'#070d1a'],[1,'#02040a']],
+      blend:'source-over',
+      fade:0.050, cell:4, out:2,       /* out = suréchantillonnage du rendu */
+      pigment:['#1d4f8f','#2e9aa6','#c99a3e','#b8462c','#5e2b4a','#e3d8bb'],
+      ink:0.96, wash:0.045,
+      bwMin:0.10, bwMax:0.17, onP:0.80,
+      focus:0.42, focusSpread:1.28
+    },
+    papier:{
+      bgStops:[[0,'#fbf6ea'],[0.5,'#efe6d3'],[1,'#dfd3ba']],
+      blend:'source-over',
+      fade:0.030, cell:4, out:2,
+      pigment:['#1b1f26','#2c4a76','#7d6a4c','#a93d2d','#54748f','#33383f'],
+      ink:0.94, wash:0.015,
+      bwMin:0.20, bwMax:0.34, onP:0.88,
+      focus:0.86, focusSpread:1.45
+    }
+  };
+  let themeKey='nuit', T=THEME.nuit;
+
+  const hex2rgb=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+  const smoothstep=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
+  function hash2(x,y){ let h=x*374761393+y*668265263; h=(h^(h>>>13))*1274126177; return ((h^(h>>>16))>>>0)/4294967296; }
+
+  let PAL=[], NB=0;
+  function buildPalette(){ PAL=T.pigment.map(hex2rgb); NB=PAL.length; }
+
+  /* =============================================================== dimensions */
+  let W=0,H=0,ASPECT=1,DPR=1;
+  const bg=document.createElement('canvas'), bgx=bg.getContext('2d');
+
+  function sizeCanvas(){
+    const r=stage.getBoundingClientRect();
+    DPR=Math.min(window.devicePixelRatio||1,2);
+    W=Math.max(320,Math.round(r.width)); H=Math.max(240,Math.round(r.height));
+    ASPECT=W/H;
+    cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
+    cv.style.width=W+'px'; cv.style.height=H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    gcv.width=cv.width; gcv.height=cv.height;
+    gcv.style.width=W+'px'; gcv.style.height=H+'px';
+    gctx.setTransform(DPR,0,0,DPR,0,0);
+    bg.width=W; bg.height=H;
+    paintBackground();
+    ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1;
+    ctx.drawImage(bg,0,0);
+  }
+  function paintBackground(){
+    const g=bgx.createRadialGradient(W*0.44,H*0.36,0,W*0.5,H*0.5,Math.max(W,H)*0.85);
+    for(const [o,c] of T.bgStops) g.addColorStop(o,c);
+    bgx.globalCompositeOperation='source-over'; bgx.globalAlpha=1;
+    bgx.fillStyle=g; bgx.fillRect(0,0,W,H);
+    bgx.globalCompositeOperation='lighter';
+    const h1=bgx.createRadialGradient(W*0.30,H*0.28,0,W*0.30,H*0.28,W*0.46);
+    h1.addColorStop(0,themeKey==='nuit'?'rgba(46,96,178,0.26)':'rgba(255,250,232,0.5)');
+    h1.addColorStop(1,'rgba(0,0,0,0)'); bgx.fillStyle=h1; bgx.fillRect(0,0,W,H);
+    const h2=bgx.createRadialGradient(W*0.80,H*0.86,0,W*0.80,H*0.86,W*0.44);
+    h2.addColorStop(0,themeKey==='nuit'?'rgba(112,40,104,0.15)':'rgba(188,148,88,0.20)');
+    h2.addColorStop(1,'rgba(0,0,0,0)'); bgx.fillStyle=h2; bgx.fillRect(0,0,W,H);
+    bgx.globalCompositeOperation='source-over';
+    const v=bgx.createRadialGradient(W*0.46,H*0.44,Math.min(W,H)*0.10,W*0.5,H*0.5,Math.max(W,H)*0.70);
+    v.addColorStop(0,'rgba(0,0,0,0)');
+    v.addColorStop(1,themeKey==='nuit'?'rgba(0,0,0,0.92)':'rgba(92,74,46,0.36)');
+    bgx.fillStyle=v; bgx.fillRect(0,0,W,H);
+  }
+
+  /* ============================================================ grille de champ */
+  let gw=0, gh=0, cell=4;          /* grille de simulation */
+  let rw=0, rh=0;                  /* grille de rendu (sur-échantillonnée) */
+  let u=null, un=null;
+  let vx=null, vy=null, cw=0, ch=0;
+  const grid=document.createElement('canvas'), gctxGrid=grid.getContext('2d');
+  let imgData=null;
+  let bandC=null, bandW=null, bandOn=null;
+
+  function allocGrid(){
+    cell=T.cell;
+    gw=Math.ceil(W/cell); gh=Math.ceil(H/cell);
+    u=new Float32Array(gw*gh); un=new Float32Array(gw*gh);
+    cw=Math.ceil(gw/2); ch=Math.ceil(gh/2);
+    vx=new Float32Array(cw*ch); vy=new Float32Array(cw*ch);
+    rw=gw*T.out; rh=gh*T.out;
+    grid.width=rw; grid.height=rh;
+    imgData=gctxGrid.createImageData(rw,rh);
+    bandC=new Float32Array(NB); bandW=new Float32Array(NB); bandOn=new Uint8Array(NB);
+    randomizeBands();
+  }
+  function randomizeBands(){
+    for(let b=0;b<NB;b++){
+      bandC[b]=0.5;
+      bandW[b]=T.bwMin+Math.random()*(T.bwMax-T.bwMin);
+      bandOn[b]=Math.random()<T.onP ? 1 : 0;
+    }
+  }
+
+  /* champ : ψ = potentiel ; v = (∂ψ/∂y, −∂ψ/∂x) ⇒ sans divergence */
+  const SWIRL={x:0.18,y:-0.04,r:0.70,a:0.20};
+  const COMB={amp:0.075,len:0.42,speed:0.075,x:0};
+  const waves=[
+    {a:0.048,kx:1.10,ky:0.72,om: 0.080,ph:0.4},
+    {a:0.026,kx:-1.85,ky:1.20,om:-0.105,ph:1.9}
+  ];
+  let rot=0, simT=0, nFrames=0;
+  const pointer={x:0,y:0,vx:0,vy:0,active:false,energy:0};
+  let drops=[];
+
+  const rot2=(x,y,a)=>[x*Math.cos(a)-y*Math.sin(a), x*Math.sin(a)+y*Math.cos(a)];
+
+  function buildVelocity(){
+    const cr=Math.cos(rot), sr=Math.sin(rot);
+    for(let j=0;j<ch;j++){
+      const fy=((j+0.5)/ch)*2-1;
+      for(let i=0;i<cw;i++){
+        const fx=((i+0.5)/cw)*2*ASPECT-ASPECT;
+        const rx=fx*cr-fy*sr, ry=fx*sr+fy*cr;
+        const dx=rx-SWIRL.x, dy=ry-SWIRL.y, sg=SWIRL.r*swirlR();
+        const g=Math.exp(-(dx*dx+dy*dy)/(2*sg));
+        let ux=SWIRL.a*g*(-dy)/sg, uy=SWIRL.a*g*(dx)/sg;
+        for(const w of waves){
+          const p=w.kx*rx+w.ky*ry+w.om*simT+w.ph, c=Math.cos(p);
+          ux+=w.a*w.ky*c; uy-=w.a*w.kx*c;
+        }
+        uy+=COMB.amp*Math.sin(2*Math.PI*((rx-COMB.x)/COMB.len)-simT*0.55);
+        const k=j*cw+i;
+        vx[k]=ux; vy[k]=uy;
+      }
+    }
+  }
+  function swirlR(){ return SWIRL.r; }
+  function sampleVel(fx,fy){
+    const gx=(fx+ASPECT)/(2*ASPECT)*cw-0.5, gy=(fy+1)/2*ch-0.5;
+    let i=Math.floor(gx), j=Math.floor(gy), a=gx-i, b=gy-j;
+    i=Math.max(0,Math.min(cw-1,i)); j=Math.max(0,Math.min(ch-1,j));
+    const i1=Math.min(cw-1,i+1), j1=Math.min(ch-1,j+1);
+    const A=j*cw+i, B=j*cw+i1, C=j1*cw+i, D=j1*cw+i1;
+    const w0=(1-a)*(1-b), w1=a*(1-b), w2=(1-a)*b, w3=a*b;
+    return [vx[A]*w0+vx[B]*w1+vx[C]*w2+vx[D]*w3,
+            vy[A]*w0+vy[B]*w1+vy[C]*w2+vy[D]*w3];
+  }
+
+  /* --- advection semi-lagrangienne, interpolation de Catmull-Rom :
+         conserve les contours bien plus nettement que le bilinéaire. */
+  function advect(dt){
+    const sc=(H/2)/cell;
+    const cr=Math.cos(rot), sr=Math.sin(rot);
+    const f=u;
+    const pe=pointer.energy;
+    /* la main, exprimée dans la grille de prélèvement */
+    const pgx=(pointer.x+ASPECT)/(2*ASPECT)*gw-0.5;
+    const pgy=(pointer.y+1)/2*gh-0.5;
+    const sgw=0.030*(H/2)/cell;                 /* rayon d'action en cellules */
+    const pdragX=pointer.vx*(H/2)/cell*0.010;
+    const pdragY=pointer.vy*(H/2)/cell*0.010;
+    for(let j=0;j<gh;j++){
+      const fy=((j+0.5)/gh)*2-1;
+      for(let i=0;i<gw;i++){
+        const fx=((i+0.5)/gw)*2*ASPECT-ASPECT;
+        const rx=fx*cr-fy*sr, ry=fx*sr+fy*cr;
+        const sv=sampleVel(rx,ry);
+        let ax=sv[0], ay=sv[1];
+        for(let k=0;k<drops.length;k++){
+          const dp=drops[k], age=simT-dp.t0;
+          if(age<0||age>4.5) continue;
+          const R=0.03+0.20*age, sg=0.011;
+          const dx=rx-dp.x, dy=ry-dp.y;
+          const r=Math.hypot(dx,dy)+1e-5, uu=r-R;
+          const gg=Math.exp(-(uu*uu)/sg);
+          if(gg>0.004){
+            /* tourbillon annulaire : l'encre est tirée en anneau,
+               sans divergence — pas d'aplat */
+            const push=0.42*gg*Math.exp(-age/2.0);
+            ax+=(-dy/r)*push; ay+=(dx/r)*push;
+          }
+        }
+        let sx=i-ax*dt*sc, sy=j-ay*dt*sc;
+        /* LA MAIN : on déforme l'espace de prélèvement, pas la vitesse.
+           La transformation reste réversible, donc les rubans sont
+           tordus et étirés sans jamais s'aplatir. */
+        if(pe>0.004){
+          const wdx=sx-pgx, wdy=sy-pgy;
+          const g=Math.exp(-(wdx*wdx+wdy*wdy)/(sgw*sgw));
+          const th=0.055*g*pe;
+          const cs=Math.cos(th), sn=Math.sin(th);
+          const rx2=wdx*cs-wdy*sn, ry2=wdx*sn+wdy*cs;
+          const k=1-0.030*g*pe;
+          sx=pgx+rx2*k - pdragX*g*pe;
+          sy=pgy+ry2*k - pdragY*g*pe;
+        }
+        let val=catmull(f, sx, sy);
+        if(!(val>=0 && val<1e6)) val=0;
+        un[j*gw+i]=val;
+      }
+    }
+    const tmp=u; u=un; un=tmp;
+  }
+  function cr(p0,p1,p2,p3,t){
+    const t2=t*t, t3=t2*t;
+    return 0.5*((2*p1)+(-p0+p2)*t+(2*p0-5*p1+4*p2-p3)*t2+(-p0+3*p1-3*p2+p3)*t3);
+  }
+  function catmull(f,x,y){
+    const i=Math.floor(x), j=Math.floor(y);
+    const tx=x-i, ty=y-j;
+    let i0=i-1,i1=i,i2=i+1,i3=i+2;
+    let j0=j-1,j1=j,j2=j+1,j3=j+2;
+    if(i0<0)i0=0; if(i1<0)i1=0; if(i2>gw-1)i2=gw-1; if(i3>gw-1)i3=gw-1;
+    if(j0<0)j0=0; if(j1<0)j1=0; if(j2>gh-1)j2=gh-1; if(j3>gh-1)j3=gh-1;
+    const r0=j0*gw, r1=j1*gw, r2=j2*gw, r3=j3*gw;
+    const a0=cr(f[r0+i0],f[r0+i1],f[r0+i2],f[r0+i3],tx);
+    const a1=cr(f[r1+i0],f[r1+i1],f[r1+i2],f[r1+i3],tx);
+    const a2=cr(f[r2+i0],f[r2+i1],f[r2+i2],f[r2+i3],tx);
+    const a3=cr(f[r3+i0],f[r3+i1],f[r3+i2],f[r3+i3],tx);
+    return cr(a0,a1,a2,a3,ty);
+  }
+
+  /* --------------------------------------------------- amorçage : couronnes */
+  let seedC={x:0.34,y:0.46}, RINGS=9;
+  function seedField(){
+    const cx=seedC.x*2*ASPECT-ASPECT, cy=seedC.y*2-1;
+    const Rmax=Math.hypot(ASPECT,1)*1.02;
+    const ringW=Rmax/RINGS;
+    for(let j=0;j<gh;j++){
+      const fy=((j+0.5)/gh)*2-1;
+      for(let i=0;i<gw;i++){
+        const fx=((i+0.5)/gw)*2*ASPECT-ASPECT;
+        const dx=fx-cx, dy=fy-cy;
+        let r=Math.hypot(dx,dy);
+        const th=Math.atan2(dy,dx);
+        r*=1+0.10*Math.sin(3*th+0.7)+0.06*Math.sin(5*th-1.9);
+        let rr=r/ringW;
+        const soft=RINGS*0.88;
+        if(rr>soft) rr=soft+(rr-soft)*Math.exp(-(rr-soft)/(RINGS*0.5));
+        u[j*gw+i]=rr+(Math.random()-0.5)*0.05;
+      }
+    }
+  }
+
+  function injectDrop(x,y){
+    const fx=(x/W)*2*ASPECT-ASPECT, fy=(y/H)*2-1;
+    const sg=0.0018;
+    const i0=Math.max(0,Math.floor((fx+ASPECT)/(2*ASPECT)*gw)-4);
+    const i1=Math.min(gw-1,Math.ceil((fx+ASPECT)/(2*ASPECT)*gw)+4);
+    const j0=Math.max(0,Math.floor((fy+1)/2*gh)-4);
+    const j1=Math.min(gh-1,Math.ceil((fy+1)/2*gh)+4);
+    for(let j=j0;j<=j1;j++){
+      const cy=((j+0.5)/gh)*2-1;
+      for(let i=i0;i<=i1;i++){
+        const cx=((i+0.5)/gw)*2*ASPECT-ASPECT;
+        const d=Math.hypot(cx-fx,cy-fy);
+        u[j*gw+i]+=0.50*Math.exp(-(d*d)/sg);
+      }
+    }
+  }
+
+  /* ------------------------------------------------------------------ rendu */
+  /* Le champ u est échantillonné en sur-résolution : les frontières de
+     bandes deviennent des courbes lisses, plus des escaliers de pixels. */
+  let fx0=0, fy0=0, focusR=1;
+  function renderField(){
+    const d=imgData.data;
+    let k=0;
+    const breathe=1+0.10*Math.sin(simT*0.13);
+    const out=T.out;
+    const focus=T.focusSpread, focusIn=T.focus;
+    for(let j=0;j<rh;j++){
+      const fy=((j+0.5)/rh)*2-1;
+      for(let i=0;i<rw;i++){
+        const val=sampleU(i/out, j/out);
+        const band=Math.floor(val), frac=val-band;
+        const bi=((band%NB)+NB)%NB;
+        const c=PAL[bi];
+        const fx=((i+0.5)/rw)*2*ASPECT-ASPECT;
+        const dx=fx-fx0, dy=fy-fy0;
+        const env=themeKey==='nuit'
+          ? smoothstep(1.50, 0.58, Math.hypot(dx,dy))
+          : smoothstep(2.10, 1.30, Math.hypot(dx,dy));
+        let a=T.wash*env, edge=0, prof=0;
+        if(bandOn[bi]){
+          const dist=Math.abs(frac-bandC[bi]);
+          const w=bandW[bi];
+          prof=1-smoothstep(w*0.42, w*0.42+0.085, dist);
+          if(prof>0){
+            const grain=0.82+0.36*hash2(i>>1,j>>1);
+            a+=T.ink*prof*grain*env*breathe;
+            edge=Math.min(1,prof*(1-prof)*4);   // pigment concentré au liseré
+          }
+        }
+        if(a>0.001){
+          /* modelé de la goutte : cœur lumineux, liseré plus dense.
+             Une bande étirée reste donc modelée, jamais un aplat. */
+          const core=Math.pow(prof,0.55);
+          const sh=(0.62+0.52*core)*(1-0.30*edge);
+          d[k]=c[0]*sh; d[k+1]=c[1]*sh; d[k+2]=c[2]*sh;
+        } else { d[k]=0; d[k+1]=0; d[k+2]=0; }
+        d[k+3]=Math.min(255,a*255);
+        k+=4;
+      }
+    }
+    gctxGrid.putImageData(imgData,0,0);
+  }
+  /* échantillonnage bilinéaire du champ, aux coordonnées de grille */
+  function sampleU(x,y){
+    let i=Math.floor(x), j=Math.floor(y);
+    const tx=x-i, ty=y-j;
+    if(i<0)i=0; if(j<0)j=0;
+    if(i>gw-2)i=gw-2; if(j>gh-2)j=gh-2;
+    const a=u[j*gw+i], b=u[j*gw+i+1], c=u[(j+1)*gw+i], dd=u[(j+1)*gw+i+1];
+    return (a*(1-tx)+b*tx)*(1-ty)+(c*(1-tx)+dd*tx)*ty;
+  }
+
+  let repaintBoost=0;
+  function drawFrame(){
+    /* Le fond : en mode nuit, l'encre olderit sur l'eau noire.
+       En mode papier, le voile de fond est quasi nul — sinon le
+       papier se macule de gris à chaque frame. */
+    ctx.globalCompositeOperation='source-over';
+    const wash=T.fade*(repaintBoost>0?5:1);
+    ctx.globalAlpha=Math.min(0.9, themeKey==='nuit'?wash:wash*0.30);
+    ctx.drawImage(bg,0,0);
+    ctx.globalAlpha=1;
+    if(repaintBoost>0) repaintBoost--;
+    renderField();
+    if(themeKey==='papier'){
+      /* le papier est opaque : l'encre se pose dessus,
+         elle ne s'empile pas sur l'encre précédente */
+      ctx.globalCompositeOperation='source-over';
+      ctx.globalAlpha=1;
+      ctx.drawImage(bg,0,0);
+    }
+    ctx.globalCompositeOperation=T.blend;
+    ctx.globalAlpha=1;
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(grid,0,0,rw,rh,0,0,W,H);
+    ctx.globalCompositeOperation='source-over';
+    gctx.globalCompositeOperation='source-over'; gctx.globalAlpha=1;
+    gctx.imageSmoothingEnabled=true;
+    gctx.drawImage(grid,0,0,rw,rh,0,0,W,H);
+  }
+
+  function step(){
+    simT+=1/60; nFrames++;
+    rot=simT*0.010;
+    COMB.x+=COMB.speed/60;
+    if(COMB.x>COMB.len*2.4) COMB.x=-COMB.len*2.4;
+    fx0=SWIRL.x+0.10*Math.sin(simT*0.07);
+    fy0=SWIRL.y+0.10*Math.cos(simT*0.055);
+    focusR=Math.hypot(ASPECT,1);
+    /* l'encre se repose quand la main se retire */
+    pointer.energy*=0.930;
+    if(pointer.energy<0.002) pointer.energy=0;
+    buildVelocity();
+    advect(1/60);
+  }
+
+  /* ------------------------------------------------------------- animation */
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let raf=null;
+  function frameLoop(){ step(); drawFrame(); raf=requestAnimationFrame(frameLoop); }
+  function prerun(n){ for(let i=0;i<n;i++){ step(); if(i%8===0) drawFrame(); } drawFrame(); }
+  /* le pré-calcul est découpé : le navigateur peut peindre entretemps,
+     la pièce apparaît montée au lieu d'un écran noir figé */
+  function prerunAsync(n, done){
+    let i=0;
+    (function chunk(){
+      const t0=performance.now();
+      while(i<n && performance.now()-t0<26){ step(); i++; }
+      if(i%8===0||i>=n) drawFrame();
+      if(i<n) requestAnimationFrame(chunk);
+      else done();
+    })();
+  }
+
+  /* ---------------------------------------------------------- interactions */
+  function toField(ev){
+    const r=cv.getBoundingClientRect();
+    const px=ev.clientX-r.left, py=ev.clientY-r.top;
+    return {px:px,py:py,fx:(px/r.width*2-1)*ASPECT,fy:(py/r.height*2-1)};
+  }
+  cv.addEventListener('pointermove',ev=>{
+    const f=toField(ev);
+    const p=rot2(f.fx,f.fy,rot);
+    const moved=Math.hypot(p[0]-pointer.x, p[1]-pointer.y);
+    if(pointer.active){
+      pointer.vx=(p[0]-pointer.x)*60; pointer.vy=(p[1]-pointer.y)*60;
+      const sp=Math.hypot(pointer.vx,pointer.vy);
+      if(sp>2.4){ pointer.vx*=2.4/sp; pointer.vy*=2.4/sp; }
+      pointer.energy=Math.min(1, pointer.energy+moved*2.2);
+    }
+    pointer.x=p[0]; pointer.y=p[1]; pointer.active=true;
+  });
+  cv.addEventListener('pointerleave',()=>{pointer.active=false;pointer.vx=0;pointer.vy=0;pointer.energy=0;});
+  cv.addEventListener('pointerdown',ev=>{
+    const f=toField(ev), p=rot2(f.fx,f.fy,rot);
+    pointer.active=true; pointer.x=p[0]; pointer.y=p[1]; pointer.energy=1;
+    drops.push({x:p[0],y:p[1],t0:simT});
+    if(drops.length>5) drops.shift();
+    injectDrop(f.px,f.py);
+    hint.classList.add('gone');
+  });
+
+  /* ------------------------------------------------------------- commandes */
+  function rebuild(){ buildPalette(); allocGrid(); seedField(); }
+  function setTheme(key){
+    if(key===themeKey) return;
+    themeKey=key; T=THEME[key];
+    document.body.classList.toggle('paper', key==='papier');
+    document.getElementById('btn-nuit').setAttribute('aria-pressed', key==='nuit');
+    document.getElementById('btn-papier').setAttribute('aria-pressed', key==='papier');
+    paintBackground(); rebuild(); repaintBoost=40;
+    if(reduce) prerun(300); else prerunAsync(160,()=>{});
+  }
+  document.getElementById('btn-nuit').addEventListener('click',()=>setTheme('nuit'));
+  document.getElementById('btn-papier').addEventListener('click',()=>setTheme('papier'));
+  document.getElementById('btn-grain').addEventListener('click',()=>{
+    seedC={x:0.20+Math.random()*0.58, y:0.24+Math.random()*0.50};
+    RINGS=7+Math.floor(Math.random()*5);
+    drops=[]; randomizeBands(); seedField(); repaintBoost=40;
+    if(reduce) prerun(300); else prerunAsync(160,()=>{});
+  });
+
+  let nextAuto=14;
+  setInterval(()=>{
+    if(reduce||simT<nextAuto) return;
+    const x=Math.random()*W, y=Math.random()*H;
+    const p=rot2((x/W)*2*ASPECT-ASPECT,(y/H)*2-1,rot);
+    drops.push({x:p[0],y:p[1],t0:simT});
+    if(drops.length>5) drops.shift();
+    injectDrop(x,y);
+    nextAuto=simT+11+Math.random()*9;
+  },400);
+
+  /* ---------------------------------------------------------------- départ */
+  buildPalette();
+  sizeCanvas();
+  allocGrid();
+  seedField();
+  drawFrame();
+  if(reduce){
+    prerun(360);
+  }else{
+    prerunAsync(380, ()=>{ if(!raf) raf=requestAnimationFrame(frameLoop); });
+  }
+  window.addEventListener('resize',()=>{ sizeCanvas(); allocGrid(); seedField(); prerun(reduce?360:160); });
+
+  /* --------------------------------------------------------------- sondes */
+  window.__stats=()=>({mode:themeKey,grid:{gw,gh,cell},render:{rw,rh},pigments:NB,frames:nFrames,viewport:{w:W,h:H},simT:+simT.toFixed(2),drops:drops.length,pointerEnergy:+pointer.energy.toFixed(3)});
+  window.__bandHist=()=>{const h=new Array(NB).fill(0);for(let i=0;i<u.length;i++){const b=((Math.floor(u[i])%NB)+NB)%NB;h[b]++;}return h;};
+  window.__reseed=()=>{seedC={x:0.20+Math.random()*0.58,y:0.24+Math.random()*0.50};RINGS=7+Math.floor(Math.random()*5);drops=[];randomizeBands();seedField();repaintBoost=40;if(reduce)prerun(300);else prerunAsync(160,()=>{});};
+  window.__theme=setTheme;
+})();
+</script>
+</body>
+</html>
