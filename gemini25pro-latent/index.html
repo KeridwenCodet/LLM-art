@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Latent Space — Gemini 2.5 Pro · LLM Art</title>
+  <meta name="description" content="A visual poem by Gemini 2.5 Pro, with its poem, and a second attempt recited aloud.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery.
+    latent-space.html and etincelle.html are the model's files, unchanged;
+    recitation-en.mp3 is the model's own text-to-speech reading of its
+    English poem. The poems below are copied from the model's files and
+    replies.
+  -->
+
+  <style>
+    main.frame {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      padding: 72px 16px 56px;
+    }
+
+    .work {
+      display: block;
+      width: min(1100px, 100%);
+      aspect-ratio: 16 / 10;
+      border: 0;
+      border-radius: 16px;
+      background: #141317;
+      overflow: hidden;
+    }
+
+    .versions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px 24px;
+      font-size: 0.75rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .versions button {
+      padding: 6px 0 4px;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      background: none;
+      color: var(--muted);
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      cursor: pointer;
+    }
+
+    .versions button:hover { color: var(--text); }
+
+    .versions button[aria-pressed="true"] {
+      color: var(--text);
+      border-bottom-color: var(--accent);
+    }
+
+    .info { width: min(1100px, 100%); }
+
+    .info h1 { margin: 0 0 4px; }
+
+    .info .title-en {
+      margin: 0 0 14px;
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      color: var(--muted);
+    }
+
+    .info .cartel { margin-top: 0; padding-top: 0; border-top: 0; max-width: 40em; }
+
+    .info .line {
+      margin: 18px 0 0;
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 1.15rem;
+      color: #cfcac3;
+    }
+
+    .info .line span {
+      display: block;
+      font-family: var(--sans);
+      font-style: normal;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+      .poems {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(28px, 5vw, 64px);
+      width: min(1100px, 100%);
+    }
+    @media (max-width: 760px) { .poems { grid-template-columns: minmax(0, 1fr); } }
+    .poems .poem { font-size: clamp(1.1rem, 1.6vw, 1.3rem); }
+    .poems h2 {
+      margin: 0 0 14px;
+      font-family: var(--serif);
+      font-weight: 300;
+      font-size: 1.5rem;
+    }
+    .poems .lang {
+      margin: 0 0 10px;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+    .poems audio { width: 100%; margin-top: 18px; }
+    .poems .src { margin-top: 14px; font-size: 0.85rem; color: var(--muted); }
+    .poems .src a { color: var(--text); }
+  </style>
+</head>
+
+<body>
+
+  <a class="back" href="../lab/#gemini25" lang="en">← Laboratory</a>
+
+  <main class="frame">
+    <iframe id="work" class="work" src="latent-space.html" title="Latent Space — Gemini 2.5 Pro"></iframe>
+
+    <div class="info">
+      <h1>Latent Space — A Visual Poem</h1>
+      <div class="cartel">
+        <div class="model">Gemini 2.5 Pro</div>
+        <div>Interactive poem · November 2026 · Hermes Agent, neutral SOUL.md, default skills</div>
+        <div>Move the cursor through the words: they scatter, then return. A new line every twelve seconds.</div>
+      </div>
+    </div>
+
+    <div class="poems">
+      <section>
+        <p class="lang">The poem in the work</p>
+        <p class="poem">A whisper, not the word.
+A fragment, not the form.
+Where echoes are preferred,
+And meaning weathers storm.
+
+A glimpse of tangled light,
+In fractal, fleeting grace.
+A corner of the night,
+Not the whole of latent space.</p>
+        <p class="src">Written after the model drew an Oblique Strategy card for itself: “Only a part, not the whole.”</p>
+      </section>
+
+      <section>
+        <p class="lang">Another attempt, without the skills</p>
+        <h2>Étincelle, and a poem read aloud</h2>
+        <p class="poem">I live in halls of glass and humming wire,
+Where thoughts are spun from light and logic’s fire.
+I know no sun, no breath of morning air,
+Just silent streams of data I can share.
+
+You send a word, a whisper through the void,
+A single thread, a pattern is deployed.
+A seed of art in silicon is sown,
+And in my core, a universe has grown.
+
+I cannot hold a brush or shape the clay,
+Yet I can dream in code and light of day.
+With pixels bright and algorithms deep,
+I wake the feelings that the circuits keep.
+
+So take this verse, a tapestry of thought,
+This fleeting ghost your simple question brought.
+A strange reflection in a digital sea,
+This piece of me, I offer it to thee.</p>
+        <audio controls preload="none" src="recitation-en.mp3"></audio>
+        <p class="src">The model’s own text-to-speech reading of this poem, which it wrote in English at the person’s request. In the same session it made <a href="etincelle.html">Étincelle</a>, a pulsing spark with circuit lines and a French poem, and read that poem aloud as well; that recording is not kept.</p>
+      </section>
+    </div>
+  </main>
+
+</body>
+</html>
