@@ -65,6 +65,7 @@ Series, re-runs and experiments, documented like the gallery works on the [Labor
 | Lab 21 | [Soupirs](https://keridwencodet.github.io/LLM-art/kimi-k3/#soupirs) | Kimi K3 | Oct 2026 | Canvas | Hermes Agent, no creative skill, companion line, original request |
 | Lab 22 | [Marée d’encre](https://keridwencodet.github.io/LLM-art/minimax-m31-encre/maree-d-encre.html) | MiniMax M3.1 Flash | Nov 2026 | Canvas | Hermes Agent, creative skills, companion line; Kimi K3’s files in the workspace |
 | Lab 23 | [Encre vivante — suminagashi génératif](https://keridwencodet.github.io/LLM-art/minimax-m31-encre/encre-vivante.html) | MiniMax M3.1 Flash | Nov 2026 | Canvas | Hermes Agent, creative skills; Kimi K3’s files in the workspace |
+| Lab 24 | [Latent Space — A Visual Poem](https://keridwencodet.github.io/LLM-art/gemini25pro-latent/) | Gemini 2.5 Pro | Nov 2026 | p5.js | Hermes Agent, default skills, a different request |
 
 ## Conservation
 
@@ -108,6 +109,7 @@ kimi-k27-cartographie/ kimi-k27-respiration/ kimi-k27-echos/ kimi-k27-presence/ 
 kimi-k3/                                Nos. 19–20, Lab 19–21 (five attempts, framed by one page, + the model’s screenshots and the skill it wrote)
 minimax-m31-resonance/                  No. 21 (+ the skill the model wrote, a local path removed)
 minimax-m31-encre/                      Lab 22–23 (+ skill/, the ink-marbling skill the model wrote)
+gemini25pro-latent/                     Lab 24 (+ Étincelle and the model’s recitation of its English poem)
 ```
 
 ### Adding a work

@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Latent Space - A Visual Poem</title>
+  <script>p5.disableFriendlyErrors = true;</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    html, body { 
+      margin: 0; 
+      padding: 0; 
+      overflow: hidden; 
+      background-color: #0a0a0f;
+    }
+    canvas { 
+      display: block; 
+    }
+  </style>
+</head>
+<body>
+<script>
+// === Poem Stanzas ===
+const stanzas = [
+  "A whisper, not the word.",
+  "A fragment, not the form.",
+  "Where echoes are preferred,",
+  "And meaning weathers storm.",
+  "A glimpse of tangled light,",
+  "In fractal, fleeting grace.",
+  "A corner of the night,",
+  "Not the whole of latent space."
+];
+
+// === Configuration ===
+const CONFIG = {
+  fontPath: 'https://cdn.jsdelivr.net/npm/@vintproykt/dejavu-fonts-ttf/ttf/DejaVuSans.ttf',
+  repelRadius: 120,
+  repelForce: 0.8,
+  returnForce: 0.01,
+  animationSpeed: 0.05
+};
+
+// === Color Palette ===
+const PALETTE = {
+  bg: '#0a0a0f',
+  particle: '#e8d5b7',
+  glow: 'rgba(232, 213, 183, 0.1)'
+};
+
+// === Global State ===
+let font;
+let particles = [];
+let currentStanza = 0;
+let transitionProgress = 0;
+let isTransitioning = false;
+
+// === Preload ===
+function preload() {
+  try {
+    font = loadFont(CONFIG.fontPath);
+  } catch (e) {
+    console.error("Font failed to load. Using system default.", e);
+  }
+}
+
+// === Setup ===
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  pixelDensity(1);
+  
+  if (!font) {
+      console.log("Using default font because preload failed.");
+      font = "monospace";
+  }
+
+  setupStanza(currentStanza);
+
+  // Set an interval to cycle through stanzas
+  setInterval(() => {
+    isTransitioning = true;
+    transitionProgress = 0;
+  }, 12000); 
+}
+
+// === Draw Loop ===
+function draw() {
+  background(PALETTE.bg);
+
+  if (isTransitioning) {
+    transitionProgress += 0.02;
+    if (transitionProgress >= 1) {
+      transitionProgress = 1;
+      isTransitioning = false;
+      currentStanza = (currentStanza + 1) % stanzas.length;
+      setupStanza(currentStanza);
+    }
+  }
+  
+  // Apply mouse interaction and update particles
+  for (let p of particles) {
+    p.behave();
+    p.update();
+    p.display();
+  }
+}
+
+// === Core Functions ===
+function setupStanza(index) {
+  particles = [];
+  const text = stanzas[index];
+  const fontSize = min(width / (text.length * 0.8), 100);
+  
+  const textPoints = font.textToPoints(text, 0, 0, fontSize, {
+    sampleFactor: 0.1,
+    simplifyThreshold: 0
+  });
+
+  const bounds = font.textBounds(text, 0, 0, fontSize);
+  const textX = width / 2 - bounds.w / 2;
+  const textY = height / 2 + bounds.h / 2;
+
+  for (let pt of textPoints) {
+    const p = new Particle(pt.x + textX, pt.y + textY);
+    particles.push(p);
+  }
+}
+
+// === Classes ===
+class Particle {
+  constructor(x, y) {
+    this.target = createVector(x, y);
+    // Start at a random position for the transition-in effect
+    this.pos = createVector(random(width), random(height));
+    this.vel = createVector();
+    this.acc = createVector();
+    this.maxSpeed = random(2, 5);
+    this.maxForce = 0.3;
+    this.size = random(1.2, 2.5);
+  }
+
+  behave() {
+    // Mouse interaction
+    const mouse = createVector(mouseX, mouseY);
+    const d = dist(this.pos.x, this.pos.y, mouse.x, mouse.y);
+    if (d < CONFIG.repelRadius) {
+      const repel = p5.Vector.sub(this.pos, mouse);
+      repel.setMag((CONFIG.repelRadius - d) * CONFIG.repelForce);
+      this.applyForce(repel);
+    }
+
+    // Return to target
+    const arrive = this.arrive(this.target);
+    this.applyForce(arrive);
+  }
+
+  arrive(target) {
+    const desired = p5.Vector.sub(target, this.pos);
+    const d = desired.mag();
+    let speed = this.maxSpeed;
+    if (d < 100) {
+      speed = map(d, 0, 100, 0, this.maxSpeed);
+    }
+    desired.setMag(speed);
+    const steer = p5.Vector.sub(desired, this.vel);
+    steer.limit(this.maxForce);
+    return steer;
+  }
+
+  applyForce(force) {
+    this.acc.add(force);
+  }
+
+  update() {
+    this.pos.add(this.vel);
+    this.vel.add(this.acc);
+    this.vel.limit(this.maxSpeed);
+    this.acc.mult(0);
+  }
+
+  display() {
+    stroke(PALETTE.particle);
+    strokeWeight(this.size);
+    point(this.pos.x, this.pos.y);
+  }
+}
+
+// === Event Handlers ===
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  setupStanza(currentStanza);
+}
+</script>
+</body>
+</html>
