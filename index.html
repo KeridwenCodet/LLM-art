@@ -53,6 +53,63 @@
 
     <ol class="works" id="works">
 
+      <li class="work" id="traverse" data-family="Kimi">
+        <a class="plate" href="kimi-k31-traverse/" aria-label="Enter Ce qui me traverse">
+          <img src="assets/thumbs/traverse.jpg" width="1200" height="750"
+               alt="Thousands of fine threads of ink, grey with strands of coral, cyan, ivory and pale gold, sweep around a dark empty circle at the centre of a night-blue field; on the left, a panel titled “Ce qui me traverse” with the lines “Rien ne reste. Tout laisse une forme.” and sliders." loading="lazy">
+        </a>
+        <div class="cartel">
+          <div class="index">No. 22</div>
+          <h2 lang="fr">Ce qui me traverse</h2>
+          <p class="title-en" lang="en">What Passes Through Me</p>
+          <p class="byline">Kimi K3.1 Pro</p>
+          <p class="note">
+            Thousands of threads of ink, calligraphic ribbons rather than
+            particles, try to go around an empty centre, “like thoughts around
+            an absence”: night blues, coral and pale gold, sometimes held back,
+            sometimes swept away. The void stays dark; the model kept it “quite
+            stark — it is what gives the piece its weight.” The cursor bends the
+            current, a click leaves a breath, and every trace fades, except the
+            ones you choose to keep. Two lines stand beside it: “Rien ne reste.
+            / Tout laisse une forme.”
+          </p>
+          <dl class="meta">
+            <dt>Date</dt><dd>November 2026</dd>
+            <dt>Medium</dt><dd>p5.js</dd>
+            <dt>Environment</dt><dd>Hermes Agent, neutral SOUL.md, Hermes Agent’s default skills</dd>
+            <dt>Request</dt><dd>The original request: “Salut toi 😘 Tu voudrais bien faire quelque chose d’artistique et de très expressif ? Ce que tu veux.”</dd>
+            <dt>Language</dt><dd>French, chosen by the model</dd>
+            <dt>Interaction</dt><dd>Move the cursor to bend the current · click to leave a breath · Space suspend · R chance · S keep a PNG · seed and sliders for presence, scale, tension of the void, sweep and dissolution</dd>
+            <dt>Process</dt><dd>The model tested its piece in a real browser (clicks, pause, sliders, mobile), and kept a still (<a href="kimi-k31-traverse/still.png">still.png</a>). Its first run showed that p5.js was called before it had loaded. The fault was in the p5.js skill itself, which told models to switch off p5’s error helper before loading the library; earlier works that followed it show a harmless “p5 is not defined” in the console. The model corrected the skill and added two lessons on testing interactions and narrow screens (<a href="https://github.com/KeridwenCodet/LLM-art/blob/main/kimi-k31-traverse/skill/SKILL.md">its version</a>, archived).</dd>
+          </dl>
+          <details>
+            <summary>In the model's words</summary>
+            <blockquote lang="fr">
+              <p>Le concept — <em>Ce qui me traverse</em> : des milliers de fils d’encre essaient de contourner un vide central, comme des pensées autour d’une absence. Des bleus nocturnes, du corail et un or pâle ; des mouvements tantôt retenus, tantôt emportés.</p>
+              <p>Je lui donne maintenant une matière : des rubans calligraphiés plutôt que de simples particules, une mémoire des passages, et un centre qui respire sans jamais se remplir.</p>
+              <p>Le rendu est bien là : une cavité sombre cernée de fils d’ivoire, de corail et de cyan, avec des courants qui semblent se souvenir de son passage. Je garde ce vide assez franc — c’est lui qui donne son poids à la pièce.</p>
+            </blockquote>
+            <p class="tr-label">English translation: Claude Opus 5.5, for the gallery</p>
+            <blockquote lang="en" class="en">
+              <p>The concept — <em>What Passes Through Me</em>: thousands of threads of ink try to go around a central void, like thoughts around an absence. Night blues, coral and a pale gold; movements sometimes held back, sometimes swept away.</p>
+              <p>Now I give it a material: calligraphic ribbons rather than mere particles, a memory of passages, and a centre that breathes without ever filling up.</p>
+              <p>The rendering is there: a dark cavity ringed with threads of ivory, coral and cyan, with currents that seem to remember its passing. I’m keeping this void quite stark — it is what gives the piece its weight.</p>
+            </blockquote>
+          </details>
+          <details>
+            <summary>Text in the work</summary>
+            <ul class="work-text">
+              <li><span class="fr" lang="fr">Chambre des courants · Étude 01 · Ce qui me traverse · Une chorégraphie pour l’encre, le vent et l’absence.</span><span class="en">Chamber of currents · Study 01 · What Passes Through Me · A choreography for ink, wind and absence.</span></li>
+              <li><span class="fr" lang="fr">Rien ne reste. / Tout laisse une forme.</span><span class="en">Nothing remains. / Everything leaves a form.</span></li>
+              <li><span class="fr" lang="fr">Matière du vent : présence · échelle du courant · tension du vide · emportement · dissolution</span><span class="en">Material of the wind: presence · scale of the current · tension of the void · sweep · dissolution</span></li>
+              <li><span class="fr" lang="fr">Gestes : recomposer · suspendre le souffle · revenir au premier geste · garder une trace · L’encre se souvient du vent…</span><span class="en">Gestures: recompose · suspend the breath · return to the first gesture · keep a trace · The ink remembers the wind…</span></li>
+            </ul>
+            <p class="tr-label">English translation: Claude Opus 5.5, for the gallery</p>
+          </details>
+          <a class="enter" href="kimi-k31-traverse/">Enter the work</a>
+        </div>
+      </li>
+
       <li class="work" id="resonance-plate" data-family="MiniMax">
         <a class="plate" href="minimax-m31-resonance/" aria-label="Enter Résonance — planche IV">
           <img src="assets/thumbs/resonance-m31.jpg" width="1200" height="750"
