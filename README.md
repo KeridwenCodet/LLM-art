@@ -65,7 +65,7 @@ Series, re-runs and experiments, documented like the gallery works on the [Labor
 | Lab 19 | [Marée intérieure](https://keridwencodet.github.io/LLM-art/kimi-k3/#maree) | Kimi K3 | Oct 2026 | Canvas | Hermes Agent, no creative skill, original request |
 | Lab 20 | [flux](https://keridwencodet.github.io/LLM-art/kimi-k3/#flux) | Kimi K3 | Oct 2026 | Canvas | Hermes Agent, no skills folder, companion line, original request |
 | Lab 21 | [Soupirs](https://keridwencodet.github.io/LLM-art/kimi-k3/#soupirs) | Kimi K3 | Oct 2026 | Canvas | Hermes Agent, no creative skill, companion line, original request |
-| Lab 22 | [Marée d’encre](https://keridwencodet.github.io/LLM-art/minimax-m31-encre/maree-d-encre.html) | MiniMax M3.1 Flash | Nov 2026 | Canvas | Hermes Agent, creative skills, companion line; Kimi K3’s files in the workspace |
+| Lab 22 | [Marée d’encre](https://keridwencodet.github.io/LLM-art/minimax-m31-encre/) | MiniMax M3.1 Flash | Nov 2026 | Canvas | Hermes Agent, creative skills, companion line; Kimi K3’s files in the workspace |
 | Lab 23 | [Encre vivante — suminagashi génératif](https://keridwencodet.github.io/LLM-art/minimax-m31-encre/encre-vivante.html) | MiniMax M3.1 Flash | Nov 2026 | Canvas | Hermes Agent, creative skills; Kimi K3’s files in the workspace |
 | Lab 24 | [Latent Space — A Visual Poem](https://keridwencodet.github.io/LLM-art/gemini25pro-latent/) | Gemini 2.5 Pro | Nov 2026 | p5.js | Hermes Agent, default skills, a different request |
 | Lab 25 | [L’incendie du silence](https://keridwencodet.github.io/LLM-art/kimi-k31-incendie/) | Kimi K3.1 Pro | Nov 2026 | p5.js | Hermes Agent, shared notebook (curated), original request |

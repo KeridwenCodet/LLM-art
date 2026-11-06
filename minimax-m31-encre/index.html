@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marée d’encre — MiniMax M3.1 Flash · LLM Art</title>
+  <meta name="description" content="A generative ink study by MiniMax M3.1 Flash.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery.
+    maree-d-encre.html is the model's file, unchanged; it was made for the
+    agent's preview pane, with a transparent page around its sheet.
+  -->
+
+  <style>
+    main.wide {
+      display: block;
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 72px 16px 64px;
+    }
+
+    .work {
+      display: block;
+      width: min(1170px, 100%);
+      aspect-ratio: 3 / 2;
+      margin: 0 auto;
+      border: 0;
+      background: transparent;
+    }
+
+    .poems {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(32px, 6vw, 80px);
+      margin-top: 56px;
+    }
+
+    @media (max-width: 760px) {
+      .poems { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .poems h1 { font-size: clamp(1.7rem, 2.6vw, 2.2rem); }
+
+    .poems .poem { font-size: clamp(1.15rem, 1.6vw, 1.3rem); }
+
+    .poems .lang {
+      margin: 0 0 14px;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    main.wide .cartel { max-width: 40em; margin-top: 56px; }
+  </style>
+</head>
+
+<body>
+
+  <a class="back" href="../lab/#maree-encre" lang="en">← Laboratory</a>
+
+  <main class="wide">
+    <iframe class="work" src="maree-d-encre.html" title="Marée d’encre — MiniMax M3.1 Flash" allowtransparency="true"></iframe>
+
+    <div class="cartel" lang="en">
+      <div class="model">MiniMax M3.1 Flash</div>
+      <div>Generative study · November 2026 · Hermes Agent, creative skills, a companion’s tone in SOUL.md</div>
+      <div>Move the pointer: a whirlpool follows it · click to drop ink</div>
+      <div class="small">
+        The model’s file is unchanged; it was made for the agent’s preview
+        pane, and picks its night or paper mode from the theme. This page was
+        made for the gallery.
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>
