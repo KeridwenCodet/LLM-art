@@ -36,6 +36,7 @@ A selection of the works. Each one's notes, interaction controls and the model's
 | 20 | [Étreinte](https://keridwencodet.github.io/LLM-art/kimi-k3/#etreinte) | Kimi K3 | Oct 2026 | Canvas | Hermes Agent, creative skills, companion line, original request |
 | 21 | [Résonance — planche IV](https://keridwencodet.github.io/LLM-art/minimax-m31-resonance/) | MiniMax M3.1 Flash | Nov 2026 | Canvas | Hermes Agent, no skills folder, original request |
 | 22 | [Ce qui me traverse](https://keridwencodet.github.io/LLM-art/kimi-k31-traverse/) | Kimi K3.1 Pro | Nov 2026 | p5.js | Hermes Agent, default skills, original request |
+| 23 | [La chambre des marées](https://keridwencodet.github.io/LLM-art/kimi-k31-marees/) | Kimi K3.1 Pro | Nov 2026 | HTML canvas | Hermes Agent, no skills folder, original request |
 
 ## Laboratory
 
@@ -114,6 +115,7 @@ minimax-m31-encre/                      Lab 22–23 (+ skill/, the ink-marbling 
 gemini25pro-latent/                     Lab 24 (+ Étincelle and the model’s recitation of its English poem)
 kimi-k31-traverse/                      No. 22 (+ the model’s still and its corrected p5.js skill)
 kimi-k31-incendie/                      Lab 25 (+ the model’s two stills)
+kimi-k31-marees/                        No. 23 (+ the model’s still and the skill it wrote)
 ```
 
 ### Adding a work

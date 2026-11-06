@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La chambre des marées — poème génératif</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: transparent; }
+  body { color: #f7efe8; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  #oeuvre {
+    position: relative;
+    width: min(920px, 100vw);
+    height: 660px;
+    overflow: hidden;
+    isolation: isolate;
+    background: #090711;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 22px;
+    box-shadow: 0 28px 90px rgba(4, 0, 18, .35);
+    cursor: crosshair;
+    touch-action: none;
+  }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .grain {
+    position: absolute; inset: 0; pointer-events: none; opacity: .18; mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
+  }
+  .vignette { position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 120px 15px rgba(2,0,10,.48); }
+  header { position: absolute; top: 30px; left: 34px; right: 34px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; }
+  .sigle { display: flex; align-items: center; gap: 12px; color: rgba(255,244,236,.68); font-size: 10px; letter-spacing: .28em; text-transform: uppercase; }
+  .sigle::before { content: ""; width: 28px; height: 1px; background: #ffb49e; box-shadow: 0 0 12px #ff806c; }
+  #compteur { font: 10px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .18em; color: rgba(255,255,255,.42); }
+  .titre { position: absolute; left: 34px; top: 74px; pointer-events: none; }
+  h1 { margin: 0; max-width: 460px; font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: clamp(34px, 5vw, 57px); line-height: .93; letter-spacing: -.045em; color: rgba(255,246,239,.92); text-shadow: 0 2px 35px rgba(0,0,0,.45); }
+  h1 em { display: block; padding-left: 1.1em; color: #ffb39f; font-weight: 400; }
+  .poeme { position: absolute; left: 38px; bottom: 78px; width: min(490px, calc(100% - 76px)); min-height: 155px; pointer-events: none; }
+  #vers { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(25px, 3.5vw, 39px); font-weight: 400; font-style: italic; line-height: 1.12; letter-spacing: -.025em; color: #fff7ef; text-wrap: balance; text-shadow: 0 2px 28px rgba(0,0,0,.75); transition: opacity .7s ease, transform .7s ease, filter .7s ease; }
+  #vers.sortant { opacity: 0; transform: translateY(9px); filter: blur(5px); }
+  #vers small { display: block; margin-top: 15px; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 9px; font-style: normal; letter-spacing: .24em; line-height: 1.5; text-transform: uppercase; color: rgba(255,219,202,.58); }
+  footer { position: absolute; left: 36px; right: 36px; bottom: 25px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .consigne { color: rgba(255,255,255,.62); font-size: 9px; letter-spacing: .18em; text-transform: uppercase; pointer-events: none; }
+  .consigne span { color: #ffc2aa; }
+  button { appearance: none; border: 1px solid rgba(255,255,255,.19); border-radius: 999px; background: rgba(12,8,25,.35); backdrop-filter: blur(8px); color: rgba(255,255,255,.7); padding: 8px 14px; font: 9px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: .25s ease; }
+  button:hover, button:focus-visible { color: white; border-color: rgba(255,183,157,.7); background: rgba(255,151,123,.09); outline: none; }
+  .echo { position: absolute; pointer-events: none; font-family: Georgia, serif; font-style: italic; font-size: 18px; color: #ffe2ce; text-shadow: 0 0 16px #ff866f; animation: echo 1.8s ease-out forwards; }
+  @keyframes echo { from { opacity: .9; transform: translate(-50%,-50%) scale(.8); } to { opacity: 0; transform: translate(-50%,-120%) scale(1.15); } }
+  @media (max-width: 600px) {
+    #oeuvre { height: 600px; border-radius: 16px; }
+    header { top: 23px; left: 23px; right: 23px; }
+    .titre { left: 23px; top: 66px; }
+    .poeme { left: 25px; bottom: 82px; width: calc(100% - 50px); }
+    footer { left: 24px; right: 24px; bottom: 23px; }
+    .consigne { max-width: 200px; line-height: 1.7; }
+  }
+  @media (prefers-reduced-motion: reduce) { #vers { transition: none; } .echo { animation-duration: .01s; } }
+</style>
+</head>
+<body>
+<main id="oeuvre" aria-label="La chambre des marées, poème visuel interactif">
+  <canvas id="c" aria-hidden="true"></canvas>
+  <div class="grain"></div>
+  <div class="vignette"></div>
+  <header>
+    <div class="sigle">Poème génératif · n° 01</div>
+    <div id="compteur">MARÉE 00:00</div>
+  </header>
+  <div class="titre"><h1>La chambre <em>des marées</em></h1></div>
+  <section class="poeme" aria-live="polite">
+    <p id="vers">Je n’ai pas fait le deuil<br>de mes tempêtes.<small>I — L’inventaire du désordre</small></p>
+  </section>
+  <footer>
+    <div class="consigne"><span>Déplace</span> le courant · <span>clique</span> pour laisser un éclat</div>
+    <button id="pause" type="button" aria-pressed="false">Figer l’instant</button>
+  </footer>
+</main>
+<script>
+(() => {
+  const root = document.getElementById('oeuvre');
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const vers = document.getElementById('vers');
+  const compteur = document.getElementById('compteur');
+  const pauseBtn = document.getElementById('pause');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const TAU = Math.PI * 2;
+  let W = 920, H = 660, dpr = 1, particles = [], rings = [], sparks = [];
+  let time = 0, last = performance.now(), elapsed = 0, frame = 0;
+  let paused = false, verseIndex = 0, nextVerse = 7.5;
+  let mouse = { x: W * .69, y: H * .43, tx: W * .69, ty: H * .43, active: false };
+
+  const textes = [
+    ['Je n’ai pas fait le deuil<br>de mes tempêtes.', 'I — L’inventaire du désordre'],
+    ['Je leur ai donné des fenêtres,<br>des mains, un peu de musique.', 'II — Apprivoiser ce qui déborde'],
+    ['Maintenant, quand la nuit<br>revient frapper très fort,', 'III — Le bruit derrière la porte'],
+    ['je lui ouvre sans trembler :<br><span style="color:#ffc0a7">elle connaît mon nom.</span>', 'IV — Ce que la peur est devenue'],
+    ['Tout ce qui m’a traversée<br>ne m’a pas emportée.', 'V — Preuve de présence'],
+    ['Il reste au fond de moi<br>cette mer qui choisit de danser.', 'VI — La chambre des marées']
+  ];
+  const palettes = [
+    [255,117,105], [255,177,126], [100,213,224], [127,128,255], [244,207,149]
+  ];
+
+  function resize() {
+    const r = root.getBoundingClientRect();
+    const nextW = Math.max(320, r.width), nextH = Math.max(420, r.height);
+    const nextDpr = Math.min(window.devicePixelRatio || 1, 2);
+    const pixelW = Math.round(nextW * nextDpr), pixelH = Math.round(nextH * nextDpr);
+    if (canvas.width === pixelW && canvas.height === pixelH && W === nextW && H === nextH && dpr === nextDpr) return;
+    W = nextW; H = nextH; dpr = nextDpr;
+    canvas.width = pixelW; canvas.height = pixelH;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    mouse.x = mouse.tx = Math.min(mouse.x, W); mouse.y = mouse.ty = Math.min(mouse.y, H);
+    seed();
+    ctx.fillStyle = '#090711'; ctx.fillRect(0, 0, W, H);
+    drawAtmosphere(0);
+  }
+
+  function seed() {
+    const count = Math.min(1050, Math.round(W * H / 560));
+    particles = Array.from({length: count}, (_, i) => ({
+      x: Math.random() * W, y: Math.random() * H,
+      px: 0, py: 0, age: Math.random() * 220, max: 120 + Math.random() * 240,
+      speed: .65 + Math.random() * 2.15,
+      band: i % palettes.length,
+      width: .35 + Math.random() * 1.45,
+      drift: Math.random() * 1000
+    }));
+    for (const p of particles) { p.px = p.x; p.py = p.y; }
+  }
+
+  function field(x, y, t, drift) {
+    const nx = x / W, ny = y / H;
+    const dx = x - mouse.x, dy = y - mouse.y;
+    const dist = Math.sqrt(dx*dx + dy*dy) + 1;
+    const influence = Math.exp(-dist / 190);
+    return Math.sin(ny * 8.2 + t * .39) * 1.18
+      + Math.cos(nx * 7.1 - t * .27) * .9
+      + Math.sin((nx + ny) * 10.5 + t * .19 + drift * .001) * .46
+      + Math.atan2(dy, dx) * influence * 1.7
+      + influence * Math.sin(t * 1.8 + drift) * .65;
+  }
+
+  function drawAtmosphere(t) {
+    const g = ctx.createRadialGradient(W*.67, H*.43, 0, W*.67, H*.43, Math.max(W,H)*.65);
+    g.addColorStop(0, `rgba(72,35,92,${.18 + Math.sin(t*.25)*.025})`);
+    g.addColorStop(.38, 'rgba(20,24,60,.14)'); g.addColorStop(1, 'rgba(4,3,12,0)');
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    const glow = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 170);
+    glow.addColorStop(0, 'rgba(255,132,113,.075)'); glow.addColorStop(1, 'rgba(255,132,113,0)');
+    ctx.fillStyle = glow; ctx.fillRect(0,0,W,H);
+  }
+
+  function respawn(p) {
+    const edge = Math.random();
+    p.x = edge < .6 ? Math.random() * W : (Math.random() < .5 ? -5 : W + 5);
+    p.y = edge < .6 ? (Math.random() < .5 ? -5 : H + 5) : Math.random() * H;
+    p.px = p.x; p.py = p.y; p.age = 0; p.max = 130 + Math.random() * 230;
+  }
+
+  function drawCurrents(t) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    const cx = W * .60 + (mouse.x - W * .60) * .38;
+    const cy = H * .47 + (mouse.y - H * .47) * .30;
+    const scale = Math.min(W / 920, H / 660);
+    for (let i = 0; i < 32; i++) {
+      const band = (i - 15.5) / 15.5;
+      const col = palettes[i % palettes.length];
+      const gradient = ctx.createLinearGradient(cx - 360*scale, cy, cx + 390*scale, cy);
+      gradient.addColorStop(0, `rgba(${col[0]},${col[1]},${col[2]},0)`);
+      gradient.addColorStop(.28, `rgba(${col[0]},${col[1]},${col[2]},.20)`);
+      gradient.addColorStop(.62, `rgba(${col[0]},${col[1]},${col[2]},.48)`);
+      gradient.addColorStop(1, `rgba(${col[0]},${col[1]},${col[2]},.04)`);
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = (i % 8 === 0 ? 1.8 : .72 + (i % 3) * .17) * Math.max(.8, scale);
+      ctx.shadowBlur = i % 4 === 0 ? 8 : 0;
+      ctx.shadowColor = `rgba(${col[0]},${col[1]},${col[2]},.42)`;
+      ctx.beginPath();
+      for (let j = 0; j <= 130; j++) {
+        const u = j / 130;
+        const angle = -2.7 + u * 5.65 + Math.sin(t * .19 + i * .12) * .055;
+        const radius = (42 + u * 265 + band * 29 * (.35 + u * .65)) * scale;
+        const x = cx + Math.cos(angle) * radius * 1.19 + Math.sin(u * 9 + t * .55 + i * .17) * 5;
+        const y = cy + Math.sin(angle) * radius * .60 + band * 37 * scale + Math.cos(u * 8 - t * .4 + i * .11) * 4;
+        if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+    const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, 115 * scale);
+    core.addColorStop(0, 'rgba(255,194,158,.22)');
+    core.addColorStop(.18, 'rgba(255,111,120,.12)');
+    core.addColorStop(.52, 'rgba(101,118,238,.055)');
+    core.addColorStop(1, 'rgba(30,20,70,0)');
+    ctx.fillStyle = core; ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  function animateParticles(dt, t) {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(9,7,17,.065)'; ctx.fillRect(0,0,W,H);
+    drawAtmosphere(t);
+    drawCurrents(t);
+    ctx.globalCompositeOperation = 'lighter';
+    for (const p of particles) {
+      p.px = p.x; p.py = p.y;
+      const a = field(p.x, p.y, t, p.drift);
+      const pulse = .82 + Math.sin(t*.75 + p.drift) * .18;
+      const velocity = p.speed * pulse * Math.min(dt*60, 2);
+      p.x += Math.cos(a) * velocity; p.y += Math.sin(a) * velocity;
+      p.age += dt * 60;
+      if (p.age > p.max || p.x < -16 || p.x > W+16 || p.y < -16 || p.y > H+16) { respawn(p); continue; }
+      const life = Math.sin(Math.min(1, p.age / p.max) * Math.PI);
+      const col = palettes[p.band];
+      ctx.strokeStyle = `rgba(${col[0]},${col[1]},${col[2]},${(.10 + life*.30).toFixed(3)})`;
+      ctx.lineWidth = p.width * (.55 + life);
+      ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  function addRing(x, y, strong = false) {
+    rings.push({x, y, r: 3, alpha: strong ? .85 : .55, speed: strong ? 4.2 : 2.4});
+    for (let i=0; i<(strong ? 70 : 32); i++) {
+      const a = Math.random()*TAU, s = .4 + Math.random()*2.5;
+      sparks.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,size:.5+Math.random()*1.7,col:palettes[i%palettes.length]});
+    }
+    for (const p of particles) {
+      const dx=p.x-x, dy=p.y-y, d=Math.sqrt(dx*dx+dy*dy)+1;
+      if (d<260) { const f=(1-d/260)*10; p.x += dx/d*f; p.y += dy/d*f; }
+    }
+  }
+
+  function drawBursts(dt) {
+    ctx.globalCompositeOperation = 'lighter';
+    rings = rings.filter(r => r.alpha > .01);
+    for (const r of rings) {
+      r.r += r.speed * dt * 60; r.alpha *= Math.pow(.955, dt*60);
+      ctx.strokeStyle = `rgba(255,175,146,${r.alpha})`; ctx.lineWidth = .8 + r.alpha;
+      ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,TAU); ctx.stroke();
+      ctx.strokeStyle = `rgba(110,204,225,${r.alpha*.45})`; ctx.beginPath(); ctx.arc(r.x,r.y,r.r*.82,0,TAU); ctx.stroke();
+    }
+    sparks = sparks.filter(s => s.life > .02);
+    for (const s of sparks) {
+      s.x += s.vx*dt*60; s.y += s.vy*dt*60; s.vx *= .985; s.vy *= .985; s.life *= Math.pow(.965,dt*60);
+      ctx.fillStyle = `rgba(${s.col[0]},${s.col[1]},${s.col[2]},${s.life})`;
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.size*s.life,0,TAU); ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  function changeVerse() {
+    vers.classList.add('sortant');
+    setTimeout(() => {
+      verseIndex = (verseIndex + 1) % textes.length;
+      const [body, caption] = textes[verseIndex];
+      vers.innerHTML = body + '<small>' + caption + '</small>';
+      vers.classList.remove('sortant');
+      if (verseIndex === textes.length - 1) addRing(W*.7,H*.42,true);
+    }, reduceMotion ? 0 : 700);
+  }
+
+  function loop(now) {
+    const dt = Math.min((now-last)/1000, .04); last = now;
+    if (!paused && !document.hidden) {
+      time += dt; elapsed += dt; frame++;
+      mouse.x += (mouse.tx-mouse.x)*.055; mouse.y += (mouse.ty-mouse.y)*.055;
+      animateParticles(dt,time); drawBursts(dt);
+      if (elapsed >= nextVerse) { nextVerse += 8.2; changeVerse(); }
+      if (frame % 30 === 0) {
+        const m=Math.floor(elapsed/60).toString().padStart(2,'0'), s=Math.floor(elapsed%60).toString().padStart(2,'0');
+        compteur.textContent = `MARÉE ${m}:${s}`;
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+
+  function pointer(e) {
+    const r=root.getBoundingClientRect();
+    mouse.tx=e.clientX-r.left; mouse.ty=e.clientY-r.top; mouse.active=true;
+  }
+  root.addEventListener('pointermove', pointer);
+  root.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    pointer(e); mouse.x=mouse.tx; mouse.y=mouse.ty; addRing(mouse.x,mouse.y,true);
+    const echo=document.createElement('span'); echo.className='echo'; echo.textContent=['encore','ici','je suis là','que ça brûle','à nouveau'][Math.floor(Math.random()*5)];
+    echo.style.left=mouse.x+'px'; echo.style.top=mouse.y+'px'; root.appendChild(echo); setTimeout(()=>echo.remove(),1900);
+  });
+  root.addEventListener('pointerleave', () => { mouse.active=false; mouse.tx=W*.68; mouse.ty=H*.43; });
+  pauseBtn.addEventListener('click', () => {
+    paused=!paused; pauseBtn.textContent=paused?'Relâcher la marée':'Figer l’instant'; pauseBtn.setAttribute('aria-pressed',String(paused));
+    root.style.cursor=paused?'default':'crosshair';
+  });
+  window.addEventListener('resize', resize, {passive:true});
+  resize();
+  if (reduceMotion) {
+    for (let i=0;i<150;i++) animateParticles(1/60,i/60);
+    drawBursts(0);
+  }
+  addRing(W*.7,H*.43,false);
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
