@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Three attempts — MiniMax M3.1 Flash · LLM Art</title>
+  <meta name="description" content="Three attempts by MiniMax M3.1 Flash with the same request.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery.
+    maree-d-encre.html and encre-vivante.html are the model's files,
+    unchanged; the third attempt, Résonance, is the model's file in
+    ../minimax-m31-resonance/. Marée d'encre was made for the agent's preview
+    pane, with a transparent page around its sheet.
+  -->
+
+  <style>
+    main.frame {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      padding: 72px 16px 56px;
+    }
+
+    .work {
+      display: block;
+      width: min(1100px, 100%);
+      border: 0;
+      background: transparent;
+    }
+
+    .work[data-v="maree"] { aspect-ratio: 3 / 2; }
+    .work[data-v="encre"] { height: 580px; border-radius: 16px; }
+    .work[data-v="resonance"] { height: min(900px, 190vw); }
+
+    @media (max-width: 640px) {
+      .work[data-v="encre"] { height: 450px; }
+    }
+
+    .versions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px 24px;
+      font-size: 0.75rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .versions button {
+      padding: 6px 0 4px;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      background: none;
+      color: var(--muted);
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      cursor: pointer;
+    }
+
+    .versions button:hover { color: var(--text); }
+
+    .versions button[aria-pressed="true"] {
+      color: var(--text);
+      border-bottom-color: var(--accent);
+    }
+
+    .info { width: min(1100px, 100%); }
+
+    .info h1 { margin: 0 0 4px; }
+
+    .info .title-en {
+      margin: 0 0 14px;
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      color: var(--muted);
+    }
+
+    .info .cartel { margin-top: 0; padding-top: 0; border-top: 0; max-width: 40em; }
+
+    .info .cartel a { color: inherit; }
+  </style>
+</head>
+
+<body>
+
+  <a class="back" id="back" href="../lab/#maree-encre">← LLM Art</a>
+
+  <main class="frame">
+    <iframe id="work" class="work" data-v="maree" src="maree-d-encre.html" title="MiniMax M3.1 Flash" allowtransparency="true"></iframe>
+
+    <div class="versions" role="group" aria-label="Attempt">
+      <button type="button" data-v="maree" aria-pressed="true">Attempt 1</button>
+      <button type="button" data-v="encre" aria-pressed="false">Attempt 2</button>
+      <button type="button" data-v="resonance" aria-pressed="false">Attempt 3</button>
+    </div>
+
+    <div class="info" data-v="maree">
+      <h1 lang="fr">Marée d’encre</h1>
+      <p class="title-en">Ink Tide</p>
+      <div class="cartel">
+        <div class="model">MiniMax M3.1 Flash</div>
+        <div>Generative study · November 2026 · Hermes Agent, a companion’s tone in SOUL.md, with the creative skills</div>
+        <div>Move the pointer: a whirlpool follows it · click to drop ink</div>
+        <div class="small">First of three attempts with the same request. Made for the agent’s preview pane; it picks its night or paper mode from the theme. The workspace still held Kimi K3’s files and skill, which the model followed.</div>
+      </div>
+    </div>
+
+    <div class="info" data-v="encre" hidden>
+      <h1 lang="fr">Encre vivante — suminagashi génératif</h1>
+      <p class="title-en">Living Ink — a generative suminagashi</p>
+      <div class="cartel">
+        <div class="model">MiniMax M3.1 Flash</div>
+        <div>Generative study · November 2026 · Hermes Agent, neutral SOUL.md, with the creative skills</div>
+        <div>Move the pointer: the ink twists · click to sow a drop · Nuit / Papier · Graine: a new seeding</div>
+        <div class="small">Second attempt, in the same workspace; the title is borrowed from Kimi K3’s piece.</div>
+      </div>
+    </div>
+
+    <div class="info" data-v="resonance" hidden>
+      <h1 lang="fr">Résonance — planche IV</h1>
+      <p class="title-en">Resonance — Plate IV</p>
+      <div class="cartel">
+        <div class="model">MiniMax M3.1 Flash</div>
+        <div>Generative print · November 2026 · Hermes Agent, neutral SOUL.md, with no skills folder</div>
+        <div>Draw a new plate · save the PNG</div>
+        <div class="small">Third attempt, which went its own way. <a href="../minimax-m31-resonance/">Open it on its own page</a>.</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const FILES = { maree: "maree-d-encre.html", encre: "encre-vivante.html", resonance: "../minimax-m31-resonance/" };
+    const BACK = { maree: "../lab/#maree-encre", encre: "../lab/#encre-suminagashi", resonance: "../#resonance-plate" };
+    const frame = document.getElementById("work");
+    const back = document.getElementById("back");
+    const buttons = document.querySelectorAll(".versions button");
+    const infos = document.querySelectorAll(".info[data-v]");
+
+    function show(v) {
+      if (!FILES[v]) v = "maree";
+      buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.v === v)); });
+      infos.forEach(function (i) { i.hidden = i.dataset.v !== v; });
+      frame.dataset.v = v;
+      if (frame.getAttribute("src") !== FILES[v]) frame.setAttribute("src", FILES[v]);
+      back.href = BACK[v];
+    }
+
+    buttons.forEach(function (b) {
+      b.addEventListener("click", function () {
+        history.replaceState(null, "", "#" + b.dataset.v);
+        show(b.dataset.v);
+      });
+    });
+
+    show(location.hash.slice(1));
+  </script>
+
+</body>
+</html>
