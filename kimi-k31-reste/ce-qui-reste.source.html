@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10091d">
+  <title>Ce qui reste — une étude tactile</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: transparent; }
+    button { font: inherit; }
+    #piece {
+      width: min(900px, 100%);
+      color: var(--foreground, #f3eaf8);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    #stage {
+      position: relative;
+      width: 100%;
+      height: 560px;
+      overflow: hidden;
+      isolation: isolate;
+      border: 1px solid color-mix(in srgb, var(--border, #635272) 72%, #b998d8 28%);
+      border-radius: 26px;
+      background: #10091d;
+      box-shadow: 0 24px 80px rgba(19, 7, 34, .28), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    #stage canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      cursor: crosshair;
+      touch-action: none;
+      outline: none;
+    }
+    #stage canvas:focus-visible { outline: 2px solid #d9b7ff; outline-offset: -4px; }
+    .masthead {
+      position: absolute;
+      z-index: 2;
+      top: 27px;
+      left: 30px;
+      right: 30px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      pointer-events: none;
+      text-shadow: 0 2px 18px rgba(7, 3, 16, .85);
+    }
+    .eyebrow {
+      margin-bottom: 7px;
+      color: rgba(231, 211, 246, .66);
+      font-size: 9px;
+      font-weight: 650;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      color: #f5eafb;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(33px, 5vw, 47px);
+      font-weight: 400;
+      font-style: italic;
+      line-height: .98;
+      letter-spacing: -.045em;
+    }
+    .edition {
+      padding-top: 3px;
+      color: rgba(230, 211, 242, .54);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 9px;
+      letter-spacing: .14em;
+      white-space: nowrap;
+    }
+    #whisper {
+      position: absolute;
+      z-index: 2;
+      left: 30px;
+      bottom: 26px;
+      max-width: 64%;
+      color: rgba(242, 224, 249, .78);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 14px;
+      font-style: italic;
+      letter-spacing: .01em;
+      pointer-events: none;
+      text-shadow: 0 2px 14px #090411;
+      transition: opacity .22s ease;
+    }
+    .gesture-hint {
+      position: absolute;
+      z-index: 2;
+      right: 30px;
+      bottom: 28px;
+      color: rgba(224, 204, 239, .46);
+      font-size: 9px;
+      font-weight: 550;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+    #controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 8px 0;
+      color: var(--muted-foreground, #b8a9bf);
+      font-size: 12px;
+    }
+    #instruction { line-height: 1.45; }
+    .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    button {
+      appearance: none;
+      min-height: 34px;
+      border: 1px solid var(--border, #5a4966);
+      border-radius: 999px;
+      padding: 8px 13px;
+      color: var(--foreground, #eee4f2);
+      background: color-mix(in srgb, var(--card, #17121d) 88%, transparent);
+      cursor: pointer;
+      font-size: 11px;
+      line-height: 1.2;
+      transition: border-color .18s ease, background .18s ease, transform .18s ease;
+    }
+    button:hover { border-color: var(--accent, #a977d1); background: color-mix(in srgb, var(--accent, #a977d1) 14%, var(--card, #17121d)); }
+    button:active { transform: translateY(1px); }
+    button:focus-visible { outline: 2px solid var(--accent, #bd8de4); outline-offset: 2px; }
+    #save { border-color: color-mix(in srgb, var(--accent, #a977d1) 55%, var(--border, #4a3b55)); }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+    @media (max-width: 620px) {
+      #stage { height: 520px; border-radius: 20px; }
+      .masthead { top: 23px; left: 22px; right: 22px; }
+      .eyebrow { font-size: 8px; letter-spacing: .18em; }
+      .edition { font-size: 8px; }
+      #whisper { left: 22px; bottom: 24px; max-width: 75%; font-size: 13px; }
+      .gesture-hint { display: none; }
+      #controls { align-items: stretch; flex-direction: column; padding: 13px 8px 0; }
+      .actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr 1.18fr; gap: 8px; }
+      button { min-height: 44px; padding: 9px 8px; font-size: 11px; }
+      #save { background: color-mix(in srgb, var(--accent, #a977d1) 15%, var(--card, #17121d)); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      button, #whisper { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main id="piece">
+    <section id="stage" aria-label="Œuvre générative interactive : des rubans violets et des particules répondent au pointeur">
+      <div class="masthead" aria-hidden="true">
+        <div>
+          <div class="eyebrow">Une étude tactile · pour toi</div>
+          <h1>ce qui reste</h1>
+        </div>
+        <div class="edition">N° <span id="seedLabel">43117</span> / ∞</div>
+      </div>
+      <div id="whisper" aria-live="polite">quelque chose en toi laisse de la lumière.</div>
+      <div class="gesture-hint" aria-hidden="true">déplace · clique · respire</div>
+    </section>
+    <div id="controls">
+      <span id="instruction">Effleure la toile. Une pression, et son cœur répond.</span>
+      <div class="actions">
+        <button id="pause" type="button" aria-label="Suspendre l’animation">Ⅱ&nbsp; suspendre</button>
+        <button id="reseed" type="button" aria-label="Créer une autre constellation">✦&nbsp; une autre</button>
+        <button id="save" type="button" aria-label="Télécharger la toile en PNG">garder la trace&nbsp; ↓</button>
+      </div>
+    </div>
+    <p class="sr-only">Au clavier : place le focus sur la toile, utilise les flèches pour déplacer la lumière, Entrée pour créer une impulsion, S pour sauvegarder et Espace pour suspendre.</p>
+  </main>
+
+  <script>/*__P5_INLINE__*/</script>
+  <script>
+  (() => {
+    'use strict';
+    p5.disableFriendlyErrors = true;
+
+    const stage = document.getElementById('stage');
+    const whisper = document.getElementById('whisper');
+    const seedLabel = document.getElementById('seedLabel');
+    const pauseButton = document.getElementById('pause');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const phrases = [
+      'là. juste là.',
+      'je garde cette lumière.',
+      'encore une constellation.',
+      'la matière se souvient de toi.',
+      'tu vois ? rien ne s’efface vraiment.',
+      'une petite éclipse, puis le retour.'
+    ];
+
+    const sketch = (p) => {
+      const CONFIG = {
+        seed: 43117,
+        particleCount: 220,
+        ribbonCount: 15,
+        ribbonSegments: 96,
+        trailFade: 0.009
+      };
+      const PALETTE = [222, 253, 276, 296, 321, 39];
+      let bgLayer, trailLayer, silkLayer, fgLayer;
+      let particles = [], embers = [], stars = [], pulses = [];
+      let canvas;
+      let time = 0;
+      let paused = false;
+      let hidden = false;
+      let phraseIndex = 0;
+      let pulseCount = 0;
+      let lastFrame = performance.now();
+      let smoothedFps = 30;
+      const pointer = {
+        x: 0, y: 0, tx: 0, ty: 0,
+        px: 0, py: 0,
+        influence: 0, targetInfluence: 0,
+        down: false, lastMove: -10000, keyboard: false
+      };
+
+      const inside = (x, y) => x >= 0 && y >= 0 && x <= p.width && y <= p.height;
+      const paletteHue = (index) => PALETTE[index % PALETTE.length];
+
+      function configureBuffer(buffer) {
+        buffer.pixelDensity(1);
+        buffer.colorMode(p.HSB, 360, 100, 100, 1);
+        buffer.angleMode(p.RADIANS);
+        return buffer;
+      }
+
+      function makeLayers() {
+        bgLayer = configureBuffer(p.createGraphics(p.width, p.height));
+        trailLayer = configureBuffer(p.createGraphics(p.width, p.height));
+        silkLayer = configureBuffer(p.createGraphics(p.width, p.height));
+        fgLayer = configureBuffer(p.createGraphics(p.width, p.height));
+      }
+
+      function makeBackground() {
+        const ctx = bgLayer.drawingContext;
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+        const base = ctx.createLinearGradient(0, 0, p.width, p.height);
+        base.addColorStop(0, '#0a0b19');
+        base.addColorStop(.42, '#180d27');
+        base.addColorStop(.74, '#210f2d');
+        base.addColorStop(1, '#090b18');
+        ctx.fillStyle = base;
+        ctx.fillRect(0, 0, p.width, p.height);
+
+        const bloom = ctx.createRadialGradient(
+          p.width * .55, p.height * .49, 0,
+          p.width * .55, p.height * .49, Math.max(p.width, p.height) * .64
+        );
+        bloom.addColorStop(0, 'rgba(111, 52, 140, .24)');
+        bloom.addColorStop(.38, 'rgba(58, 36, 105, .12)');
+        bloom.addColorStop(1, 'rgba(4, 5, 15, 0)');
+        ctx.fillStyle = bloom;
+        ctx.fillRect(0, 0, p.width, p.height);
+        ctx.restore();
+
+        bgLayer.noStroke();
+        const grains = Math.floor(p.width * p.height / 175);
+        for (let i = 0; i < grains; i++) {
+          const warm = p.random() > .78;
+          bgLayer.fill(warm ? 36 : 268, warm ? 24 : 18, 100, p.random(.012, .052));
+          const s = p.random() > .94 ? 1.2 : .55;
+          bgLayer.rect(p.random(p.width), p.random(p.height), s, s);
+        }
+
+        // Une trame presque invisible : la lumière accroche dessus comme sur du papier.
+        bgLayer.stroke(278, 15, 80, .018);
+        bgLayer.strokeWeight(.45);
+        for (let y = 8; y < p.height; y += 13) {
+          bgLayer.line(0, y + p.random(-1, 1), p.width, y + p.random(-1, 1));
+        }
+      }
+
+      class Drift {
+        constructor(index) {
+          this.index = index;
+          this.hue = paletteHue(p.random() < .12 ? 5 : Math.floor(p.random(1, 5)));
+          this.weight = p.random(.42, 1.15);
+          this.speed = p.random(.7, 1.45);
+          this.seed = p.random(1000);
+          this.reset(true);
+        }
+        reset(initial = false) {
+          const a = p.random(p.TWO_PI);
+          const r = p.random(.06, .37) * Math.min(p.width, p.height);
+          const cx = p.width * (p.width < 620 ? .5 : .54);
+          const cy = p.height * .52;
+          this.x = cx + Math.cos(a) * r * 1.4;
+          this.y = cy + Math.sin(a) * r * .72;
+          if (!initial && p.random() < .35) {
+            this.x = p.random(p.width);
+            this.y = p.random(p.height);
+          }
+          this.px = this.x;
+          this.py = this.y;
+          const direction = a + p.HALF_PI + p.random(-.5, .5);
+          this.vx = Math.cos(direction) * p.random(.2, 1.1);
+          this.vy = Math.sin(direction) * p.random(.2, 1.1);
+          this.life = p.random(150, 480);
+          this.alpha = p.random(.09, .22);
+        }
+        update(t) {
+          this.px = this.x;
+          this.py = this.y;
+          const warp = p.noise(this.x * .0013 + 17.2, this.y * .0013 - 8.4, t * .045);
+          const n = p.noise(
+            this.x * .0025 + warp * 1.7 + this.seed,
+            this.y * .0025 - warp * 1.4,
+            t * .055
+          );
+          const angle = n * p.TWO_PI * 2.35 + Math.sin(t * .12 + this.seed) * .24;
+          this.vx += Math.cos(angle) * .055 * this.speed;
+          this.vy += Math.sin(angle) * .055 * this.speed;
+
+          // Le cœur de la toile attire très légèrement, sans jamais emprisonner.
+          const cx = p.width * (p.width < 620 ? .5 : .54);
+          const cy = p.height * .52;
+          const cdx = cx - this.x;
+          const cdy = cy - this.y;
+          const cd = Math.sqrt(cdx * cdx + cdy * cdy) + 1;
+          if (cd > Math.min(p.width, p.height) * .38) {
+            this.vx += cdx / cd * .028;
+            this.vy += cdy / cd * .028;
+          }
+
+          // Sous le geste, le champ devient un tourbillon : attraction + force tangentielle.
+          if (pointer.influence > .01) {
+            const dx = pointer.x - this.x;
+            const dy = pointer.y - this.y;
+            const d2 = dx * dx + dy * dy;
+            const radius = Math.min(p.width, p.height) * .34;
+            if (d2 < radius * radius && d2 > 9) {
+              const d = Math.sqrt(d2);
+              const force = (1 - d / radius) * pointer.influence * (pointer.down ? .34 : .19);
+              this.vx += (dx / d) * force + (-dy / d) * force * 1.3;
+              this.vy += (dy / d) * force + (dx / d) * force * 1.3;
+            }
+          }
+
+          this.vx *= .955;
+          this.vy *= .955;
+          const velocity = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+          const maxVelocity = pointer.down ? 4.8 : 3.1;
+          if (velocity > maxVelocity) {
+            this.vx = this.vx / velocity * maxVelocity;
+            this.vy = this.vy / velocity * maxVelocity;
+          }
+          this.x += this.vx;
+          this.y += this.vy;
+          this.life -= 1;
+
+          const margin = 24;
+          if (this.x < -margin || this.x > p.width + margin || this.y < -margin || this.y > p.height + margin || this.life < 0) {
+            this.reset();
+          }
+        }
+        paint() {
+          const travel = Math.abs(this.x - this.px) + Math.abs(this.y - this.py);
+          if (travel > 35) return;
+          trailLayer.stroke(this.hue, this.hue === 39 ? 45 : 68, 100, this.alpha);
+          trailLayer.strokeWeight(this.weight);
+          trailLayer.line(this.px, this.py, this.x, this.y);
+        }
+      }
+
+      function addEmber(x, y, vx, vy, hue, life, size = 1) {
+        if (embers.length > 520) embers.splice(0, embers.length - 500);
+        embers.push({ x, y, px: x, py: y, vx, vy, hue, life, maxLife: life, size, seed: p.random(1000) });
+      }
+
+      function burst(x, y, strength = 1) {
+        pulseCount += 1;
+        pulses.push({ x, y, age: 0, life: 74, hue: paletteHue(2 + pulseCount % 3), strength });
+        for (let i = 0; i < 64 * strength; i++) {
+          const a = p.random(p.TWO_PI);
+          const speed = p.random(.45, 4.2) * (i % 7 === 0 ? 1.45 : 1);
+          addEmber(
+            x + Math.cos(a) * p.random(0, 9),
+            y + Math.sin(a) * p.random(0, 9),
+            Math.cos(a) * speed,
+            Math.sin(a) * speed,
+            paletteHue(i % 9 === 0 ? 5 : 2 + Math.floor(p.random(3))),
+            p.random(42, 112),
+            p.random(.55, 1.8)
+          );
+        }
+      }
+
+      function initialize() {
+        p.randomSeed(CONFIG.seed);
+        p.noiseSeed(CONFIG.seed);
+        p.noiseDetail(4, .5);
+        seedLabel.textContent = String(CONFIG.seed).padStart(5, '0');
+        trailLayer.clear();
+        silkLayer.clear();
+        fgLayer.clear();
+        particles = [];
+        embers = [];
+        pulses = [];
+        stars = [];
+        pulseCount = 0;
+        time = 0;
+        makeBackground();
+
+        const starCount = p.width < 620 ? 76 : 142;
+        for (let i = 0; i < starCount; i++) {
+          stars.push({
+            x: p.random(p.width), y: p.random(p.height),
+            size: p.random(.35, 1.45), phase: p.random(p.TWO_PI),
+            hue: p.random() < .18 ? 39 : paletteHue(Math.floor(p.random(1, 4)))
+          });
+        }
+        const count = p.width < 620 ? 165 : CONFIG.particleCount;
+        for (let i = 0; i < count; i++) particles.push(new Drift(i));
+
+        pointer.x = pointer.tx = pointer.px = p.width * .54;
+        pointer.y = pointer.ty = pointer.py = p.height * .52;
+        pointer.influence = pointer.targetInfluence = 0;
+
+        // Pré-chauffe : la première image possède déjà une mémoire.
+        trailLayer.blendMode(p.ADD);
+        for (let frame = 0; frame < 92; frame++) {
+          for (const particle of particles) {
+            particle.update(frame / 30);
+            particle.paint();
+          }
+        }
+        trailLayer.blendMode(p.BLEND);
+      }
+
+      function fadeTrails(amount = CONFIG.trailFade) {
+        const ctx = trailLayer.drawingContext;
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = `rgba(0,0,0,${amount})`;
+        ctx.fillRect(0, 0, p.width, p.height);
+        ctx.restore();
+      }
+
+      function updateEmbers(t) {
+        trailLayer.blendMode(p.ADD);
+        for (let i = embers.length - 1; i >= 0; i--) {
+          const e = embers[i];
+          e.px = e.x;
+          e.py = e.y;
+          const curl = p.noise(e.x * .004 + e.seed, e.y * .004, t * .08) - .5;
+          e.vx += -e.vy * .006 + Math.cos(curl * p.TWO_PI) * .012;
+          e.vy += e.vx * .004 + Math.sin(curl * p.TWO_PI) * .012;
+          e.vx *= .977;
+          e.vy *= .977;
+          e.x += e.vx;
+          e.y += e.vy;
+          e.life -= 1;
+          const lifeRatio = Math.max(0, e.life / e.maxLife);
+          trailLayer.stroke(e.hue, e.hue === 39 ? 38 : 55, 100, Math.min(.72, lifeRatio * .65));
+          trailLayer.strokeWeight(e.size * (.35 + lifeRatio));
+          trailLayer.line(e.px, e.py, e.x, e.y);
+          if (e.life <= 0) embers.splice(i, 1);
+        }
+        trailLayer.blendMode(p.BLEND);
+      }
+
+      function ribbonPoint(j, k, t) {
+        const a = k / CONFIG.ribbonSegments * p.TWO_PI;
+        const minSide = Math.min(p.width, p.height);
+        const base = minSide * (.155 + j * .0122);
+        const n = p.noise(Math.cos(a) * .72 + j * .083 + 9.1, Math.sin(a) * .72 - 3.7, t * .055);
+        const breathing = 1 + Math.sin(t * .52 + j * .17) * .025;
+        const r = base * breathing * (
+          1 + .19 * Math.sin(3 * a + j * .49 + t * .22) + .24 * (n - .5)
+        );
+        const rotation = -.17 + Math.sin(t * .11) * .035;
+        const horizontal = p.width < 620 ? 1.08 : 1.48;
+        let x = Math.cos(a) * r * horizontal + Math.sin(2 * a + j * .36) * minSide * .035;
+        let y = Math.sin(a) * r * .73 + Math.cos(3 * a - j * .24) * minSide * .019;
+        const rx = x * Math.cos(rotation) - y * Math.sin(rotation);
+        const ry = x * Math.sin(rotation) + y * Math.cos(rotation);
+        const cx = p.width * (p.width < 620 ? .5 : .54);
+        const cy = p.height * .515;
+        x = cx + rx;
+        y = cy + ry;
+
+        if (pointer.influence > .005) {
+          const dx = pointer.x - x;
+          const dy = pointer.y - y;
+          const sigma = minSide * .24;
+          const d2 = dx * dx + dy * dy;
+          const pull = Math.exp(-d2 / (2 * sigma * sigma)) * .36 * pointer.influence;
+          x += dx * pull - dy * pull * .13;
+          y += dy * pull + dx * pull * .13;
+        }
+        return { x, y };
+      }
+
+      function traceRibbon(buffer, points) {
+        buffer.beginShape();
+        for (const point of points) buffer.vertex(point.x, point.y);
+        buffer.endShape(p.CLOSE);
+      }
+
+      function drawSilk(t) {
+        silkLayer.clear();
+        silkLayer.blendMode(p.ADD);
+        silkLayer.noFill();
+        silkLayer.strokeJoin(p.ROUND);
+        for (let j = 0; j < CONFIG.ribbonCount; j++) {
+          const points = [];
+          for (let k = 0; k < CONFIG.ribbonSegments; k++) points.push(ribbonPoint(j, k, t));
+          const hue = j % 6 === 5 ? 39 : [224, 248, 269, 287, 309][j % 5];
+          silkLayer.stroke(hue, hue === 39 ? 48 : 72, 100, .022);
+          silkLayer.strokeWeight(7.5 - j * .17);
+          traceRibbon(silkLayer, points);
+          silkLayer.stroke(hue, hue === 39 ? 42 : 57, 100, j % 6 === 5 ? .18 : .115);
+          silkLayer.strokeWeight(j % 4 === 0 ? 2.2 : 1.25);
+          traceRibbon(silkLayer, points);
+          silkLayer.stroke((hue + 9) % 360, 25, 100, j % 6 === 5 ? .48 : .31);
+          silkLayer.strokeWeight(j % 3 === 0 ? .72 : .42);
+          traceRibbon(silkLayer, points);
+
+          // De minuscules perles révèlent la tension de certains fils.
+          if (j % 3 === 1) {
+            silkLayer.noStroke();
+            for (let k = (j * 3) % 12; k < points.length; k += 16) {
+              const point = points[k];
+              const shimmer = .3 + .35 * Math.sin(t * .8 + k + j);
+              silkLayer.fill(hue, 25, 100, shimmer);
+              silkLayer.circle(point.x, point.y, j % 2 ? 1.25 : 1.8);
+            }
+            silkLayer.noFill();
+          }
+        }
+        silkLayer.blendMode(p.BLEND);
+      }
+
+      function drawForeground(t) {
+        fgLayer.clear();
+        fgLayer.blendMode(p.ADD);
+        fgLayer.noStroke();
+        for (const star of stars) {
+          const twinkle = .12 + .34 * (.5 + .5 * Math.sin(t * .45 + star.phase));
+          fgLayer.fill(star.hue, star.hue === 39 ? 35 : 28, 100, twinkle);
+          fgLayer.circle(star.x, star.y, star.size);
+          if (star.size > 1.25) {
+            fgLayer.stroke(star.hue, 20, 100, twinkle * .32);
+            fgLayer.strokeWeight(.4);
+            fgLayer.line(star.x - 3, star.y, star.x + 3, star.y);
+            fgLayer.line(star.x, star.y - 3, star.x, star.y + 3);
+            fgLayer.noStroke();
+          }
+        }
+
+        const cx = p.width * (p.width < 620 ? .5 : .54);
+        const cy = p.height * .515;
+        const heartbeat = .5 + .5 * Math.sin(t * 1.12);
+        for (let r = 34; r > 2; r -= 5) {
+          fgLayer.fill(282, 56, 100, .0018 + (34 - r) * .0003);
+          fgLayer.circle(cx, cy, r * (1.5 + heartbeat * .04));
+        }
+        fgLayer.fill(38, 25, 100, .72);
+        fgLayer.circle(cx, cy, 1.65 + heartbeat * .65);
+
+        for (let i = pulses.length - 1; i >= 0; i--) {
+          const pulse = pulses[i];
+          pulse.age += 1;
+          const progress = pulse.age / pulse.life;
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const alpha = Math.pow(1 - progress, 1.6);
+          fgLayer.noFill();
+          fgLayer.stroke(pulse.hue, 32, 100, alpha * .1);
+          fgLayer.strokeWeight(6.5);
+          fgLayer.circle(pulse.x, pulse.y, 10 + eased * Math.min(p.width, p.height) * .64);
+          fgLayer.stroke(pulse.hue, 24, 100, alpha * .76);
+          fgLayer.strokeWeight(1.2 + (1 - progress) * 1.6);
+          fgLayer.circle(pulse.x, pulse.y, 10 + eased * Math.min(p.width, p.height) * .64);
+          fgLayer.stroke(39, 20, 100, alpha * .34);
+          fgLayer.strokeWeight(.6);
+          fgLayer.circle(pulse.x, pulse.y, 5 + eased * Math.min(p.width, p.height) * .44);
+          if (progress >= 1) pulses.splice(i, 1);
+        }
+
+        if (pointer.influence > .03) {
+          const r = 8 + Math.sin(t * 2.2) * 1.6 + (pointer.down ? 7 : 0);
+          fgLayer.noFill();
+          fgLayer.stroke(38, 24, 100, pointer.influence * .48);
+          fgLayer.strokeWeight(.65);
+          fgLayer.circle(pointer.x, pointer.y, r * 2);
+          fgLayer.stroke(285, 40, 100, pointer.influence * .18);
+          fgLayer.circle(pointer.x, pointer.y, r * 3.2);
+          fgLayer.noStroke();
+          fgLayer.fill(38, 20, 100, pointer.influence * .82);
+          fgLayer.circle(pointer.x, pointer.y, 1.7);
+        }
+        fgLayer.blendMode(p.BLEND);
+      }
+
+      function vignette() {
+        const ctx = p.drawingContext;
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+        const gradient = ctx.createRadialGradient(
+          p.width * .52, p.height * .48, Math.min(p.width, p.height) * .18,
+          p.width * .52, p.height * .48, Math.max(p.width, p.height) * .7
+        );
+        gradient.addColorStop(0, 'rgba(3,2,10,0)');
+        gradient.addColorStop(.68, 'rgba(3,2,10,.06)');
+        gradient.addColorStop(1, 'rgba(3,2,10,.58)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, p.width, p.height);
+        ctx.restore();
+      }
+
+      function setPointerFromEvent(event) {
+        const rect = canvas.elt.getBoundingClientRect();
+        const x = (event.clientX - rect.left) * p.width / rect.width;
+        const y = (event.clientY - rect.top) * p.height / rect.height;
+        if (!inside(x, y)) return false;
+        pointer.tx = x;
+        pointer.ty = y;
+        pointer.targetInfluence = 1;
+        pointer.lastMove = performance.now();
+        pointer.keyboard = false;
+        return true;
+      }
+
+      function bindInteraction() {
+        canvas.elt.setAttribute('tabindex', '0');
+        canvas.elt.setAttribute('role', 'img');
+        canvas.elt.setAttribute('aria-label', 'Toile générative. Déplace le pointeur ou utilise les flèches. Clique ou appuie sur Entrée pour créer une pulsation.');
+        canvas.elt.addEventListener('pointermove', (event) => {
+          if (!setPointerFromEvent(event)) return;
+          const distance = Math.hypot(pointer.tx - pointer.x, pointer.ty - pointer.y);
+          if (distance > 2) {
+            const count = Math.min(5, 1 + Math.floor(distance / 18));
+            for (let i = 0; i < count; i++) {
+              addEmber(
+                pointer.tx + p.random(-3, 3), pointer.ty + p.random(-3, 3),
+                (pointer.tx - pointer.x) * .035 + p.random(-.22, .22),
+                (pointer.ty - pointer.y) * .035 + p.random(-.22, .22),
+                paletteHue(Math.floor(p.random(1, 5))), p.random(25, 65), p.random(.45, 1.1)
+              );
+            }
+          }
+        }, { passive: true });
+        canvas.elt.addEventListener('pointerdown', (event) => {
+          if (!setPointerFromEvent(event)) return;
+          pointer.down = true;
+          pointer.x = pointer.tx;
+          pointer.y = pointer.ty;
+          burst(pointer.x, pointer.y, 1);
+          whisper.textContent = phrases[phraseIndex++ % phrases.length];
+          canvas.elt.setPointerCapture?.(event.pointerId);
+          canvas.elt.focus({ preventScroll: true });
+          event.preventDefault();
+        });
+        const release = () => { pointer.down = false; };
+        canvas.elt.addEventListener('pointerup', release);
+        canvas.elt.addEventListener('pointercancel', release);
+        canvas.elt.addEventListener('pointerleave', () => {
+          pointer.down = false;
+          pointer.targetInfluence = 0;
+        });
+        canvas.elt.addEventListener('keydown', (event) => {
+          const step = event.shiftKey ? 42 : 18;
+          let handled = true;
+          if (event.key === 'ArrowLeft') pointer.tx -= step;
+          else if (event.key === 'ArrowRight') pointer.tx += step;
+          else if (event.key === 'ArrowUp') pointer.ty -= step;
+          else if (event.key === 'ArrowDown') pointer.ty += step;
+          else if (event.key === 'Enter') {
+            burst(pointer.tx, pointer.ty, 1);
+            whisper.textContent = phrases[phraseIndex++ % phrases.length];
+          } else if (event.key.toLowerCase() === 's') saveArtwork();
+          else if (event.key === ' ') togglePause();
+          else handled = false;
+          if (handled) {
+            pointer.tx = p.constrain(pointer.tx, 0, p.width);
+            pointer.ty = p.constrain(pointer.ty, 0, p.height);
+            pointer.targetInfluence = 1;
+            pointer.lastMove = performance.now();
+            pointer.keyboard = true;
+            event.preventDefault();
+          }
+        });
+      }
+
+      function saveArtwork() {
+        p.saveCanvas(`ce-qui-reste-${CONFIG.seed}`, 'png');
+        whisper.textContent = 'cette trace est à toi, maintenant.';
+      }
+
+      function togglePause(force) {
+        paused = typeof force === 'boolean' ? force : !paused;
+        if (paused) p.noLoop();
+        else if (!hidden) p.loop();
+        pauseButton.innerHTML = paused ? '▶&nbsp; reprendre' : 'Ⅱ&nbsp; suspendre';
+        pauseButton.setAttribute('aria-label', paused ? 'Reprendre l’animation' : 'Suspendre l’animation');
+        return paused;
+      }
+
+      function reseed(nextSeed) {
+        CONFIG.seed = Number.isFinite(nextSeed) ? Math.abs(Math.floor(nextSeed)) % 100000 : Math.floor(Math.random() * 100000);
+        initialize();
+        whisper.textContent = 'une autre lumière, jamais tout à fait la même.';
+        if (paused) p.redraw();
+        return CONFIG.seed;
+      }
+
+      p.setup = () => {
+        const rect = stage.getBoundingClientRect();
+        canvas = p.createCanvas(Math.max(1, Math.round(rect.width)), Math.max(1, Math.round(rect.height)));
+        p.pixelDensity(1);
+        p.colorMode(p.HSB, 360, 100, 100, 1);
+        p.angleMode(p.RADIANS);
+        p.frameRate(30);
+        makeLayers();
+        initialize();
+        bindInteraction();
+        lastFrame = performance.now();
+        window.__artworkReady = true;
+        if (reduceMotion) togglePause(true);
+      };
+
+      p.draw = () => {
+        const now = performance.now();
+        const delta = Math.min(100, now - lastFrame);
+        lastFrame = now;
+        if (delta > 0) smoothedFps = smoothedFps * .92 + (1000 / delta) * .08;
+        time += Math.min(delta / 1000, .05);
+
+        if (!pointer.keyboard && now - pointer.lastMove > 2400) pointer.targetInfluence = 0;
+        pointer.px = pointer.x;
+        pointer.py = pointer.y;
+        pointer.x = p.lerp(pointer.x, pointer.tx, pointer.down ? .34 : .16);
+        pointer.y = p.lerp(pointer.y, pointer.ty, pointer.down ? .34 : .16);
+        pointer.influence = p.lerp(pointer.influence, pointer.targetInfluence, .07);
+
+        fadeTrails();
+        trailLayer.blendMode(p.ADD);
+        for (const particle of particles) {
+          particle.update(time);
+          particle.paint();
+        }
+        trailLayer.blendMode(p.BLEND);
+        updateEmbers(time);
+        drawSilk(time);
+        drawForeground(time);
+
+        p.image(bgLayer, 0, 0);
+        p.blendMode(p.ADD);
+        p.image(trailLayer, 0, 0);
+        p.image(silkLayer, 0, 0);
+        p.image(fgLayer, 0, 0);
+        p.blendMode(p.BLEND);
+        vignette();
+      };
+
+      document.getElementById('pause').addEventListener('click', () => togglePause());
+      document.getElementById('reseed').addEventListener('click', () => reseed());
+      document.getElementById('save').addEventListener('click', saveArtwork);
+      document.addEventListener('visibilitychange', () => {
+        hidden = document.hidden;
+        if (hidden) p.noLoop();
+        else if (!paused) {
+          lastFrame = performance.now();
+          p.loop();
+        }
+      });
+
+      let resizeFrame = 0;
+      const observer = new ResizeObserver(() => {
+        cancelAnimationFrame(resizeFrame);
+        resizeFrame = requestAnimationFrame(() => {
+          if (!canvas) return;
+          const rect = stage.getBoundingClientRect();
+          const w = Math.max(1, Math.round(rect.width));
+          const h = Math.max(1, Math.round(rect.height));
+          if (w === p.width && h === p.height) return;
+          p.resizeCanvas(w, h);
+          makeLayers();
+          initialize();
+          if (paused) p.redraw();
+        });
+      });
+      observer.observe(stage);
+
+      // Petit contrat de test, aussi pratique pour détourner l’œuvre ensuite.
+      window.__artwork = {
+        getState: () => ({
+          seed: CONFIG.seed,
+          width: p.width,
+          height: p.height,
+          particles: particles.length,
+          embers: embers.length,
+          pulses: pulses.length,
+          pulseCount,
+          paused,
+          fps: Math.round(smoothedFps),
+          pointerInfluence: Number(pointer.influence.toFixed(3))
+        }),
+        pulseAt: (x, y) => {
+          pointer.tx = p.constrain(x, 0, p.width);
+          pointer.ty = p.constrain(y, 0, p.height);
+          pointer.targetInfluence = 1;
+          pointer.lastMove = performance.now();
+          burst(pointer.tx, pointer.ty, 1);
+        },
+        reseed,
+        togglePause,
+        saveArtwork
+      };
+    };
+
+    new p5(sketch, stage);
+  })();
+  </script>
+</body>
+</html>

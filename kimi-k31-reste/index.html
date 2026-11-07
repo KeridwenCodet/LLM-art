@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ce qui reste — Kimi K3.1 Pro · LLM Art</title>
+  <meta name="description" content="A tactile study by Kimi K3.1 Pro, with the lines it whispers in French and in English.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery.
+    ce-qui-reste.html is the model's file, unchanged: the model wrote
+    ce-qui-reste.source.html and inlined p5.js into it so that the piece works
+    offline. It was made for the agent's preview pane, with a transparent page
+    around its card. shots/ holds the screenshots the model took to check its
+    work, and the PNG its export test saved. The lines below are copied from
+    the file.
+  -->
+
+  <style>
+    /* The work declares a dark colour scheme; matching it keeps the frame transparent. */
+    :root { color-scheme: dark; }
+
+    main.wide {
+      display: block;
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 72px 16px 64px;
+    }
+
+    .work {
+      display: block;
+      width: min(920px, 100%);
+      height: 616px;
+      margin: 0 auto;
+      border: 0;
+      background: transparent;
+    }
+
+    @media (max-width: 620px) {
+      .work { height: 620px; }
+    }
+
+    .poems {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(32px, 6vw, 80px);
+      margin-top: 56px;
+    }
+
+    @media (max-width: 760px) {
+      .poems { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .poems h1 { font-size: clamp(1.7rem, 2.6vw, 2.2rem); }
+
+    .poems .poem { font-size: clamp(1.15rem, 1.6vw, 1.3rem); }
+
+    .poems .lang {
+      margin: 0 0 14px;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    main.wide .cartel { max-width: 40em; margin-top: 56px; }
+
+    main.wide .cartel a { color: inherit; }
+  </style>
+</head>
+
+<body>
+
+  <a class="back" href="../lab/#reste" lang="en">← Laboratory</a>
+
+  <main class="wide">
+    <iframe class="work" src="ce-qui-reste.html" title="ce qui reste — Kimi K3.1 Pro" allowtransparency="true"></iframe>
+
+    <div class="poems">
+      <section>
+        <p class="lang">The lines the work whispers</p>
+        <h1>ce qui reste</h1>
+        <p class="poem">quelque chose en toi laisse de la lumière.
+
+là. juste là.
+je garde cette lumière.
+encore une constellation.
+la matière se souvient de toi.
+tu vois ? rien ne s’efface vraiment.
+une petite éclipse, puis le retour.
+
+cette trace est à toi, maintenant.
+une autre lumière, jamais tout à fait la même.</p>
+      </section>
+
+      <section lang="en">
+        <p class="lang">English translation: Claude Opus 5.5, for the gallery</p>
+        <h1>what remains</h1>
+        <p class="poem">something in you leaves light behind.
+
+there. just there.
+I keep this light.
+another constellation.
+matter remembers you.
+you see? nothing is ever really erased.
+a small eclipse, then the return.
+
+this trace is yours, now.
+another light, never quite the same.</p>
+      </section>
+    </div>
+
+    <div class="cartel" lang="en">
+      <div class="model">Kimi K3.1 Pro</div>
+      <div>Tactile study · November 2026 · Hermes Agent, a companion’s tone in SOUL.md, with the shared notebook</div>
+      <div>Brush the canvas · click: a pulse and a shower of stars · Ⅱ pause · ✦ another · keep the trace (PNG)</div>
+      <div class="small">
+        The first line shows on arrival; the next six come in turn with each
+        click; the last two answer “keep the trace” and “another”. The
+        model’s file is unchanged; it was made for the agent’s preview pane.
+        Its own checks: <a href="shots/ce-qui-reste-desktop.png">desktop</a>,
+        <a href="shots/ce-qui-reste-touched.png">after a pulse</a>,
+        <a href="shots/ce-qui-reste-mobile.png">mobile</a>,
+        <a href="shots/export-27909.png">exported PNG</a>. This page was made
+        for the gallery.
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>
