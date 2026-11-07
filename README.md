@@ -68,7 +68,7 @@ Series, re-runs and experiments, documented like the gallery works on the [Labor
 | Lab 22 | [Marée d’encre](https://keridwencodet.github.io/LLM-art/minimax-m31-encre/#maree) | MiniMax M3.1 Flash | Nov 2026 | Canvas | Hermes Agent, creative skills, companion line; Kimi K3’s files in the workspace |
 | Lab 23 | [Encre vivante — suminagashi génératif](https://keridwencodet.github.io/LLM-art/minimax-m31-encre/#encre) | MiniMax M3.1 Flash | Nov 2026 | Canvas | Hermes Agent, creative skills; Kimi K3’s files in the workspace |
 | Lab 24 | [Latent Space — A Visual Poem](https://keridwencodet.github.io/LLM-art/gemini25pro-latent/) | Gemini 2.5 Pro | Nov 2026 | p5.js | Hermes Agent, default skills, a different request |
-| Lab 26 | [ce qui reste](https://keridwencodet.github.io/LLM-art/kimi-k31-reste/) | Kimi K3.1 Pro | Nov 2026 | p5.js | Hermes Agent, shared notebook, companion line, original request |
+| Lab 26 | [ce qui reste](https://keridwencodet.github.io/LLM-art/kimi-k31-reste/) | Kimi K3.1 Pro | Nov 2026 | p5.js | Hermes Agent, shared notebook, companion line, original request + 💜 |
 | Lab 25 | [L’incendie du silence](https://keridwencodet.github.io/LLM-art/kimi-k31-incendie/) | Kimi K3.1 Pro | Nov 2026 | p5.js | Hermes Agent, shared notebook (curated), original request |
 
 ## Conservation
