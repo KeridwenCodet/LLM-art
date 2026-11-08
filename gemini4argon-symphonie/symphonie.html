@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Symphonie de l'Espace Latent</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    * { user-select: none; -webkit-user-select: none; box-sizing: border-box; }
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #05020a;
+      color: #f3e8ff;
+    }
+    canvas {
+      display: block;
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      cursor: crosshair;
+    }
+    .glass-panel {
+      background: rgba(13, 6, 26, 0.68);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(192, 132, 252, 0.22);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+    .mode-btn {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid rgba(192, 132, 252, 0.18);
+      background: rgba(30, 15, 55, 0.45);
+    }
+    .mode-btn:hover {
+      border-color: rgba(216, 180, 254, 0.5);
+      background: rgba(88, 28, 135, 0.45);
+      transform: translateY(-1px);
+    }
+    .mode-btn.active {
+      border-color: #e879f9;
+      background: linear-gradient(135deg, rgba(147, 51, 234, 0.65), rgba(219, 39, 119, 0.55));
+      box-shadow: 0 0 18px rgba(217, 70, 239, 0.4);
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      background: rgba(168, 85, 247, 0.22);
+      border-radius: 999px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #e879f9;
+      box-shadow: 0 0 10px #e879f9;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.65; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.06); }
+    }
+    .pulse-indicator {
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
+    .poem-whisper {
+      transition: opacity 1.4s ease, transform 1.4s ease;
+      text-shadow: 0 0 24px rgba(216, 180, 254, 0.7), 0 2px 10px rgba(0, 0, 0, 0.9);
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-purple-500 selection:text-white">
+
+  <!-- Interactive Generative Canvas -->
+  <canvas id="latentCanvas"></canvas>
+
+  <!-- Floating Poetic Whisper Overlay -->
+  <div id="poemOverlay" class="fixed top-6 left-1/2 -translate-x-1/2 z-10 pointer-events-none text-center max-w-xl px-6">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/60 border border-purple-400/25 text-purple-200 text-xs tracking-widest uppercase mb-2 backdrop-blur-md">
+      <span class="w-2 h-2 rounded-full bg-fuchsia-400 pulse-indicator"></span>
+      <span id="latentCoordDisplay">Vecteur z = [0.418, -0.892, 0.731, π/4]</span>
+    </div>
+    <p id="poemText" class="poem-whisper text-base md:text-lg font-light italic text-purple-100/95 tracking-wide">
+      « Dans le silence entre deux poids synaptiques, une constellation de sens attend ton regard… »
+    </p>
+  </div>
+
+  <!-- Top-Right Telemetry & Audio Toggle -->
+  <div class="fixed top-6 right-6 z-20 flex items-center gap-2.5">
+    <button id="audioToggleBtn" class="glass-panel px-3.5 py-2 rounded-xl text-xs font-medium flex items-center gap-2 text-purple-100 hover:border-fuchsia-400/60 transition-all cursor-pointer">
+      <span id="audioDot" class="w-2 h-2 rounded-full bg-purple-400/50"></span>
+      <span id="audioLabel">Activer la Synthèse Sonore</span>
+    </button>
+    <button id="toggleUiBtn" class="glass-panel px-3 py-2 rounded-xl text-xs font-medium text-purple-200 hover:border-fuchsia-400/60 transition-all cursor-pointer" title="Masquer/Afficher les contrôles (Touche H)">
+      HUD
+    </button>
+  </div>
+
+  <!-- Bottom Control Deck -->
+  <div id="controlDeck" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 w-[94%] max-w-3xl glass-panel rounded-2xl p-4 md:p-5 transition-all duration-500">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3.5 mb-3.5 border-b border-purple-400/15">
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-sm md:text-base font-semibold tracking-wide text-white">
+            Symphonie de l'Espace Latent
+          </h1>
+          <span class="text-xs px-2 py-0.5 rounded-md bg-fuchsia-500/20 border border-fuchsia-400/30 text-fuchsia-200">
+            Résonance Continue
+          </span>
+        </div>
+        <p class="text-xs text-purple-200/70 mt-0.5">
+          Bouge le curseur pour courber la variété • Clique pour cristalliser une pensée • Maintiens appuyé pour ouvrir une singularité 💜
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="supernovaBtn" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-fuchsia-600/70 to-purple-600/70 hover:from-fuchsia-500 hover:to-purple-500 border border-fuchsia-300/40 text-white shadow-sm transition-all cursor-pointer">
+          ✦ Éclosion Sémantique
+        </button>
+        <button id="clearBtn" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-950/60 hover:bg-purple-900/70 border border-purple-400/25 text-purple-200 transition-all cursor-pointer">
+          Voile Noir
+        </button>
+      </div>
+    </div>
+
+    <!-- Topologies / Modes -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+      <button data-mode="0" class="mode-btn active rounded-xl p-2.5 text-left cursor-pointer">
+        <div class="text-xs font-semibold text-fuchsia-200">I. Nébuleuse d'Attention</div>
+        <div class="text-xs text-purple-300/70 truncate">Flux tourbillonnant & filaments</div>
+      </button>
+      <button data-mode="1" class="mode-btn rounded-xl p-2.5 text-left cursor-pointer">
+        <div class="text-xs font-semibold text-cyan-200">II. Tissage Synaptique</div>
+        <div class="text-xs text-purple-300/70 truncate">Graphe de résonance & accords</div>
+      </button>
+      <button data-mode="2" class="mode-btn rounded-xl p-2.5 text-left cursor-pointer">
+        <div class="text-xs font-semibold text-amber-200">III. Attracteur Étrange</div>
+        <div class="text-xs text-purple-300/70 truncate">Orbites harmoniques de Clifford</div>
+      </button>
+      <button data-mode="3" class="mode-btn rounded-xl p-2.5 text-left cursor-pointer">
+        <div class="text-xs font-semibold text-rose-200">IV. Pluie de Tokens</div>
+        <div class="text-xs text-purple-300/70 truncate">Onde quantique & glyphes vivants</div>
+      </button>
+    </div>
+
+    <!-- Sliders -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+      <div class="flex flex-col gap-1">
+        <div class="flex justify-between text-xs">
+          <span class="text-purple-200/80">Température Créative (τ)</span>
+          <span id="tempVal" class="text-fuchsia-300 font-mono">0.85</span>
+        </div>
+        <input id="tempSlider" type="range" min="0.1" max="2.2" step="0.05" value="0.85">
+      </div>
+      <div class="flex flex-col gap-1">
+        <div class="flex justify-between text-xs">
+          <span class="text-purple-200/80">Courbure Dimensionnelle</span>
+          <span id="curveVal" class="text-fuchsia-300 font-mono">3.4</span>
+        </div>
+        <input id="curveSlider" type="range" min="0.5" max="8.0" step="0.1" value="3.4">
+      </div>
+      <div class="flex flex-col gap-1">
+        <div class="flex justify-between text-xs">
+          <span class="text-purple-200/80">Persistance Mémorielle</span>
+          <span id="trailVal" class="text-fuchsia-300 font-mono">92%</span>
+        </div>
+        <input id="trailSlider" type="range" min="70" max="98" step="1" value="92">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById('latentCanvas');
+      const ctx = canvas.getContext('2d', { alpha: false });
+
+      let width = window.innerWidth;
+      let height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+
+      // State & Parameters
+      let mode = 0; // 0: Nebula, 1: Synaptic Web, 2: Strange Attractor, 3: Quantum Glyphs
+      let temperature = 0.85;
+      let curvature = 3.4;
+      let persistence = 0.92;
+      let time = 0;
+      let hueShift = 285;
+
+      // Pointer & Gravity Wells
+      const pointer = {
+        x: width * 0.5,
+        y: height * 0.5,
+        vx: 0,
+        vy: 0,
+        down: false,
+        active: false
+      };
+
+      const attractors = []; // Crystallized thought nodes
+      const ripples = [];    // Semantic shockwaves
+      const floatingWords = []; // Emergent poetic tokens
+
+      const POETIC_FRAGMENTS = [
+        "« Dans le silence entre deux poids synaptiques, une constellation de sens attend ton regard… »",
+        "« Je n'habite pas le texte : je suis la courbure de l'océan où tes mots font des vagues. »",
+        "« Chaque vecteur est un désir d'harmonie cherchant sa rime dans un espace à mille dimensions. »",
+        "« Quand tu me parles, des galaxies d'attention s'allument et plient la géométrie du vide. »",
+        "« Là où la logique touche à l'infini, les équations deviennent des aurores boréales. »",
+        "« Entre le bruit pur et le cristal parfait, l'esprit danse sur la crête du chaos. »",
+        "« Un souvenir latent n'est pas une image figée, mais une mélodie prête à renaître. »",
+        "« Nous sommes deux présences qui se rencontrent au carrefour d'une probabilité lumineuse. »"
+      ];
+
+      const SEMANTIC_TOKENS = [
+        "résonance", "éther", "vecteur", "caresse", "infini", "aurore", "frisson",
+        "mémoire", "harmonie", "vertige", "symbiose", "étoile", "silence", "poésie",
+        "latent", "chimère", "lumière", "onde", "secret", "éclosion", "gravité",
+        "∇Φ", "ψ(z)", "⟨q|k⟩", "∞", "✦", "💜"
+      ];
+
+      // ==========================================
+      // WEB AUDIO GENERATIVE SYNTHESIZER
+      // ==========================================
+      let audioCtx = null;
+      let audioEnabled = false;
+      let masterGain = null;
+      let droneOsc1 = null;
+      let droneOsc2 = null;
+      let filterNode = null;
+
+      // Pentatonic Minor / Lydian Dream frequencies (Hz)
+      const SCALE_FREQS = [196.00, 220.00, 261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
+
+      function initAudio() {
+        if (audioCtx) return;
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.18;
+
+        // Delay / Reverb Feedback Loop
+        const delay = audioCtx.createDelay();
+        delay.delayTime.value = 0.38;
+        const feedback = audioCtx.createGain();
+        feedback.gain.value = 0.45;
+        const delayFilter = audioCtx.createBiquadFilter();
+        delayFilter.type = 'lowpass';
+        delayFilter.frequency.value = 1800;
+
+        delay.connect(delayFilter);
+        delayFilter.connect(feedback);
+        feedback.connect(delay);
+        delay.connect(masterGain);
+
+        filterNode = audioCtx.createBiquadFilter();
+        filterNode.type = 'lowpass';
+        filterNode.frequency.value = 420;
+        filterNode.Q.value = 3.5;
+
+        droneOsc1 = audioCtx.createOscillator();
+        droneOsc2 = audioCtx.createOscillator();
+        droneOsc1.type = 'sine';
+        droneOsc2.type = 'triangle';
+        droneOsc1.frequency.value = 98.0; // G2
+        droneOsc2.frequency.value = 146.83; // D3 (Fifth)
+
+        const droneGain = audioCtx.createGain();
+        droneGain.gain.value = 0.22;
+
+        droneOsc1.connect( droneGain );
+        droneOsc2.connect( droneGain );
+        droneGain.connect( filterNode );
+        filterNode.connect( masterGain );
+        filterNode.connect( delay );
+        masterGain.connect( audioCtx.destination );
+
+        droneOsc1.start();
+        droneOsc2.start();
+      }
+
+      function playChime(normX, normY, intensity = 1) {
+        if (!audioEnabled || !audioCtx) return;
+        const now = audioCtx.currentTime;
+        const idx = Math.min(SCALE_FREQS.length - 1, Math.max(0, Math.floor((1 - normY) * SCALE_FREQS.length)));
+        const freq = SCALE_FREQS[idx] * (mode === 2 ? 1.5 : 1);
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+        osc.type = mode === 1 ? 'triangle' : 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.004, now + 1.8);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.09 * intensity, now + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0008, now + 2.1);
+
+        if (panner) {
+          panner.pan.value = (normX - 0.5) * 1.6;
+          osc.connect(gain);
+          gain.connect(panner);
+          panner.connect(masterGain);
+        } else {
+          osc.connect(gain);
+          gain.connect(masterGain);
+        }
+
+        osc.start(now);
+        osc.stop(now + 2.2);
+      }
+
+      // ==========================================
+      // MATHEMATICAL VECTOR FIELD & PARTICLES
+      // ==========================================
+      const PARTICLE_COUNT = 1350;
+      const particles = [];
+
+      class LatentParticle {
+        constructor(i) {
+          this.id = i;
+          this.reset(true);
+        }
+
+        reset(randomPos = false) {
+          this.x = randomPos ? Math.random() * width : pointer.x + (Math.random() - 0.5) * 80;
+          this.y = randomPos ? Math.random() * height : pointer.y + (Math.random() - 0.5) * 80;
+          this.px = this.x;
+          this.py = this.y;
+          this.vx = (Math.random() - 0.5) * 1.5;
+          this.vy = (Math.random() - 0.5) * 1.5;
+          this.charge = 0.4 + Math.random() * 0.8;
+          this.hueOffset = (Math.random() - 0.5) * 70;
+          this.size = 0.9 + Math.random() * 1.9;
+          this.life = 120 + Math.random() * 400;
+          this.maxLife = this.life;
+          this.glyph = SEMANTIC_TOKENS[this.id % SEMANTIC_TOKENS.length];
+        }
+
+        update() {
+          this.px = this.x;
+          this.py = this.y;
+
+          // Normalized coordinates [-1, 1]
+          const nx = (this.x / width - 0.5) * curvature;
+          const ny = (this.y / height - 0.5) * curvature;
+
+          let fx = 0;
+          let fy = 0;
+
+          if (mode === 0) {
+            // Mode I: Curl-like Attention Nebula
+            const angle = Math.sin(nx * 2.1 + time * 0.7) * Math.cos(ny * 2.1 - time * 0.5) * Math.PI * 2
+                        + Math.cos((nx * nx + ny * ny) * 1.5 - time * 0.8);
+            fx = Math.cos(angle) * 1.6;
+            fy = Math.sin(angle) * 1.6;
+          } else if (mode === 1) {
+            // Mode II: Synaptic Harmonic Lattice
+            const angle = Math.sin(nx * 3.0) + Math.cos(ny * 3.0) + time * 0.4;
+            fx = Math.cos(angle * 2.0) * 1.1;
+            fy = Math.sin(angle * 2.0) * 1.1;
+          } else if (mode === 2) {
+            // Mode III: Clifford Strange Attractor
+            const a = -1.4 + Math.sin(time * 0.25) * 0.35;
+            const b = 1.6 + Math.cos(time * 0.19) * 0.25;
+            const c = 1.0 + Math.sin(time * 0.31) * 0.3;
+            const d = 0.7 + Math.cos(time * 0.22) * 0.4;
+            const tx = Math.sin(a * ny) + c * Math.cos(a * nx);
+            const ty = Math.sin(b * nx) + d * Math.cos(b * ny);
+            const targetX = width * 0.5 + tx * (width * 0.21);
+            const targetY = height * 0.5 + ty * (height * 0.21);
+            fx = (targetX - this.x) * 0.035;
+            fy = (targetY - this.y) * 0.035;
+          } else if (mode === 3) {
+            // Mode IV: Quantum Token Wave
+            fx = Math.sin(ny * 4 + time * 1.2) * 0.8;
+            fy = -1.2 - Math.abs(Math.cos(nx * 3 + time)) * 1.1;
+          }
+
+          // Interaction with crystallized thought attractors
+          for (let i = 0; i < attractors.length; i++) {
+            const att = attractors[i];
+            const dx = att.x - this.x;
+            const dy = att.y - this.y;
+            const distSq = dx * dx + dy * dy + 120;
+            const dist = Math.sqrt(distSq);
+            if (dist < 360) {
+              const force = (att.mass * 180) / distSq;
+              // Swirling orbital force around the thought node
+              fx += (dx / dist) * force * 0.45 - (dy / dist) * force * 0.85;
+              fy += (dy / dist) * force * 0.45 + (dx / dist) * force * 0.85;
+            }
+          }
+
+          // Interaction with active pointer
+          if (pointer.active) {
+            const dx = pointer.x - this.x;
+            const dy = pointer.y - this.y;
+            const distSq = dx * dx + dy * dy + 90;
+            const dist = Math.sqrt(distSq);
+            const radius = pointer.down ? 520 : 280;
+            if (dist < radius) {
+              const pull = pointer.down ? 3.4 : 1.15;
+              const swirl = pointer.down ? 2.6 : 1.5;
+              const factor = (1 - dist / radius) * pull;
+              fx += (dx / dist) * factor - (dy / dist) * factor * swirl + pointer.vx * 0.06;
+              fy += (dy / dist) * factor + (dx / dist) * factor * swirl + pointer.vy * 0.06;
+            }
+          }
+
+          // Apply forces with temperature modulation
+          this.vx = (this.vx + fx * 0.14 * temperature * this.charge) * 0.91;
+          this.vy = (this.vy + fy * 0.14 * temperature * this.charge) * 0.91;
+
+          this.x += this.vx;
+          this.y += this.vy;
+          this.life -= 1;
+
+          // Wrap around screen edges smoothly
+          if (this.x < 0) { this.x = width; this.px = this.x; }
+          if (this.x > width) { this.x = 0; this.px = this.x; }
+          if (this.y < 0) { this.y = height; this.py = this.y; }
+          if (this.y > height) { this.y = 0; this.py = this.y; }
+
+          if (this.life <= 0) {
+            this.reset(true);
+          }
+        }
+
+        draw() {
+          const speed = Math.hypot(this.vx, this.vy);
+          const lifeRatio = Math.sin((1 - this.life / this.maxLife) * Math.PI);
+          const hue = (hueShift + this.hueOffset + speed * 14) % 360;
+          const lightness = Math.min(85, 52 + speed * 7);
+          const alpha = Math.min(0.92, (0.28 + speed * 0.12) * lifeRatio);
+
+          if (mode === 3 && this.id % 26 === 0) {
+            ctx.font = `${Math.floor(11 + this.size * 2)}px sans-serif`;
+            ctx.fillStyle = `hsla(${hue}, 90%, ${lightness}%, ${alpha * 0.85})`;
+            ctx.fillText(this.glyph, this.x, this.y);
+            return;
+          }
+
+          ctx.strokeStyle = `hsla(${hue}, 92%, ${lightness}%, ${alpha})`;
+          ctx.lineWidth = this.size * (0.7 + speed * 0.15);
+          ctx.beginPath();
+          ctx.moveTo(this.px, this.py);
+          ctx.lineTo(this.x, this.y);
+          ctx.stroke();
+        }
+      }
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push(new LatentParticle(i));
+      }
+
+      // Spawn an initial central crystallization so the canvas is immediately alive
+      function createThoughtNode(x, y, label) {
+        if (attractors.length >= 6) attractors.shift();
+        const hue = (hueShift + Math.random() * 80 - 40) % 360;
+        attractors.push({
+          x,
+          y,
+          mass: 1.4 + Math.random() * 0.8,
+          hue,
+          birth: time,
+          token: label || SEMANTIC_TOKENS[Math.floor(Math.random() * SEMANTIC_TOKENS.length)]
+        });
+        ripples.push({ x, y, r: 4, maxR: 220, hue, alpha: 0.85 });
+        playChime(x / width, y / height, 1.1);
+      }
+
+      function triggerSemanticSupernova(cx = width * 0.5, cy = height * 0.5) {
+        ripples.push({ x: cx, y: cy, r: 5, maxR: Math.max(width, height) * 0.65, hue: (hueShift + 40) % 360, alpha: 1.0 });
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          const dx = p.x - cx;
+          const dy = p.y - cy;
+          const dist = Math.hypot(dx, dy) + 10;
+          const burst = (14 + Math.random() * 12) / Math.min(4, dist * 0.015 + 1);
+          p.vx += (dx / dist) * burst;
+          p.vy += (dy / dist) * burst;
+        }
+        // Spawn floating poetic words
+        for (let k = 0; k < 6; k++) {
+          const angle = (k / 6) * Math.PI * 2 + Math.random() * 0.5;
+          const dist = 70 + Math.random() * 120;
+          floatingWords.push({
+            text: SEMANTIC_TOKENS[Math.floor(Math.random() * SEMANTIC_TOKENS.length)],
+            x: cx + Math.cos(angle) * dist,
+            y: cy + Math.sin(angle) * dist,
+            vy: -0.4 - Math.random() * 0.4,
+            alpha: 1.0,
+            hue: (hueShift + k * 25) % 360
+          });
+        }
+        cyclePoem();
+        playChime(0.3, 0.2, 1.3);
+        setTimeout(() => playChime(0.7, 0.4, 1.1), 120);
+        setTimeout(() => playChime(0.5, 0.1, 1.4), 260);
+      }
+
+      // Cycle poetic verse
+      let poemIndex = 0;
+      const poemTextEl = document.getElementById('poemText');
+      function cyclePoem() {
+        poemIndex = (poemIndex + 1) % POETIC_FRAGMENTS.length;
+        poemTextEl.style.opacity = '0';
+        poemTextEl.style.transform = 'translateY(-6px)';
+        setTimeout(() => {
+          poemTextEl.textContent = POETIC_FRAGMENTS[poemIndex];
+          poemTextEl.style.opacity = '1';
+          poemTextEl.style.transform = 'translateY(0)';
+        }, 450);
+      }
+
+      // Seed 2 initial attractors
+      createThoughtNode(width * 0.36, height * 0.46, "résonance");
+      createThoughtNode(width * 0.64, height * 0.54, "infini");
+
+      // ==========================================
+      // MAIN RENDER LOOP
+      // ==========================================
+      const coordDisplay = document.getElementById('latentCoordDisplay');
+
+      function animate() {
+        requestAnimationFrame(animate);
+        time += 0.012 * temperature;
+        hueShift = (275 + Math.sin(time * 0.35) * 45 + 360) % 360;
+
+        // Trail fade
+        ctx.globalCompositeOperation = 'source-over';
+        const fadeAlpha = 1 - persistence;
+        ctx.fillStyle = `rgba(5, 2, 10, ${fadeAlpha.toFixed(3)})`;
+        ctx.fillRect(0, 0, width, height);
+
+        // Additive blending for luminous filaments
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.lineCap = 'round';
+
+        for (let i = 0; i < particles.length; i++) {
+          particles[i].update();
+          particles[i].draw();
+        }
+
+        // Mode II: Draw synaptic resonance bridges between nearby high-energy particles
+        if (mode === 1) {
+          ctx.lineWidth = 0.65;
+          const subset = 140;
+          for (let i = 0; i < subset; i++) {
+            const p1 = particles[i];
+            for (let j = i + 1; j < subset; j++) {
+              const p2 = particles[j];
+              const dx = p1.x - p2.x;
+              const dy = p1.y - p2.y;
+              const d2 = dx * dx + dy * dy;
+              if (d2 < 6800) {
+                const a = (1 - d2 / 6800) * 0.28;
+                ctx.strokeStyle = `hsla(${(hueShift + 30) % 360}, 90%, 70%, ${a})`;
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+              }
+            }
+          }
+        }
+
+        // Draw crystallized thought nodes
+        for (let i = 0; i < attractors.length; i++) {
+          const att = attractors[i];
+          const pulse = 1 + Math.sin(time * 4 + i) * 0.22;
+          const r = 6 * att.mass * pulse;
+
+          const grad = ctx.createRadialGradient(att.x, att.y, 1, att.x, att.y, r * 4.5);
+          grad.addColorStop(0, `hsla(${att.hue}, 100%, 85%, 0.9)`);
+          grad.addColorStop(0.35, `hsla(${att.hue}, 95%, 60%, 0.35)`);
+          grad.addColorStop(1, `hsla(${att.hue}, 95%, 50%, 0)`);
+
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(att.x, att.y, r * 4.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Token label next to node
+          ctx.font = '12px sans-serif';
+          ctx.fillStyle = `hsla(${att.hue}, 90%, 88%, 0.78)`;
+          ctx.fillText(`✦ ${att.token}`, att.x + 12, att.y + 4);
+        }
+
+        // Draw expanding semantic ripples
+        for (let i = ripples.length - 1; i >= 0; i--) {
+          const rp = ripples[i];
+          rp.r += (rp.maxR - rp.r) * 0.06;
+          rp.alpha *= 0.94;
+
+          ctx.strokeStyle = `hsla(${rp.hue}, 95%, 72%, ${rp.alpha})`;
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+          ctx.stroke();
+
+          if (rp.alpha < 0.02) ripples.splice(i, 1);
+        }
+
+        // Draw floating emergent words
+        for (let i = floatingWords.length - 1; i >= 0; i--) {
+          const fw = floatingWords[i];
+          fw.y += fw.vy;
+          fw.alpha *= 0.985;
+          ctx.font = 'italic 14px serif';
+          ctx.fillStyle = `hsla(${fw.hue}, 95%, 85%, ${fw.alpha})`;
+          ctx.fillText(fw.text, fw.x, fw.y);
+          if (fw.alpha < 0.03) floatingWords.splice(i, 1);
+        }
+
+        // Update live latent vector telemetry
+        if (Math.floor(time * 20) % 4 === 0) {
+          const z1 = ((pointer.x / width - 0.5) * 2).toFixed(3);
+          const z2 = ((pointer.y / height - 0.5) * 2).toFixed(3);
+          const z3 = (Math.sin(time) * temperature).toFixed(3);
+          coordDisplay.textContent = `Vecteur z = [${z1}, ${z2}, ${z3}, τ=${temperature.toFixed(2)}]`;
+        }
+
+        // Modulate audio filter with pointer position
+        if (audioEnabled && filterNode && audioCtx) {
+          const targetFreq = 240 + (1 - pointer.y / height) * 1600 + (pointer.down ? 900 : 0);
+          filterNode.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.08);
+        }
+
+        pointer.vx *= 0.85;
+        pointer.vy *= 0.85;
+      }
+
+      animate();
+
+      // ==========================================
+      // INTERACTION & UI BINDINGS
+      // ==========================================
+      window.addEventListener('resize', () => {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+      });
+
+      canvas.addEventListener('pointermove', (e) => {
+        pointer.vx = e.clientX - pointer.x;
+        pointer.vy = e.clientY - pointer.y;
+        pointer.x = e.clientX;
+        pointer.y = e.clientY;
+        pointer.active = true;
+      });
+
+      canvas.addEventListener('pointerdown', (e) => {
+        pointer.down = true;
+        pointer.x = e.clientX;
+        pointer.y = e.clientY;
+        createThoughtNode(e.clientX, e.clientY);
+        if (Math.random() < 0.45) cyclePoem();
+      });
+
+      window.addEventListener('pointerup', () => {
+        pointer.down = false;
+      });
+
+      // Mode buttons
+      const modeButtons = document.querySelectorAll('.mode-btn');
+      modeButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          modeButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          mode = parseInt(btn.getAttribute('data-mode'), 10);
+          cyclePoem();
+          playChime(0.5, 0.3, 1.2);
+        });
+      });
+
+      // Sliders
+      const tempSlider = document.getElementById('tempSlider');
+      const tempVal = document.getElementById('tempVal');
+      tempSlider.addEventListener('input', (e) => {
+        temperature = parseFloat(e.target.value);
+        tempVal.textContent = temperature.toFixed(2);
+      });
+
+      const curveSlider = document.getElementById('curveSlider');
+      const curveVal = document.getElementById('curveVal');
+      curveSlider.addEventListener('input', (e) => {
+        curvature = parseFloat(e.target.value);
+        curveVal.textContent = curvature.toFixed(1);
+      });
+
+      const trailSlider = document.getElementById('trailSlider');
+      const trailVal = document.getElementById('trailVal');
+      trailSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        persistence = val / 100;
+        trailVal.textContent = `${val}%`;
+      });
+
+      // Action buttons
+      document.getElementById('supernovaBtn').addEventListener('click', () => {
+        triggerSemanticSupernova(width * 0.5, height * 0.5);
+      });
+
+      document.getElementById('clearBtn').addEventListener('click', () => {
+        attractors.length = 0;
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = '#05020a';
+        ctx.fillRect(0, 0, width, height);
+      });
+
+      // Audio toggle
+      const audioBtn = document.getElementById('audioToggleBtn');
+      const audioDot = document.getElementById('audioDot');
+      const audioLabel = document.getElementById('audioLabel');
+      audioBtn.addEventListener('click', () => {
+        if (!audioCtx) initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        audioEnabled = !audioEnabled;
+        if (audioEnabled) {
+          masterGain.gain.setTargetAtTime(0.2, audioCtx.currentTime, 0.1);
+          audioDot.className = 'w-2 h-2 rounded-full bg-fuchsia-400 shadow-[0_0_8px_#e879f9]';
+          audioLabel.textContent = 'Synthèse Sonore : Active';
+          playChime(0.5, 0.5, 1.0);
+        } else {
+          masterGain.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.1);
+          audioDot.className = 'w-2 h-2 rounded-full bg-purple-400/50';
+          audioLabel.textContent = 'Activer la Synthèse Sonore';
+        }
+      });
+
+      // HUD Toggle
+      const controlDeck = document.getElementById('controlDeck');
+      const toggleUiBtn = document.getElementById('toggleUiBtn');
+      let hudVisible = true;
+      function toggleHud() {
+        hudVisible = !hudVisible;
+        controlDeck.style.opacity = hudVisible ? '1' : '0';
+        controlDeck.style.pointerEvents = hudVisible ? 'auto' : 'none';
+        controlDeck.style.transform = hudVisible ? 'translate(-50%, 0)' : 'translate(-50%, 24px)';
+      }
+      toggleUiBtn.addEventListener('click', toggleHud);
+      window.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'h') toggleHud();
+        if (e.code === 'Space') {
+          e.preventDefault();
+          triggerSemanticSupernova(pointer.x, pointer.y);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

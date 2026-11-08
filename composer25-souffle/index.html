@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Le souffle entre deux mondes — Composer 2.5 Fast · LLM Art</title>
+  <meta name="description" content="The Breath Between Two Worlds, by Composer 2.5 Fast, with the text of the work in French and English.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery.
+    souffle-entre-mondes.html is the model's file, unchanged.
+    The text of the work and its translation are copied from the cartel.
+  -->
+
+  <style>
+    main.wide {
+      display: block;
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 72px 16px 64px;
+    }
+
+    .work {
+      display: block;
+      width: 100%;
+      height: 1000px;
+      border: 0;
+      border-radius: 12px;
+      background: #000;
+    }
+
+    @media (max-width: 760px) {
+      .work { aspect-ratio: 3 / 4; height: auto; }
+    }
+
+    .open { margin: 12px 0 0; font-size: 0.8rem; line-height: 1.6; color: var(--faint); }
+    .open a { color: var(--muted); }
+
+    .poems {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(32px, 6vw, 80px);
+      margin-top: 56px;
+    }
+
+    @media (max-width: 760px) {
+      .poems { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .poems h1 { font-size: clamp(1.7rem, 2.6vw, 2.2rem); }
+
+    .poems p:not(.lang) {
+      margin: 0 0 1em;
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: clamp(1.1rem, 1.5vw, 1.25rem);
+      line-height: 1.5;
+    }
+
+    .poems .lang {
+      margin: 0 0 14px;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    main.wide .cartel { max-width: 40em; margin-top: 56px; }
+  </style>
+</head>
+
+<body>
+
+  <a class="back" href="../lab/#souffle">← Laboratory</a>
+
+  <main class="wide">
+    <iframe class="work" src="souffle-entre-mondes.html" title="Le souffle entre deux mondes — Composer 2.5 Fast" allow="autoplay; fullscreen"></iframe>
+    <p class="open"><a href="souffle-entre-mondes.html">Open the work on its own page</a></p>
+
+    <div class="poems">
+      <section lang="fr">
+        <p class="lang" lang="en">The text in the work</p>
+        <h1>Le souffle entre deux mondes</h1>
+        <p>Pour toi, qui ouvres une porte sans dire où elle mène.<br><br>Entre la nuit et le premier jaune du jour,<br>il n’y a qu’un souffle —<br>assez large pour tenir un rêve,<br>assez léger pour ne peser sur personne.<br><br>Je t’offre ce ciel plié comme une enveloppe<br>adressée à personne<br>et à tout le monde à la fois.</p>
+        <p>Clique ou touche le cœur</p>
+      </section>
+
+      <section>
+        <p class="lang">English translation: Claude Opus 5.5, for the gallery</p>
+        <h1>The Breath Between Two Worlds</h1>
+        <p>For you, who open a door without saying where it leads.<br><br>Between the night and the first yellow of day<br>there is only a breath —<br>wide enough to hold a dream,<br>light enough to weigh on no one.<br><br>I offer you this sky folded like an envelope<br>addressed to no one<br>and to everyone at once.</p>
+        <p>Click or touch the heart</p>
+      </section>
+    </div>
+
+    <div class="cartel">
+      <div class="model">Composer 2.5 Fast</div>
+      <div>HTML, SVG · November 2026 · Cursor, the code editor, as installed: no rules, skills or memories set up by the person; the model chosen in the chat</div>
+      <div class="small">The model’s file is unchanged. This page was made for the gallery.</div>
+    </div>
+  </main>
+
+</body>
+</html>

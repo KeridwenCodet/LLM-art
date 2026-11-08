@@ -1,615 +1,111 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#090711">
-  <title>L’incendie du silence — œuvre générative</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
-  <script>p5.disableFriendlyErrors = true;</script>
+  <title>L’incendie du silence — Kimi K3.1 Pro · LLM Art</title>
+  <meta name="description" content="The Fire of Silence, by Kimi K3.1 Pro, with the text of the work in French and English.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery.
+    l-incendie-du-silence.html is the model's file, unchanged (renamed from index.html).
+    The text of the work and its translation are copied from the cartel.
+  -->
+
   <style>
-    :root { color-scheme: dark; }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: #090711; }
-    body { overflow: hidden; }
-    #art {
-      position: relative;
-      width: min(1120px, 100vw);
-      height: min(700px, 100vh);
-      min-height: 480px;
-      overflow: hidden;
-      isolation: isolate;
-      background: #090711;
-      cursor: crosshair;
+    main.wide {
+      display: block;
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 72px 16px 64px;
     }
-    #canvas-wrap, #canvas-wrap canvas { position: absolute; inset: 0; display: block; }
-    #canvas-wrap canvas { width: 100% !important; height: 100% !important; touch-action: none; }
-    .ui { position: absolute; z-index: 2; pointer-events: none; user-select: none; }
-    .masthead { top: 34px; left: 40px; }
-    .eyebrow {
-      color: rgba(242, 213, 184, .58);
-      font: 500 10px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      letter-spacing: .28em;
+
+    .work {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      border: 0;
+      border-radius: 12px;
+      background: #000;
+    }
+
+    @media (max-width: 760px) {
+      .work { aspect-ratio: 3 / 4; height: auto; }
+    }
+
+    .open { margin: 12px 0 0; font-size: 0.8rem; line-height: 1.6; color: var(--faint); }
+    .open a { color: var(--muted); }
+
+    .poems {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(32px, 6vw, 80px);
+      margin-top: 56px;
+    }
+
+    @media (max-width: 760px) {
+      .poems { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .poems h1 { font-size: clamp(1.7rem, 2.6vw, 2.2rem); }
+
+    .poems p:not(.lang) {
+      margin: 0 0 1em;
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: clamp(1.1rem, 1.5vw, 1.25rem);
+      line-height: 1.5;
+    }
+
+    .poems .lang {
+      margin: 0 0 14px;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
-      margin-bottom: 12px;
+      color: var(--faint);
     }
-    h1 {
-      margin: 0;
-      color: #f0ddc8;
-      font: italic 400 clamp(28px, 4vw, 49px)/.94 Georgia, 'Times New Roman', serif;
-      letter-spacing: -.035em;
-      text-shadow: 0 2px 22px rgba(8, 4, 16, .55);
-    }
-    h1 span { display: block; margin-left: 34px; color: #ee9b77; }
-    .actions { top: 32px; right: 34px; display: flex; gap: 8px; pointer-events: auto; }
-    button {
-      appearance: none;
-      border: 1px solid rgba(239, 208, 182, .2);
-      border-radius: 999px;
-      color: rgba(245, 224, 205, .74);
-      background: rgba(11, 7, 20, .28);
-      backdrop-filter: blur(8px);
-      padding: 9px 14px;
-      font: 500 10px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: color .2s, border-color .2s, background .2s;
-    }
-    button:hover, button:focus-visible {
-      outline: none;
-      color: #ffe8ce;
-      border-color: rgba(255, 173, 126, .62);
-      background: rgba(64, 25, 42, .42);
-    }
-    .footnote { left: 40px; right: 40px; bottom: 28px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
-    .poem { color: rgba(239, 215, 197, .76); font: italic 16px/1.5 Georgia, 'Times New Roman', serif; text-shadow: 0 2px 14px #090711; }
-    .instructions { color: rgba(231, 209, 196, .60); font: 10px/1.7 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .07em; text-align: right; text-transform: uppercase; text-shadow: 0 2px 12px #090711; }
-    .instructions b { color: rgba(255, 190, 149, .88); font-weight: 500; }
-    #loader {
-      position: absolute; inset: 0; z-index: 5; display: grid; place-items: center;
-      color: #d69b7d; background: #090711;
-      font: italic 18px Georgia, serif; letter-spacing: .05em;
-      transition: opacity .8s ease; pointer-events: none;
-    }
-    #loader.done { opacity: 0; }
-    #pause-label {
-      position: absolute; z-index: 4; left: 50%; top: 50%; transform: translate(-50%, -50%);
-      color: #f2d6ba; font: italic 28px Georgia, serif; opacity: 0; transition: opacity .3s;
-      pointer-events: none; text-shadow: 0 2px 20px #000;
-    }
-    #pause-label.visible { opacity: .85; }
-    @media (max-width: 650px) {
-      #art { min-height: 520px; height: 100vh; }
-      .masthead { top: 25px; left: 24px; }
-      .actions { top: auto; right: 20px; bottom: 22px; }
-      .footnote { left: 24px; right: 24px; bottom: 72px; }
-      .instructions { display: none; }
-      .eyebrow { font-size: 8px; }
-      h1 { font-size: 34px; }
-    }
-    @media (prefers-reduced-motion: reduce) { #loader { transition: none; } }
+
+    main.wide .cartel { max-width: 40em; margin-top: 56px; }
   </style>
 </head>
+
 <body>
-  <main id="art" aria-label="L’incendie du silence, une œuvre générative interactive">
-    <div id="canvas-wrap"></div>
-    <header class="ui masthead">
-      <div class="eyebrow">Étude 01 · matière sensible</div>
-      <h1>L’incendie <span>du silence</span></h1>
-    </header>
-    <div class="ui actions">
-      <button id="rebirth" type="button" title="Nouvelle composition (R)">Renaître</button>
-      <button id="save" type="button" title="Télécharger l’image (S)">Garder ↓</button>
+
+  <a class="back" href="../lab/#incendie">← Laboratory</a>
+
+  <main class="wide">
+    <iframe class="work" src="l-incendie-du-silence.html" title="L’incendie du silence — Kimi K3.1 Pro" allow="autoplay; fullscreen"></iframe>
+    <p class="open">Glide to bend the light · click to open a breach · Space hold time · R rebirth · S keep an image · <a href="l-incendie-du-silence.html">Open the work on its own page</a></p>
+
+    <div class="poems">
+      <section lang="fr">
+        <p class="lang" lang="en">The text in the work</p>
+        <h1>L’incendie du silence</h1>
+        <p>Étude 01 · matière sensible · L’incendie du silence</p>
+        <p>Tout ce qu’on tait<br>apprend à brûler.</p>
+        <p>glisse pour courber la lumière · clique pour ouvrir une brèche · espace pour retenir le temps · renaître · garder</p>
+      </section>
+
+      <section>
+        <p class="lang">English translation: Claude Opus 5.5, for the gallery</p>
+        <h1>The Fire of Silence</h1>
+        <p>Study 01 · sensitive matter · The Fire of Silence</p>
+        <p>Everything we keep silent<br>learns to burn.</p>
+        <p>glide to bend the light · click to open a breach · space to hold back time · be reborn · keep</p>
+      </section>
     </div>
-    <footer class="ui footnote">
-      <div class="poem">Tout ce qu’on tait<br>apprend à brûler.</div>
-      <div class="instructions"><b>Glisse</b> pour courber la lumière<br><b>Clique</b> pour ouvrir une brèche · <b>Espace</b> pour retenir le temps</div>
-    </footer>
-    <div id="pause-label">le temps retient son souffle</div>
-    <div id="loader">la nuit prend feu…</div>
+
+    <div class="cartel">
+      <div class="model">Kimi K3.1 Pro</div>
+      <div>p5.js · November 2026 · Hermes Agent, neutral SOUL.md, with the shared notebook: a copy of the skills carrying lessons from earlier sessions, curated by the person, who removed those that made works too alike. The agent’s memory still held technical notes from MiniMax M3.1 Flash’s sessions.</div>
+      <div class="small">The model’s file is unchanged. This page was made for the gallery.</div>
+    </div>
   </main>
 
-<script>
-/*
-  L’INCENDIE DU SILENCE
-  Un soleil noir entouré de filaments calligraphiques. Le champ de force mêle
-  bruit fractal, orbites elliptiques et mémoire gestuelle : chaque mouvement
-  modifie localement la gravité, chaque clic devient une brèche incandescente.
-*/
-const CONFIG = {
-  seed: 17031,
-  particleDensity: 920,
-  flowScale: 0.00175,
-  trailPersistence: 0.0055,
-  paused: false
-};
-const PALETTE = [
-  { h: 345, s: 82, b: 100 }, // carmin
-  { h: 15,  s: 92, b: 100 }, // braise
-  { h: 38,  s: 72, b: 100 }, // or pâle
-  { h: 187, s: 58, b: 96  }, // nerf froid
-  { h: 278, s: 54, b: 82  }  // violet enfoui
-];
-
-let W = 1120, H = 700, core = { x: 650, y: 350, r: 96 };
-let trailLayer, backdrop;
-let embers = [], sparks = [], breaches = [], filaments = [];
-let pointer = { x: 0, y: 0, px: 0, py: 0, vx: 0, vy: 0, inside: false, down: false };
-let lastFrameTime = 0;
-
-function setup() {
-  const box = document.getElementById('art').getBoundingClientRect();
-  W = Math.max(320, Math.floor(box.width));
-  H = Math.max(420, Math.floor(box.height));
-  const cnv = createCanvas(W, H);
-  cnv.parent('canvas-wrap');
-  pixelDensity(1);
-  colorMode(HSB, 360, 100, 100, 255);
-  noiseDetail(4, 0.54);
-  frameRate(60);
-  trailLayer = createGraphics(W, H);
-  trailLayer.pixelDensity(1);
-  trailLayer.colorMode(HSB, 360, 100, 100, 255);
-  backdrop = createGraphics(W, H);
-  backdrop.pixelDensity(1);
-  backdrop.colorMode(HSB, 360, 100, 100, 255);
-
-  cnv.elt.addEventListener('pointerenter', () => pointer.inside = true);
-  cnv.elt.addEventListener('pointerleave', () => { pointer.inside = false; pointer.down = false; });
-  cnv.elt.addEventListener('pointerdown', () => pointer.down = true);
-  window.addEventListener('pointerup', () => pointer.down = false);
-
-  resetWorld(CONFIG.seed);
-  document.getElementById('loader').classList.add('done');
-  setTimeout(() => document.getElementById('loader').remove(), 900);
-  window._p5Ready = true;
-}
-
-function resetWorld(seed) {
-  CONFIG.seed = seed;
-  randomSeed(seed);
-  noiseSeed(seed);
-  core = { x: W * 0.59, y: H * 0.49, r: Math.min(W, H) * 0.145 };
-  embers = [];
-  sparks = [];
-  breaches = [];
-  filaments = [];
-  trailLayer.clear();
-  paintBackdrop();
-  makeFilaments();
-  const count = Math.round(constrain((W * H) / CONFIG.particleDensity, 560, 1050));
-  for (let i = 0; i < count; i++) embers.push(new Ember(i));
-  // La première image doit déjà avoir une histoire : on laisse les gestes
-  // s’inscrire dans la matière avant d’ouvrir le rideau.
-  for (let i = 0; i < 105; i++) {
-    const t = i / 60;
-    for (const e of embers) e.update(t, true);
-  }
-  trailLayer.blendMode(BLEND);
-  draw(0);
-}
-
-function paintBackdrop() {
-  const ctx = backdrop.drawingContext;
-  ctx.clearRect(0, 0, W, H);
-  const g = ctx.createRadialGradient(core.x, core.y, 0, core.x, core.y, Math.max(W, H) * 0.82);
-  g.addColorStop(0, '#241126');
-  g.addColorStop(0.24, '#130c1c');
-  g.addColorStop(0.63, '#0b0915');
-  g.addColorStop(1, '#060710');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, H);
-
-  // Une seconde lumière, presque hors-champ, pour éviter le noir uniforme.
-  const g2 = ctx.createRadialGradient(W * 0.08, H * 0.92, 0, W * 0.08, H * 0.92, W * 0.7);
-  g2.addColorStop(0, 'rgba(80, 24, 48, .22)');
-  g2.addColorStop(0.45, 'rgba(27, 22, 55, .10)');
-  g2.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  ctx.fillStyle = g2;
-  ctx.fillRect(0, 0, W, H);
-
-  backdrop.noFill();
-  for (let i = 0; i < 2600; i++) {
-    const x = random(W), y = random(H);
-    const nearCore = dist(x, y, core.x, core.y) < core.r * 2.4;
-    backdrop.stroke(random() < 0.13 ? 32 : 220, 20, 100, nearCore ? 10 : random(3, 13));
-    backdrop.strokeWeight(random(0.25, 0.75));
-    backdrop.point(x, y);
-  }
-  // Très fines lignes de papier, comme une nuit imprimée plutôt qu’un écran.
-  for (let y = 1; y < H; y += 4) {
-    backdrop.stroke(250, 12, 70, 2.2);
-    backdrop.line(0, y, W, y);
-  }
-}
-
-function makeFilaments() {
-  for (let i = 0; i < 16; i++) {
-    filaments.push({
-      angle: random(TWO_PI),
-      radius: core.r * random(1.2, 2.6),
-      stretch: random(0.48, 0.82),
-      hue: random() < 0.72 ? random(18, 42) : random(330, 355),
-      alpha: random(8, 25),
-      phase: random(TWO_PI)
-    });
-  }
-}
-
-class Ember {
-  constructor(index) {
-    this.index = index;
-    this.paletteIndex = weightedPalette();
-    this.width = random() < 0.07 ? random(1.35, 2.3) : random(0.38, 1.02);
-    this.alpha = random(52, 138);
-    this.speed = random(0.58, 1.65);
-    this.reset(true);
-  }
-  reset(initial = false) {
-    const a = random(TWO_PI);
-    const band = random();
-    let radius;
-    if (band < 0.68) radius = core.r * random(1.25, 3.55);
-    else if (band < 0.90) radius = core.r * random(3.5, 6.4);
-    else radius = Math.max(W, H) * random(0.52, 0.78);
-    this.x = core.x + Math.cos(a) * radius;
-    this.y = core.y + Math.sin(a) * radius * random(0.54, 0.82);
-    if (this.x < -30 || this.x > W + 30 || this.y < -30 || this.y > H + 30) {
-      this.x = random(W); this.y = random(H);
-    }
-    this.px = this.x; this.py = this.y;
-    const tangent = a + HALF_PI + random(-0.28, 0.28);
-    this.vx = Math.cos(tangent) * this.speed;
-    this.vy = Math.sin(tangent) * this.speed * 0.8;
-    this.life = initial ? random(60, 430) : random(180, 430);
-    this.maxLife = 430;
-    this.seed = random(1000);
-  }
-  update(t, prewarm = false) {
-    this.px = this.x; this.py = this.y;
-    const dx = this.x - core.x;
-    const dy = (this.y - core.y) / 0.72;
-    const d = Math.max(12, Math.sqrt(dx * dx + dy * dy));
-    const radialX = dx / d, radialY = dy / d;
-
-    const warp = noise(this.x * 0.0008 + 12.7, this.y * 0.0008, t * 0.035) - 0.5;
-    const n = noise(this.x * CONFIG.flowScale + warp * 1.8,
-                    this.y * CONFIG.flowScale - warp * 1.2,
-                    t * 0.055 + this.seed * 0.00003);
-    const flowAngle = (n - 0.5) * TWO_PI * 2.7 + 0.35;
-    const orbitDirection = 1;
-    const tangentX = -radialY * orbitDirection;
-    const tangentY = radialX * orbitDirection * 0.78;
-    const breathing = Math.sin(t * 0.72 + this.seed) * 0.09;
-    const gravity = constrain((core.r * 1.65 - d) / core.r, -0.25, 0.6);
-
-    let desiredX = tangentX * (0.88 + breathing) + Math.cos(flowAngle) * 0.62 - radialX * gravity * 0.55;
-    let desiredY = tangentY * (0.88 + breathing) + Math.sin(flowAngle) * 0.62 - radialY * gravity * 0.42;
-
-    // Le curseur n’est pas un pinceau : c’est une gravité déplacée.
-    if (pointer.inside && !prewarm) {
-      const mx = this.x - pointer.x, my = this.y - pointer.y;
-      const md = Math.sqrt(mx * mx + my * my);
-      const reach = pointer.down ? 260 : 180;
-      if (md < reach && md > 1) {
-        const force = Math.pow(1 - md / reach, 2);
-        const sign = pointer.down ? 1 : -0.28;
-        desiredX += (mx / md) * force * 5.2 * sign + (-my / md) * force * 1.7 + pointer.vx * force * 0.10;
-        desiredY += (my / md) * force * 5.2 * sign + ( mx / md) * force * 1.7 + pointer.vy * force * 0.10;
-      }
-    }
-
-    this.vx = lerp(this.vx, desiredX * this.speed, prewarm ? 0.10 : 0.065);
-    this.vy = lerp(this.vy, desiredY * this.speed, prewarm ? 0.10 : 0.065);
-    const velocity = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-    const maxV = pointer.down ? 5.5 : 3.0;
-    if (velocity > maxV) { this.vx *= maxV / velocity; this.vy *= maxV / velocity; }
-    this.x += this.vx;
-    this.y += this.vy;
-    this.life--;
-
-    const out = this.x < -45 || this.x > W + 45 || this.y < -45 || this.y > H + 45;
-    if (out || this.life <= 0) { this.reset(false); return; }
-    if (Math.abs(this.x - this.px) > 18 || Math.abs(this.y - this.py) > 18) return;
-
-    const c = PALETTE[this.paletteIndex];
-    const lifeFade = Math.min(1, this.life / 55);
-    const centerGlow = constrain(1.5 - d / (core.r * 3.4), 0.45, 1.25);
-    trailLayer.blendMode(ADD);
-    trailLayer.stroke(c.h, c.s, c.b, this.alpha * lifeFade * centerGlow);
-    trailLayer.strokeWeight(this.width);
-    trailLayer.line(this.px, this.py, this.x, this.y);
-    if (this.width > 1.2) {
-      trailLayer.stroke(c.h, c.s * 0.75, 100, this.alpha * 0.18 * lifeFade);
-      trailLayer.strokeWeight(this.width * 4.5);
-      trailLayer.line(this.px, this.py, this.x, this.y);
-    }
-  }
-}
-
-class Spark {
-  constructor(x, y) {
-    const a = random(TWO_PI);
-    const v = random(1.2, 8.2) * (random() < 0.08 ? 1.8 : 1);
-    this.x = this.px = x; this.y = this.py = y;
-    this.vx = Math.cos(a) * v; this.vy = Math.sin(a) * v;
-    this.life = 1; this.decay = random(0.007, 0.022);
-    this.c = PALETTE[weightedPalette()];
-    this.width = random(0.5, 1.8);
-  }
-  update() {
-    this.px = this.x; this.py = this.y;
-    this.vx *= 0.975; this.vy *= 0.975;
-    const dx = this.x - core.x, dy = this.y - core.y;
-    const d = Math.max(30, Math.sqrt(dx * dx + dy * dy));
-    this.vx += (-dy / d) * 0.055; this.vy += (dx / d) * 0.055;
-    this.x += this.vx; this.y += this.vy; this.life -= this.decay;
-    trailLayer.blendMode(ADD);
-    trailLayer.stroke(this.c.h, this.c.s * 0.85, 100, 190 * this.life);
-    trailLayer.strokeWeight(this.width * this.life + 0.25);
-    trailLayer.line(this.px, this.py, this.x, this.y);
-  }
-}
-
-function weightedPalette() {
-  const r = random();
-  if (r < 0.31) return 0;
-  if (r < 0.60) return 1;
-  if (r < 0.82) return 2;
-  if (r < 0.91) return 3;
-  return 4;
-}
-
-function draw(explicitTime) {
-  const t = explicitTime !== undefined ? explicitTime : millis() / 1000;
-  pointer.vx = lerp(pointer.vx, pointer.inside ? mouseX - pmouseX : 0, 0.22);
-  pointer.vy = lerp(pointer.vy, pointer.inside ? mouseY - pmouseY : 0, 0.22);
-  if (pointer.inside) { pointer.x = mouseX; pointer.y = mouseY; }
-
-  fadeTrails();
-  for (const e of embers) e.update(t);
-  for (let i = sparks.length - 1; i >= 0; i--) {
-    sparks[i].update();
-    if (sparks[i].life <= 0) sparks.splice(i, 1);
-  }
-
-  image(backdrop, 0, 0);
-  drawAmbientArcs(t);
-  blendMode(SCREEN);
-  image(trailLayer, 0, 0);
-  blendMode(BLEND);
-  drawBreaches(t);
-  drawSolarFlares(t);
-  drawBlackSun(t);
-  drawForegroundDust(t);
-}
-
-function fadeTrails() {
-  const ctx = trailLayer.drawingContext;
-  ctx.save();
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.fillStyle = `rgba(0,0,0,${CONFIG.trailPersistence})`;
-  ctx.fillRect(0, 0, W, H);
-  ctx.restore();
-}
-
-function drawAmbientArcs(t) {
-  push();
-  blendMode(ADD);
-  noFill();
-  for (const f of filaments) {
-    const wobble = noise(f.phase, t * 0.027) - 0.5;
-    const r = f.radius * (1 + wobble * 0.09);
-    const start = f.angle + t * 0.009 + wobble * 0.2;
-    const span = 0.45 + noise(f.phase * 2, t * 0.018) * 1.25;
-    stroke(f.hue, 58, 92, f.alpha);
-    strokeWeight(0.55);
-    beginShape();
-    for (let j = 0; j <= 70; j++) {
-      const a = start + span * j / 70;
-      const rr = r + Math.sin(a * 5 + f.phase + t * 0.16) * 5;
-      vertex(core.x + Math.cos(a) * rr, core.y + Math.sin(a) * rr * f.stretch);
-    }
-    endShape();
-  }
-  pop();
-}
-
-function drawSolarFlares(t) {
-  // Des protubérances solaires calligraphiées : trois passages d’une même
-  // ligne donnent à la braise un corps, puis une arête presque blanche.
-  push();
-  blendMode(ADD);
-  noFill();
-  for (let i = 0; i < 9; i++) {
-    const energy = Math.max(0.06, noise(i * 4.17 + 3, t * 0.13) - 0.24) * 1.5;
-    const base = i * 2.39996 + (noise(i * 1.7, t * 0.04) - 0.5) * 0.5 + t * 0.006;
-    const length = 0.24 + energy * 1.18;
-    const hue = i % 4 === 0 ? 345 : (i % 3 === 0 ? 38 : 20);
-    for (let pass = 0; pass < 3; pass++) {
-      stroke(hue, pass === 2 ? 48 : 88, 100, [25, 64, 155][pass] * energy);
-      strokeWeight([11, 3.1, 0.85][pass]);
-      beginShape();
-      for (let j = 0; j <= 38; j++) {
-        const u = j / 38;
-        const angle = base + u * (0.18 + energy * 0.48) + Math.sin(u * PI) * 0.08;
-        const ragged = (noise(i * 2.3, u * 2.1, t * 0.09) - 0.5) * core.r * 0.16 * u;
-        const radius = core.r * (0.97 + u * length) + ragged;
-        vertex(core.x + Math.cos(angle) * radius, core.y + Math.sin(angle) * radius * 0.88);
-      }
-      endShape();
-    }
-  }
-  pop();
-}
-
-function drawBlackSun(t) {
-  const ctx = drawingContext;
-  const breathe = 1 + Math.sin(t * 0.83) * 0.022;
-  const r = core.r * breathe;
-
-  ctx.save();
-  ctx.globalCompositeOperation = 'screen';
-  const halo = ctx.createRadialGradient(core.x, core.y, r * 0.65, core.x, core.y, r * 2.85);
-  halo.addColorStop(0, 'rgba(255, 111, 72, .32)');
-  halo.addColorStop(0.26, 'rgba(239, 71, 79, .16)');
-  halo.addColorStop(0.52, 'rgba(135, 47, 105, .08)');
-  halo.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  ctx.fillStyle = halo;
-  ctx.fillRect(core.x - r * 3, core.y - r * 3, r * 6, r * 6);
-  ctx.restore();
-
-  // Une couronne qui n’est jamais parfaitement ronde : le silence se déforme.
-  push();
-  blendMode(ADD);
-  noFill();
-  for (let ring = 0; ring < 3; ring++) {
-    stroke(ring === 1 ? 344 : 26, ring === 1 ? 78 : 74, 100, [135, 75, 38][ring]);
-    strokeWeight([1.25, 3.8, 8][ring]);
-    beginShape();
-    for (let i = 0; i <= 180; i++) {
-      const a = i / 180 * TWO_PI;
-      const nr = noise(Math.cos(a) * 1.5 + 7, Math.sin(a) * 1.5 + ring * 3, t * 0.12);
-      const rr = r * (1.015 + ring * 0.016) + (nr - 0.5) * r * 0.19;
-      vertex(core.x + Math.cos(a) * rr, core.y + Math.sin(a) * rr * 0.96);
-    }
-    endShape(CLOSE);
-  }
-  pop();
-
-  ctx.save();
-  const disk = ctx.createRadialGradient(core.x - r * 0.25, core.y - r * 0.30, r * 0.05, core.x, core.y, r);
-  disk.addColorStop(0, '#100b18');
-  disk.addColorStop(0.64, '#070711');
-  disk.addColorStop(0.91, '#03040a');
-  disk.addColorStop(1, 'rgba(2, 3, 8, .94)');
-  ctx.fillStyle = disk;
-  ctx.beginPath(); ctx.arc(core.x, core.y, r * 1.015, 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
-
-  // Une cicatrice minuscule dans le disque, comme une lumière enfermée.
-  push();
-  blendMode(ADD);
-  noFill();
-  stroke(37, 45, 100, 78);
-  strokeWeight(0.8);
-  arc(core.x - r * 0.08, core.y + r * 0.03, r * 1.16, r * 0.62, 0.12, 1.06);
-  stroke(346, 68, 100, 34);
-  arc(core.x - r * 0.07, core.y + r * 0.03, r * 1.22, r * 0.68, 0.08, 0.91);
-  pop();
-}
-
-function drawBreaches() {
-  push();
-  blendMode(ADD);
-  noFill();
-  for (let i = breaches.length - 1; i >= 0; i--) {
-    const b = breaches[i];
-    b.r += 5.2 + b.r * 0.012;
-    b.life -= 0.014;
-    const eased = b.life * b.life;
-    stroke(24, 74, 100, 170 * eased);
-    strokeWeight(1.2 * b.life + 0.25);
-    ellipse(b.x, b.y, b.r * 2, b.r * 1.72);
-    stroke(344, 72, 100, 75 * eased);
-    strokeWeight(5 * b.life);
-    ellipse(b.x, b.y, b.r * 1.92, b.r * 1.65);
-    if (b.life <= 0) breaches.splice(i, 1);
-  }
-  pop();
-}
-
-function drawForegroundDust(t) {
-  push();
-  blendMode(ADD);
-  noStroke();
-  for (let i = 0; i < 42; i++) {
-    const a = i * 2.39996 + t * (0.008 + (i % 5) * 0.002);
-    const r = core.r * (1.45 + (i % 13) * 0.18);
-    const x = core.x + Math.cos(a) * r;
-    const y = core.y + Math.sin(a) * r * 0.66;
-    const twinkle = 0.35 + 0.65 * noise(i * 0.4, t * 0.2);
-    fill(i % 7 === 0 ? 187 : 32, 45, 100, 45 * twinkle);
-    circle(x, y, i % 9 === 0 ? 1.8 : 0.8);
-  }
-  pop();
-}
-
-function openBreach(x, y) {
-  if (CONFIG.paused) togglePause();
-  breaches.push({ x, y, r: 8, life: 1 });
-  const amount = W < 600 ? 55 : 105;
-  for (let i = 0; i < amount; i++) sparks.push(new Spark(x, y));
-  if (sparks.length > 650) sparks.splice(0, sparks.length - 650);
-}
-
-function mousePressed() {
-  if (mouseX >= 0 && mouseX <= W && mouseY >= 0 && mouseY <= H) {
-    openBreach(mouseX, mouseY);
-    return false;
-  }
-}
-function touchStarted() {
-  if (touches.length && touches[0].x >= 0 && touches[0].x <= W && touches[0].y >= 0 && touches[0].y <= H) {
-    openBreach(touches[0].x, touches[0].y);
-    return false;
-  }
-}
-
-function togglePause() {
-  CONFIG.paused = !CONFIG.paused;
-  document.getElementById('pause-label').classList.toggle('visible', CONFIG.paused);
-  if (CONFIG.paused) noLoop(); else loop();
-}
-
-function keyPressed() {
-  if (key === 's' || key === 'S') saveArtwork();
-  if (key === 'r' || key === 'R') resetWorld(floor(random(1, 999999)));
-  if (key === ' ') { togglePause(); return false; }
-}
-
-function saveArtwork() { saveCanvas(`incendie-du-silence-${CONFIG.seed}`, 'png'); }
-
-document.getElementById('save').addEventListener('click', (event) => { event.stopPropagation(); saveArtwork(); });
-document.getElementById('rebirth').addEventListener('click', (event) => {
-  event.stopPropagation();
-  if (CONFIG.paused) togglePause();
-  resetWorld(floor(random(1, 999999)));
-});
-
-let resizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    const box = document.getElementById('art').getBoundingClientRect();
-    const nw = Math.max(320, Math.floor(box.width)), nh = Math.max(420, Math.floor(box.height));
-    if (nw === W && nh === H) return;
-    W = nw; H = nh;
-    resizeCanvas(W, H);
-    trailLayer.remove(); backdrop.remove();
-    trailLayer = createGraphics(W, H); trailLayer.pixelDensity(1); trailLayer.colorMode(HSB, 360, 100, 100, 255);
-    backdrop = createGraphics(W, H); backdrop.pixelDensity(1); backdrop.colorMode(HSB, 360, 100, 100, 255);
-    resetWorld(CONFIG.seed);
-  }, 180);
-});
-
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) noLoop();
-  else if (!CONFIG.paused) loop();
-});
-
-// Petite interface publique pour vérifier et piloter l’œuvre sans la dénaturer.
-window.__art = {
-  get ready() { return !!window._p5Ready; },
-  get seed() { return CONFIG.seed; },
-  get particles() { return embers.length; },
-  get sparks() { return sparks.length; },
-  get breaches() { return breaches.length; },
-  get paused() { return CONFIG.paused; },
-  pulse(x = core.x, y = core.y) { openBreach(x, y); },
-  rebirth(seed = 17031) { resetWorld(seed); }
-};
-</script>
 </body>
 </html>

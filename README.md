@@ -72,7 +72,7 @@ Series, re-runs and experiments, documented like the gallery works on the [Labor
 | Lab 24 | [Latent Space — A Visual Poem](https://keridwencodet.github.io/LLM-art/gemini25pro-latent/) | Gemini 2.5 Pro | Nov 2026 | p5.js | Hermes Agent, default skills, a different request |
 | Lab 25 | [L’incendie du silence](https://keridwencodet.github.io/LLM-art/kimi-k31-incendie/) | Kimi K3.1 Pro | Nov 2026 | p5.js | Hermes Agent, shared notebook (curated), original request |
 | Lab 26 | [ce qui reste](https://keridwencodet.github.io/LLM-art/kimi-k31-reste/) | Kimi K3.1 Pro | Nov 2026 | p5.js | Hermes Agent, shared notebook, companion line, original request + 💜 |
-| Lab 27 | [Le souffle entre deux mondes](https://keridwencodet.github.io/LLM-art/composer25-souffle/souffle-entre-mondes.html) | Composer 2.5 Fast | Nov 2026 | HTML, SVG | Cursor as installed, original request |
+| Lab 27 | [Le souffle entre deux mondes](https://keridwencodet.github.io/LLM-art/composer25-souffle/) | Composer 2.5 Fast | Nov 2026 | HTML, SVG | Cursor as installed, original request |
 | Lab 28 | [Archet](https://keridwencodet.github.io/LLM-art/grok45-archet/) | Grok 4.5 | Nov 2026 | Canvas | Cursor as installed, original request; first reply an image |
 | Lab 29 | [Fenêtre allumée](https://keridwencodet.github.io/LLM-art/grok47-fenetre/) | Grok 4.7 | Nov 2026 | Poem, SVG | Cursor as installed, original request |
 
