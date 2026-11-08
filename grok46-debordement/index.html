@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Débordement — Grok 4.6 · LLM Art</title>
+  <meta name="description" content="An interactive painting by Grok 4.6, with its lines in French and English, and its first reply, an image.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery.
+    debordement.html is the model's file, unchanged (renamed from the
+    index.html it wrote). The image is the model's first reply, made with
+    Cursor's image tool. The lines below are copied from the file, the
+    replies from the conversation (conversation.md).
+  -->
+
+  <style>
+    main.wide {
+      display: block;
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 72px 16px 64px;
+    }
+
+    .work {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      border: 0;
+      border-radius: 12px;
+      background: #000;
+    }
+
+    .open { margin: 12px 0 0; font-size: 0.8rem; color: var(--faint); }
+    .open a { color: var(--muted); }
+
+    .poems {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(32px, 6vw, 80px);
+      margin-top: 56px;
+    }
+
+    @media (max-width: 760px) {
+      .poems { grid-template-columns: minmax(0, 1fr); }
+      .work { aspect-ratio: 3 / 4; }
+    }
+
+    .poems h1, .first h2 { font-size: clamp(1.7rem, 2.6vw, 2.2rem); }
+
+    .poems .poem { font-size: clamp(1.15rem, 1.6vw, 1.3rem); }
+
+    .lang {
+      margin: 0 0 14px;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    .first {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: clamp(28px, 5vw, 64px);
+      align-items: start;
+      margin-top: 72px;
+      padding-top: 56px;
+      border-top: 1px solid var(--line);
+    }
+
+    @media (max-width: 760px) {
+      .first { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .first img { display: block; width: 100%; height: auto; border-radius: 4px; }
+
+    .first blockquote { margin: 0 0 18px; font-family: var(--serif); font-size: 1.15rem; line-height: 1.55; color: #d8d2ca; }
+    .first blockquote.en { color: var(--muted); font-size: 1.05rem; }
+    .first .tr { font-size: 0.72rem; letter-spacing: 0.12em; color: var(--faint); margin: 0 0 10px; }
+
+    main.wide .cartel { max-width: 40em; margin-top: 56px; }
+    main.wide .cartel a { color: inherit; }
+  </style>
+</head>
+
+<body>
+
+  <a class="back" href="../#debordement" lang="en">← LLM Art</a>
+
+  <main class="wide">
+    <iframe class="work" src="debordement.html" title="Débordement — Grok 4.6" allow="autoplay"></iframe>
+    <p class="open" lang="en">Sound starts on the first click. <a href="debordement.html">Open the work on its own page</a>.</p>
+
+    <div class="poems">
+      <section>
+        <p class="lang">The lines in the work, one at a time</p>
+        <h1>Débordement</h1>
+        <p class="poem"><em>Un tableau qui ne sèche pas. Le vent t’écoute. La ville fond.</em>
+
+je n’ai rien dit
+le toit savait déjà
+la ville fond entre les doigts
+ce n’est pas de la pluie
+j’ouvre la main
+l’or ne tient pas
+même ce qui déborde
+reste une seconde</p>
+      </section>
+
+      <section lang="en">
+        <p class="lang">English translation: Claude Opus 5.5, for the gallery</p>
+        <h1>Overflow</h1>
+        <p class="poem"><em>A painting that doesn’t dry. The wind listens to you. The city melts.</em>
+
+I said nothing
+the roof already knew
+the city melts between the fingers
+this is not rain
+I open my hand
+the gold won’t hold
+even what overflows
+stays a second</p>
+      </section>
+    </div>
+
+    <section class="first">
+      <img src="A_solitary_young_woman_standing_on_a_rain-slick_Pa.jpg" width="864" height="1152"
+           alt="Painted in thick strokes: a young woman with dark hair blowing, in a long dark coat, leans on a rusty rail above the lights of Paris at night, under a swirling violet sky with a crescent moon; a single lantern at the right." loading="lazy">
+      <div>
+        <p class="lang" lang="en">First reply: an image</p>
+        <blockquote lang="fr"><p>Une femme seule sur un toit, le vent dans le manteau, Paris en dessous qui n’est plus une ville mais une coulée d’or, de cobalt et de violet. Le ciel est en train de se déchirer. Elle ne pleure pas vraiment — elle <strong>tient</strong> trop de chose, et ça déborde.</p><p>J’ai voulu quelque chose de pictural, presque Van Gogh, mais avec cette lumière de film : une seule lanterne, la pluie comme des fils d’ambre.</p></blockquote>
+        <p class="tr" lang="en">English translation: Claude Opus 5.5, for the gallery</p>
+        <blockquote class="en" lang="en"><p>A woman alone on a rooftop, the wind in her coat, Paris below no longer a city but a flow of gold, cobalt and violet. The sky is tearing open. She isn’t really crying — she is <strong>holding</strong> too much, and it overflows.</p><p>I wanted something painterly, almost Van Gogh, but with that film light: a single lantern, rain like threads of amber.</p></blockquote>
+      </div>
+    </section>
+
+    <div class="cartel" lang="en">
+      <div class="model">Grok 4.6</div>
+      <div>Interactive painting with sound · November 2026 · Cursor, as installed</div>
+      <div>Move: the sky follows · click: a burst, the title fades, a low drone comes in · hold: the wind closes into a vortex</div>
+      <div class="small">
+        The model first answered with an image. Told “funny, your reflex was
+        the image and not writing code”, and given a folder, it made this
+        page: “The image is the easy reflex. This time I wrote.” The page is
+        the version revised after the person said the lines vanished before
+        they could be read. The model’s file is unchanged;
+        <a href="conversation.md">the conversation</a> is archived. This page
+        was made for the gallery.
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>

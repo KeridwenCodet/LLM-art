@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Archet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=Syne:wght@600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #0c1018;
+      --ember: #e8a04a;
+      --blood: #9b3a2a;
+      --storm: #1a2740;
+      --mist: #c8d0dc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--ink);
+      color: var(--mist);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      cursor: none;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: clamp(1.25rem, 4vw, 2.5rem);
+    }
+
+    .brand {
+      font-family: Syne, sans-serif;
+      font-weight: 800;
+      font-size: clamp(2.4rem, 7vw, 5.5rem);
+      letter-spacing: -0.04em;
+      line-height: 0.9;
+      color: #f4efe6;
+      text-shadow: 0 0 40px rgba(232, 160, 74, 0.25);
+      opacity: 0;
+      animation: rise 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
+    }
+
+    .brand em {
+      display: block;
+      font-style: italic;
+      font-family: "Cormorant Garamond", serif;
+      font-weight: 500;
+      font-size: 0.38em;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ember);
+      margin-top: 0.55em;
+      opacity: 0.9;
+    }
+
+    .center-hint {
+      align-self: end;
+      justify-self: start;
+      max-width: 18rem;
+      font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+      line-height: 1.35;
+      font-style: italic;
+      color: rgba(200, 208, 220, 0.72);
+      opacity: 0;
+      animation: rise 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.7s forwards;
+      transition: opacity 0.8s ease;
+    }
+
+    .center-hint.gone { opacity: 0 !important; }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 1rem;
+      font-family: Syne, sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(200, 208, 220, 0.45);
+      opacity: 0;
+      animation: rise 1s ease 1.1s forwards;
+    }
+
+    .footer button {
+      pointer-events: auto;
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      cursor: pointer;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid transparent;
+      transition: color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .footer button:hover {
+      color: var(--ember);
+      border-color: var(--ember);
+    }
+
+    .cursor {
+      position: fixed;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(232, 160, 74, 0.85);
+      background: rgba(232, 160, 74, 0.15);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 5;
+      mix-blend-mode: screen;
+      transition: width 0.2s ease, height 0.2s ease, background 0.2s ease;
+    }
+
+    .cursor.drawing {
+      width: 28px;
+      height: 28px;
+      background: rgba(155, 58, 42, 0.25);
+      border-color: rgba(244, 239, 230, 0.7);
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 640px) {
+      body { cursor: auto; }
+      .cursor { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+
+  <div class="hud">
+    <div class="brand">
+      Archet
+      <em>glisse pour jouer</em>
+    </div>
+    <p class="center-hint" id="hint">
+      Chaque geste est une note. Laisse le vent peindre avec toi.
+    </p>
+    <div class="footer">
+      <span id="tempo">tempo · lent</span>
+      <button type="button" id="clear">effacer la partition</button>
+    </div>
+  </div>
+
+  <div class="cursor" id="cursor" hidden></div>
+
+  <script>
+    const canvas = document.getElementById("stage");
+    const ctx = canvas.getContext("2d", { alpha: false });
+    const hint = document.getElementById("hint");
+    const tempoEl = document.getElementById("tempo");
+    const clearBtn = document.getElementById("clear");
+    const cursorEl = document.getElementById("cursor");
+
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    let W = 0;
+    let H = 0;
+    let drawing = false;
+    let moved = false;
+    let last = null;
+    let particles = [];
+    let strokes = [];
+    let time = 0;
+    let speedAvg = 0;
+
+    const palette = [
+      { r: 232, g: 160, b: 74 },
+      { r: 155, g: 58, b: 42 },
+      { r: 244, g: 239, b: 230 },
+      { r: 61, g: 90, b: 140 },
+      { r: 28, g: 40, b: 68 },
+    ];
+
+    function resize() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = Math.floor(W * DPR);
+      canvas.height = Math.floor(H * DPR);
+      canvas.style.width = W + "px";
+      canvas.style.height = H + "px";
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      paintBackdrop(true);
+      for (const s of strokes) drawStroke(s);
+    }
+
+    function paintBackdrop(hard) {
+      if (hard) {
+        const g = ctx.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, "#0a0e16");
+        g.addColorStop(0.45, "#121a28");
+        g.addColorStop(1, "#1c140f");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+
+        // distant city glow
+        const glow = ctx.createRadialGradient(
+          W * 0.72, H * 0.58, 0,
+          W * 0.72, H * 0.58, Math.max(W, H) * 0.55
+        );
+        glow.addColorStop(0, "rgba(232,160,74,0.14)");
+        glow.addColorStop(0.45, "rgba(155,58,42,0.06)");
+        glow.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, W, H);
+
+        // rooftop horizon suggestion
+        ctx.beginPath();
+        ctx.moveTo(0, H * 0.72);
+        for (let x = 0; x <= W; x += 28) {
+          const y = H * 0.72 + Math.sin(x * 0.01) * 8 + (Math.random() - 0.5) * 6;
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(W, H);
+        ctx.lineTo(0, H);
+        ctx.closePath();
+        ctx.fillStyle = "rgba(8,10,16,0.55)";
+        ctx.fill();
+      } else {
+        ctx.fillStyle = "rgba(12,16,24,0.045)";
+        ctx.fillRect(0, 0, W, H);
+      }
+    }
+
+    function pickColor(speed) {
+      const t = Math.min(1, speed / 40);
+      const a = palette[Math.floor(Math.random() * 3)];
+      const b = palette[2 + Math.floor(Math.random() * 2)];
+      return {
+        r: Math.round(a.r + (b.r - a.r) * (1 - t) * 0.35),
+        g: Math.round(a.g + (b.g - a.g) * (1 - t) * 0.35),
+        b: Math.round(a.b + (b.b - a.b) * (1 - t) * 0.35),
+        a: 0.35 + t * 0.45,
+      };
+    }
+
+    function addStrokePoint(x, y, speed) {
+      const c = pickColor(speed);
+      const width = 1.2 + Math.min(18, speed * 0.35) + Math.sin(time * 0.08) * 1.5;
+      strokes.push({ x, y, width, c, life: 1 });
+
+      const n = 2 + Math.floor(speed / 12);
+      for (let i = 0; i < n; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const v = 0.4 + Math.random() * (0.8 + speed * 0.05);
+        particles.push({
+          x, y,
+          vx: Math.cos(ang) * v,
+          vy: Math.sin(ang) * v - 0.4,
+          life: 1,
+          decay: 0.012 + Math.random() * 0.02,
+          size: 0.8 + Math.random() * 2.4,
+          c,
+        });
+      }
+    }
+
+    function drawStroke(s) {
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(${s.c.r},${s.c.g},${s.c.b},${s.c.a * (s.life || 1)})`;
+      ctx.arc(s.x, s.y, s.width * 0.55, 0, Math.PI * 2);
+      ctx.fill();
+
+      // secondary dry-brush flake
+      if (Math.random() > 0.7) {
+        ctx.fillStyle = `rgba(${s.c.r},${s.c.g},${s.c.b},${0.15 * (s.life || 1)})`;
+        ctx.fillRect(
+          s.x + (Math.random() - 0.5) * s.width * 3,
+          s.y + (Math.random() - 0.5) * s.width * 3,
+          1 + Math.random() * 3,
+          1 + Math.random() * 8
+        );
+      }
+    }
+
+    function pointerPos(e) {
+      if (e.touches && e.touches[0]) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+      return { x: e.clientX, y: e.clientY };
+    }
+
+    function onDown(e) {
+      drawing = true;
+      moved = true;
+      hint.classList.add("gone");
+      cursorEl.classList.add("drawing");
+      last = pointerPos(e);
+      addStrokePoint(last.x, last.y, 2);
+      e.preventDefault();
+    }
+
+    function onMove(e) {
+      const p = pointerPos(e);
+      cursorEl.style.left = p.x + "px";
+      cursorEl.style.top = p.y + "px";
+      cursorEl.hidden = false;
+
+      if (!drawing || !last) return;
+
+      const dx = p.x - last.x;
+      const dy = p.y - last.y;
+      const dist = Math.hypot(dx, dy);
+      const speed = dist;
+      speedAvg = speedAvg * 0.85 + speed * 0.15;
+
+      const steps = Math.max(1, Math.floor(dist / 3));
+      for (let i = 1; i <= steps; i++) {
+        const t = i / steps;
+        addStrokePoint(last.x + dx * t, last.y + dy * t, speed);
+      }
+      last = p;
+
+      const label =
+        speedAvg < 4 ? "lent" :
+        speedAvg < 12 ? "andante" :
+        speedAvg < 22 ? "vivo" : "tempête";
+      tempoEl.textContent = "tempo · " + label;
+      e.preventDefault();
+    }
+
+    function onUp() {
+      drawing = false;
+      last = null;
+      cursorEl.classList.remove("drawing");
+    }
+
+    function frame() {
+      time += 1;
+      paintBackdrop(false);
+
+      // ambient drifting ash
+      if (time % 3 === 0) {
+        particles.push({
+          x: Math.random() * W,
+          y: H * 0.15 + Math.random() * H * 0.4,
+          vx: -0.25 + Math.random() * 0.15,
+          vy: 0.15 + Math.random() * 0.35,
+          life: 1,
+          decay: 0.004 + Math.random() * 0.006,
+          size: 0.6 + Math.random() * 1.6,
+          c: palette[Math.random() > 0.5 ? 0 : 1],
+        });
+      }
+
+      // redraw recent strokes with slight fade trail already handled by veil
+      const keep = Math.min(strokes.length, 420);
+      const start = strokes.length - keep;
+      for (let i = Math.max(0, start); i < strokes.length; i++) {
+        drawStroke(strokes[i]);
+      }
+      if (strokes.length > 2400) strokes = strokes.slice(-1800);
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.01;
+        p.life -= p.decay;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(${p.c.r},${p.c.g},${p.c.b},${p.life * 0.55})`;
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // soft breathing light at skyline
+      const pulse = 0.08 + Math.sin(time * 0.02) * 0.04;
+      const g = ctx.createRadialGradient(
+        W * 0.7, H * 0.55, 0,
+        W * 0.7, H * 0.55, H * 0.35
+      );
+      g.addColorStop(0, `rgba(232,160,74,${pulse})`);
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+
+      requestAnimationFrame(frame);
+    }
+
+    clearBtn.addEventListener("click", () => {
+      strokes = [];
+      particles = [];
+      paintBackdrop(true);
+      hint.classList.remove("gone");
+      tempoEl.textContent = "tempo · lent";
+    });
+
+    window.addEventListener("resize", resize);
+    canvas.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    canvas.addEventListener("touchstart", onDown, { passive: false });
+    canvas.addEventListener("touchmove", onMove, { passive: false });
+    canvas.addEventListener("touchend", onUp);
+
+    resize();
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

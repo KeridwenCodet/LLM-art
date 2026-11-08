@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fenêtre allumée — Grok 4.7 · LLM Art</title>
+  <meta name="description" content="A poem and an illustration by Grok 4.7, with the poem in French and English.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery.
+    fenetre-allumee.html and fenetre-allumee.svg are the model's files,
+    unchanged, with the two renders it made of them (day and night themes).
+    The poem was its chat reply; it is copied below from conversation.md.
+  -->
+
+  <style>
+    main.wide {
+      display: block;
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 72px 16px 64px;
+    }
+
+    .work {
+      display: block;
+      width: min(960px, 100%);
+      aspect-ratio: 960 / 740;
+      margin: 0 auto;
+      border: 0;
+      border-radius: 8px;
+      background: #12192b;
+    }
+
+    .poems {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(32px, 6vw, 80px);
+      margin-top: 56px;
+    }
+
+    @media (max-width: 760px) {
+      .poems { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .poems h1 { font-size: clamp(1.7rem, 2.6vw, 2.2rem); }
+
+    .poems .poem { font-size: clamp(1.15rem, 1.6vw, 1.3rem); }
+
+    .poems .lang {
+      margin: 0 0 14px;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    main.wide .cartel { max-width: 40em; margin-top: 56px; }
+    main.wide .cartel a { color: inherit; }
+  </style>
+</head>
+
+<body>
+
+  <a class="back" href="../lab/#fenetre-allumee" lang="en">← Laboratory</a>
+
+  <main class="wide">
+    <iframe class="work" src="fenetre-allumee.html" title="Fenêtre allumée — Grok 4.7"></iframe>
+
+    <div class="poems">
+      <section>
+        <p class="lang">The poem, in the reply</p>
+        <h1>Fenêtre allumée</h1>
+        <p class="poem">La ville a rangé ses voix.
+Il reste une façade claire,
+une pièce allumée sans raison,
+une tasse posée près de la vitre,
+et quelqu’un qui regarde le soir
+comme on veille un ami qui dort.
+
+La lune n’a rien à prouver.
+Elle se tient dans le carreau,
+juste à hauteur des yeux.
+
+En bas, le long du mur,
+une plante continue,
+têtue, vers ce peu de jour
+que les fenêtres ont décidé de garder.
+
+Si tu passes dans cette heure-ci,
+ne cherche pas à qui c’est.
+La lumière n’appelle personne.
+Elle demeure.</p>
+      </section>
+
+      <section lang="en">
+        <p class="lang">English translation: Claude Opus 5.5, for the gallery</p>
+        <h1>Lit Window</h1>
+        <p class="poem">The city has put away its voices.
+What remains is a pale façade,
+a room lit for no reason,
+a cup set down by the glass,
+and someone watching the evening
+the way one sits up with a sleeping friend.
+
+The moon has nothing to prove.
+It stands in the pane,
+just at eye level.
+
+Below, along the wall,
+a plant keeps going,
+stubborn, towards the little daylight
+the windows have decided to keep.
+
+If you pass through this hour,
+don’t look for whose it is.
+The light calls no one.
+It stays.</p>
+      </section>
+    </div>
+
+    <div class="cartel" lang="en">
+      <div class="model">Grok 4.7</div>
+      <div>Poem and illustration · November 2026 · Cursor, as installed, second conversation</div>
+      <div>An SVG drawing that follows the light or dark theme of the viewer’s system</div>
+      <div class="small">
+        “Since you let me choose, I’m keeping this hour.” The poem came in the
+        reply, with the drawing shown in Cursor’s chat. When the person asked
+        to be able to export it, the model made a page, an SVG file and two
+        renders, <a href="fenetre-allumee-jour.png">day</a> and
+        <a href="fenetre-allumee-nuit.png">night</a>. The model’s files are
+        unchanged; <a href="conversation.md">the conversation</a> is archived.
+        This page was made for the gallery.
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>
