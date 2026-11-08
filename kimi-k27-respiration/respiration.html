@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Espace Latent — Respiration</title>
+  <script>p5.disableFriendlyErrors = true;</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
+  <style>
+    html, body { margin: 0; padding: 0; overflow: hidden; background: #05030a; }
+    canvas { display: block; }
+    #hint {
+      position: fixed;
+      bottom: 18px;
+      left: 24px;
+      color: rgba(230, 220, 255, 0.35);
+      font: 13px/1.4 'Georgia', serif;
+      pointer-events: none;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+<div id="hint">déplace la souris · clic pour une onde · S = PNG · R = nouvelle graine</div>
+<script>
+// === Configuration ===
+const CONFIG = {
+  seed: 7,
+  particleCount: 2400,
+  filamentCount: 180,
+  fadeSpeed: 0.04,
+  noiseScale: 0.0028,
+  timeScale: 0.00035,
+  mouseForce: 0.00012,
+  bgRefreshEvery: 6
+};
+
+// === Palette (HSB) ===
+let PALETTE = [];
+
+// === Global State ===
+let particles = [];
+let filaments = [];
+let bgLayer, trailLayer, glowLayer;
+let t = 0;
+let ripple = { x: 0, y: 0, r: 0, active: false };
+
+// === Noise helpers ===
+function fbm(x, y, octaves = 4) {
+  let val = 0, amp = 1, freq = 1, sum = 0;
+  for (let i = 0; i < octaves; i++) {
+    val += noise(x * freq, y * freq) * amp;
+    sum += amp;
+    amp *= 0.5;
+    freq *= 2;
+  }
+  return val / sum;
+}
+
+function curlNoise(x, y, t) {
+  const eps = 0.001;
+  let n1 = fbm(x + eps, y, 4) - fbm(x - eps, y, 4);
+  let n2 = fbm(x, y + eps, 4) - fbm(x, y - eps, 4);
+  let dx = n2;
+  let dy = -n1;
+  let l = Math.sqrt(dx*dx + dy*dy) + 0.0001;
+  dx /= l; dy /= l;
+  let tField = fbm(x * 0.001 + t * 0.0003, y * 0.001 + 100, 3);
+  let angle = tField * TWO_PI * 2;
+  return { x: dx + cos(angle) * 0.3, y: dy + sin(angle) * 0.3 };
+}
+
+// === Setup ===
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  pixelDensity(1);
+  colorMode(HSB, 360, 100, 100, 100);
+  randomSeed(CONFIG.seed);
+  noiseSeed(CONFIG.seed);
+
+  PALETTE = [
+    color(260, 75, 95, 80),   // violet lumineux
+    color(300, 60, 90, 70),   // rose doux
+    color(35, 80, 98, 65),    // or chaud
+    color(200, 55, 88, 50),   // cyan profond
+    color(280, 40, 70, 40),   // prune
+  ];
+
+  bgLayer = createGraphics(width, height);
+  bgLayer.colorMode(HSB, 360, 100, 100, 100);
+  trailLayer = createGraphics(width, height);
+  trailLayer.colorMode(HSB, 360, 100, 100, 100);
+  glowLayer = createGraphics(width, height);
+  glowLayer.colorMode(HSB, 360, 100, 100, 100);
+
+  renderBackground();
+
+  for (let i = 0; i < CONFIG.particleCount; i++) {
+    particles.push(new Particle());
+  }
+  for (let i = 0; i < CONFIG.filamentCount; i++) {
+    filaments.push(new Filament());
+  }
+}
+
+function hsbToCss(h, s, b) {
+  colorMode(HSB, 360, 100, 100, 100);
+  let c = color(h, s, b);
+  let r = Math.round(red(c) * 2.55);
+  let g = Math.round(green(c) * 2.55);
+  let bl = Math.round(blue(c) * 2.55);
+  return `rgb(${r},${g},${bl})`;
+}
+
+// === Background ===
+function renderBackground() {
+  bgLayer.push();
+  bgLayer.colorMode(RGB, 255, 255, 255, 255);
+  bgLayer.noStroke();
+  let cx = width / 2;
+  let cy = height / 2;
+  let maxD = Math.sqrt(width * width + height * height) / 2 + 20;
+  let g = bgLayer.drawingContext.createRadialGradient(cx, cy, 0, cx, cy, maxD);
+  g.addColorStop(0, hsbToCss(235, 30, 18));
+  g.addColorStop(0.4, hsbToCss(245, 45, 10));
+  g.addColorStop(0.75, hsbToCss(255, 55, 6));
+  g.addColorStop(1, hsbToCss(265, 60, 3));
+  bgLayer.drawingContext.fillStyle = g;
+  bgLayer.rect(0, 0, width, height);
+
+  // subtle grain texture
+  bgLayer.loadPixels();
+  for (let y = 0; y < bgLayer.height; y += 2) {
+    for (let x = 0; x < bgLayer.width; x += 2) {
+      let n = noise(x * 0.008, y * 0.008) * 16 - 8;
+      let idx = 4 * (y * bgLayer.width + x);
+      bgLayer.pixels[idx] = constrain(bgLayer.pixels[idx] + n, 0, 255);
+      bgLayer.pixels[idx+1] = constrain(bgLayer.pixels[idx+1] + n, 0, 255);
+      bgLayer.pixels[idx+2] = constrain(bgLayer.pixels[idx+2] + n, 0, 255);
+    }
+  }
+  bgLayer.updatePixels();
+  bgLayer.pop();
+}
+
+// === Draw ===
+function draw() {
+  t = frameCount * CONFIG.timeScale;
+
+  // refresh background layer occasionally
+  if (frameCount % CONFIG.bgRefreshEvery === 0) {
+    // renderBackground(); // background is static now
+  }
+
+  image(bgLayer, 0, 0);
+
+  // fade trails
+  trailLayer.noStroke();
+  trailLayer.fill(240, 25, 5, 2.8);
+  trailLayer.rect(0, 0, width, height);
+
+  // glow layer clear
+  glowLayer.clear();
+
+  // update ripple
+  if (ripple.active) {
+    ripple.r += 6;
+    if (ripple.r > Math.max(width, height) * 1.2) ripple.active = false;
+  }
+
+  // filaments
+  for (let f of filaments) {
+    f.update();
+    f.display();
+  }
+
+  image(trailLayer, 0, 0);
+  image(glowLayer, 0, 0);
+
+  // particles
+  blendMode(ADD);
+  for (let p of particles) {
+    p.update();
+    p.display();
+  }
+  blendMode(BLEND);
+}
+
+// === Particle ===
+class Particle {
+  constructor() {
+    this.x = random(width);
+    this.y = random(height);
+    this.size = random(1.5, 4.5);
+    this.baseHue = random([260, 300, 35, 200, 280]) + random(-12, 12);
+    this.speed = random(0.6, 1.6);
+    this.alphaBase = random(20, 60);
+    this.pulse = random(TWO_PI);
+  }
+
+  update() {
+    let c = curlNoise(this.x, this.y, t * 1000);
+    this.x += c.x * this.speed * 1.8;
+    this.y += c.y * this.speed * 1.8;
+
+    // mouse attraction / ripple interaction
+    let dx = mouseX - this.x;
+    let dy = mouseY - this.y;
+    let d2 = dx*dx + dy*dy;
+    if (d2 < 90000) {
+      let d = Math.sqrt(d2);
+      let f = (300 - d) * CONFIG.mouseForce;
+      this.x += dx * f;
+      this.y += dy * f;
+    }
+
+    if (ripple.active) {
+      let rdx = this.x - ripple.x;
+      let rdy = this.y - ripple.y;
+      let rd = Math.sqrt(rdx*rdx + rdy*rdy);
+      let diff = Math.abs(rd - ripple.r);
+      if (diff < 40) {
+        this.x += rdx / (rd + 0.1) * 8;
+        this.y += rdy / (rd + 0.1) * 8;
+      }
+    }
+
+    this.x = (this.x + width) % width;
+    this.y = (this.y + height) % height;
+  }
+
+  display() {
+    let alpha = this.alphaBase + Math.sin(t * 50 + this.pulse) * 15;
+    let sat = 70 + Math.sin(t * 30 + this.pulse) * 20;
+    fill(this.baseHue, sat, 95, alpha);
+    noStroke();
+    ellipse(this.x, this.y, this.size);
+  }
+}
+
+// === Filament ===
+class Filament {
+  constructor() {
+    this.points = [];
+    this.maxLen = floor(random(40, 120));
+    this.hue = random([260, 300, 35, 200]) + random(-15, 15);
+    this.speed = random(0.3, 1.0);
+    this.spawn();
+  }
+
+  spawn() {
+    this.points = [];
+    let x = random(width);
+    let y = random(height);
+    for (let i = 0; i < this.maxLen; i++) {
+      this.points.push({ x, y, break: false });
+      let c = curlNoise(x, y, t * 1000 + i * 0.05);
+      x += c.x * this.speed * 3;
+      y += c.y * this.speed * 3;
+    }
+    this.head = { x: this.points[this.points.length - 1].x, y: this.points[this.points.length - 1].y };
+  }
+
+  update() {
+    let c = curlNoise(this.head.x, this.head.y, t * 1000);
+    let dx = c.x * this.speed * 3;
+    let dy = c.y * this.speed * 3;
+
+    // ripple push
+    if (ripple.active) {
+      let rdx = this.head.x - ripple.x;
+      let rdy = this.head.y - ripple.y;
+      let rd = Math.sqrt(rdx*rdx + rdy*rdy);
+      let diff = Math.abs(rd - ripple.r);
+      if (diff < 60) {
+        dx += rdx / (rd + 0.1) * 12;
+        dy += rdy / (rd + 0.1) * 12;
+      }
+    }
+
+    let nx = this.head.x + dx;
+    let ny = this.head.y + dy;
+
+    // wrap with break to avoid cross-screen lines
+    let wrapped = false;
+    if (nx < -10) { nx = width + 10; wrapped = true; }
+    if (nx > width + 10) { nx = -10; wrapped = true; }
+    if (ny < -10) { ny = height + 10; wrapped = true; }
+    if (ny > height + 10) { ny = -10; wrapped = true; }
+
+    this.head.x = nx;
+    this.head.y = ny;
+
+    // break line on wrap by clearing tail occasionally / start new point segment
+    this.points.push({ x: this.head.x, y: this.head.y, break: wrapped });
+    if (this.points.length > this.maxLen) this.points.shift();
+
+    if (random() < 0.002) {
+      this.spawn();
+    }
+  }
+
+  display() {
+    let n = this.points.length;
+    if (n < 2) return;
+    trailLayer.noFill();
+    for (let i = 1; i < n; i++) {
+      let p0 = this.points[i - 1];
+      let p1 = this.points[i];
+      if (p1.break || p0.break) continue;
+      let dist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+      if (dist > 40) continue; // skip teleport-like segments
+      let a = Math.pow(i / n, 1.4) * 55;
+      trailLayer.strokeWeight(Math.pow(i / n, 0.7) * 1.5 + 0.3);
+      trailLayer.stroke(this.hue, 55, 90, a);
+      trailLayer.line(p0.x, p0.y, p1.x, p1.y);
+    }
+
+    // glow head
+    glowLayer.noStroke();
+    glowLayer.fill(this.hue, 30, 95, 12);
+    glowLayer.circle(this.head.x, this.head.y, 28);
+    glowLayer.fill(this.hue, 50, 100, 25);
+    glowLayer.circle(this.head.x, this.head.y, 12);
+  }
+}
+
+// === Interaction ===
+function mousePressed() {
+  ripple.x = mouseX;
+  ripple.y = mouseY;
+  ripple.r = 10;
+  ripple.active = true;
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  bgLayer.resizeCanvas(width, height);
+  trailLayer.resizeCanvas(width, height);
+  glowLayer.resizeCanvas(width, height);
+  renderBackground();
+}
+
+function keyPressed() {
+  if (key === 's' || key === 'S') saveCanvas('espace_latent', 'png');
+  if (key === 'r' || key === 'R') {
+    CONFIG.seed = floor(random(99999));
+    randomSeed(CONFIG.seed);
+    noiseSeed(CONFIG.seed);
+    particles = [];
+    filaments = [];
+    trailLayer.clear();
+    for (let i = 0; i < CONFIG.particleCount; i++) particles.push(new Particle());
+    for (let i = 0; i < CONFIG.filamentCount; i++) filaments.push(new Filament());
+  }
+}
+</script>
+</body>
+</html>

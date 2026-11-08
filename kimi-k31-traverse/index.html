@@ -1,826 +1,113 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#090a13">
-<title>Ce qui me traverse — étude générative</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
-<script>p5.disableFriendlyErrors = true;</script>
-<style>
-  :root {
-    --ink: #090a13;
-    --panel: rgba(15, 15, 26, .96);
-    --paper: #e9dfcf;
-    --muted: #888493;
-    --faint: #34313f;
-    --coral: #e88471;
-    --gold: #d9ba79;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 100%; height: 100%; }
-  body {
-    display: flex;
-    min-height: 100vh;
-    overflow: hidden;
-    background: var(--ink);
-    color: var(--paper);
-    font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
-  }
-  button, input { font: inherit; }
-  button:focus-visible, input:focus-visible {
-    outline: 1px solid var(--coral);
-    outline-offset: 3px;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ce qui me traverse — Kimi K3.1 Pro · LLM Art</title>
+  <meta name="description" content="What Passes Through Me, by Kimi K3.1 Pro, with the text of the work in French and English.">
 
-  /* La marge de la page : une chambre d'écoutes, pas un tableau de bord. */
-  .sidebar {
-    position: relative;
-    z-index: 5;
-    width: 272px;
-    flex: 0 0 272px;
-    min-height: 100vh;
-    padding: 32px 26px 24px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    background:
-      radial-gradient(circle at 10% 0%, rgba(103, 65, 95, .14), transparent 36%),
-      var(--panel);
-    border-right: 1px solid rgba(233, 223, 207, .10);
-    scrollbar-width: thin;
-    scrollbar-color: var(--faint) transparent;
-  }
-  .edition, .section-title {
-    font-size: 9px;
-    line-height: 1.4;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: .22em;
-    color: var(--muted);
-  }
-  .edition { display: flex; justify-content: space-between; margin-bottom: 26px; }
-  .edition span:last-child { color: var(--coral); }
-  h1 {
-    max-width: 190px;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 37px;
-    line-height: .98;
-    font-weight: 400;
-    letter-spacing: -.035em;
-    color: var(--paper);
-  }
-  h1 em { display: block; color: var(--coral); font-weight: 400; }
-  .subtitle {
-    margin-top: 13px;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 12px;
-    line-height: 1.55;
-    font-style: italic;
-    color: #9b95a1;
-  }
-  .poem {
-    margin-top: 20px;
-    padding-left: 13px;
-    border-left: 1px solid rgba(232, 132, 113, .45);
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 12px;
-    line-height: 1.65;
-    color: #c4bac0;
-  }
-  .section-title { margin-bottom: 10px; }
-  .seed-line { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
-  .seed-display {
-    font-family: "SFMono-Regular", Consolas, monospace;
-    font-size: 18px;
-    font-weight: 400;
-    letter-spacing: .08em;
-    color: var(--gold);
-  }
-  .seed-caption { font-family: Georgia, serif; font-size: 10px; font-style: italic; color: #65616d; }
-  .seed-nav { display: grid; grid-template-columns: 40px 40px 1fr; gap: 5px; }
-  .seed-jump { display: flex; gap: 5px; margin-top: 5px; }
-  .seed-jump input {
-    width: 100%; min-width: 0;
-    padding: 7px 9px;
-    border: 1px solid #302d38;
-    border-radius: 2px;
-    background: #11111b;
-    color: var(--paper);
-    font: 10px "SFMono-Regular", Consolas, monospace;
-  }
-  .seed-jump button { flex: 0 0 42px; }
-  button {
-    border: 1px solid #35313d;
-    border-radius: 2px;
-    padding: 7px 9px;
-    background: transparent;
-    color: #a9a2ae;
-    font-size: 10px;
-    cursor: pointer;
-    transition: color .2s, border-color .2s, background .2s;
-  }
-  button:hover { color: var(--paper); border-color: #625868; background: rgba(255,255,255,.025); }
-  button.primary { border-color: rgba(232,132,113,.6); color: #efaa98; }
-  button.primary:hover { background: rgba(232,132,113,.08); border-color: var(--coral); }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
 
-  #params-section { display: grid; gap: 14px; }
-  #params-section .section-title { margin-bottom: -2px; }
-  .control-group label {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 7px;
-    color: #aaa3ae;
-    font-family: Georgia, serif;
-    font-size: 11px;
-  }
-  .control-group .value { color: #77717e; font: 9px "SFMono-Regular", Consolas, monospace; }
-  input[type="range"] {
-    display: block;
-    width: 100%;
-    height: 12px;
-    appearance: none;
-    -webkit-appearance: none;
-    background: transparent;
-    cursor: ew-resize;
-  }
-  input[type="range"]::-webkit-slider-runnable-track { height: 1px; background: #403946; }
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 7px; height: 7px;
-    margin-top: -3px;
-    border-radius: 50%;
-    background: var(--coral);
-    box-shadow: 0 0 0 3px rgba(232,132,113,.08);
-  }
-  input[type="range"]::-moz-range-track { height: 1px; background: #403946; }
-  input[type="range"]::-moz-range-thumb { width: 7px; height: 7px; border: 0; background: var(--coral); }
-  .actions { display: grid; gap: 5px; }
-  .actions button { width: 100%; text-align: left; padding: 8px 10px; }
-  .actions button::before { content: "↳"; display: inline-block; width: 20px; color: #5f5865; }
-  .colophon { margin-top: auto; padding-top: 4px; color: #5e5964; font-size: 9px; line-height: 1.7; }
-  .colophon kbd { color: #8a828e; font: inherit; }
+  <!--
+    Presentation page written for the gallery.
+    ce-qui-me-traverse.html is the model's file, unchanged (renamed from index.html).
+    The text of the work and its translation are copied from the cartel.
+  -->
 
-  .canvas-area {
-    position: relative;
-    flex: 1;
-    min-width: 0;
-    height: 100vh;
-    overflow: hidden;
-    background: #080912;
-  }
-  .canvas-area canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
-  .canvas-label {
-    position: absolute;
-    z-index: 2;
-    top: 24px;
-    right: 27px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    pointer-events: none;
-    color: rgba(233,223,207,.46);
-    font-size: 8px;
-    text-transform: uppercase;
-    letter-spacing: .18em;
-  }
-  .pulse-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 8px var(--coral); }
-  .canvas-note {
-    position: absolute;
-    z-index: 2;
-    left: 26px;
-    bottom: 22px;
-    pointer-events: none;
-    color: rgba(233,223,207,.40);
-    font-family: Georgia, serif;
-    font-size: 10px;
-    font-style: italic;
-    letter-spacing: .025em;
-  }
-  #loading {
-    position: absolute; inset: 0; z-index: 4;
-    display: grid; place-items: center;
-    background: #090a13;
-    color: #a99b96;
-    font: italic 14px Georgia, serif;
-    transition: opacity .8s;
-    pointer-events: none;
-  }
-  #loading.gone { opacity: 0; }
+  <style>
+    main.wide {
+      display: block;
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 72px 16px 64px;
+    }
 
-  @media (max-width: 760px) {
-    body { display: block; }
-    .canvas-area { position: absolute; inset: 0; height: 100vh; }
-    .sidebar {
-      position: absolute;
-      left: 12px; right: 12px; bottom: 12px;
-      width: auto; min-height: 0; max-height: 44vh;
-      padding: 17px 18px;
+    .work {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      border: 0;
+      border-radius: 12px;
+      background: #000;
+    }
+
+    @media (max-width: 760px) {
+      .work { aspect-ratio: 3 / 4; height: auto; }
+    }
+
+    .open { margin: 12px 0 0; font-size: 0.8rem; line-height: 1.6; color: var(--faint); }
+    .open a { color: var(--muted); }
+
+    .poems {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px 20px;
-      border: 1px solid rgba(233,223,207,.14);
-      background: rgba(12,12,22,.88);
-      backdrop-filter: blur(14px);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(32px, 6vw, 80px);
+      margin-top: 56px;
     }
-    .sidebar header { grid-row: span 2; }
-    .edition { margin-bottom: 12px; }
-    h1 { font-size: 27px; }
-    .subtitle { font-size: 10px; }
-    .poem, #params-section, .colophon { display: none; }
-    .canvas-note { bottom: calc(44vh + 26px); left: 18px; }
-    .canvas-label { top: 18px; right: 18px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; }
-  }
-</style>
+
+    @media (max-width: 760px) {
+      .poems { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .poems h1 { font-size: clamp(1.7rem, 2.6vw, 2.2rem); }
+
+    .poems p:not(.lang) {
+      margin: 0 0 1em;
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: clamp(1.1rem, 1.5vw, 1.25rem);
+      line-height: 1.5;
+    }
+
+    .poems .lang {
+      margin: 0 0 14px;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    main.wide .cartel { max-width: 40em; margin-top: 56px; }
+  </style>
 </head>
+
 <body>
-<aside class="sidebar" aria-label="Atelier de l’œuvre">
-  <header>
-    <div class="edition"><span>Chambre des courants</span><span>Étude 01</span></div>
-    <h1>Ce qui <em>me traverse</em></h1>
-    <div class="subtitle">Une chorégraphie pour l’encre,<br>le vent et l’absence.</div>
-    <div class="poem">Rien ne reste.<br>Tout laisse une forme.</div>
-  </header>
 
-  <section aria-label="Variation">
-    <div class="section-title">Variation</div>
-    <div class="seed-line">
-      <div class="seed-display" id="seed-display">1703</div>
-      <div class="seed-caption">empreinte</div>
+  <a class="back" href="../#traverse">← LLM Art</a>
+
+  <main class="wide">
+    <iframe class="work" src="ce-qui-me-traverse.html" title="Ce qui me traverse — Kimi K3.1 Pro" allow="autoplay; fullscreen"></iframe>
+    <p class="open">Move the cursor to bend the current · click to leave a breath · Space suspend · R chance · S keep a PNG · seed and sliders for presence, scale, tension of the void, sweep and dissolution · <a href="ce-qui-me-traverse.html">Open the work on its own page</a></p>
+
+    <div class="poems">
+      <section lang="fr">
+        <p class="lang" lang="en">The text in the work</p>
+        <h1>Ce qui me traverse</h1>
+        <p>Chambre des courants · Étude 01 · Ce qui me traverse · Une chorégraphie pour l’encre, le vent et l’absence.</p>
+        <p>Rien ne reste.<br>Tout laisse une forme.</p>
+        <p>Matière du vent : présence · échelle du courant · tension du vide · emportement · dissolution</p>
+        <p>Gestes : recomposer · suspendre le souffle · revenir au premier geste · garder une trace · L’encre se souvient du vent…</p>
+      </section>
+
+      <section>
+        <p class="lang">English translation: Claude Opus 5.5, for the gallery</p>
+        <h1>What Passes Through Me</h1>
+        <p>Chamber of currents · Study 01 · What Passes Through Me · A choreography for ink, wind and absence.</p>
+        <p>Nothing remains.<br>Everything leaves a form.</p>
+        <p>Material of the wind: presence · scale of the current · tension of the void · sweep · dissolution</p>
+        <p>Gestures: recompose · suspend the breath · return to the first gesture · keep a trace · The ink remembers the wind…</p>
+      </section>
     </div>
-    <div class="seed-nav">
-      <button id="prev-seed" onclick="changeSeed(-1)" title="Variation précédente" aria-label="Variation précédente">←</button>
-      <button id="next-seed" onclick="changeSeed(1)" title="Variation suivante" aria-label="Variation suivante">→</button>
-      <button onclick="randomizeSeed()">Hasard</button>
+
+    <div class="cartel">
+      <div class="model">Kimi K3.1 Pro</div>
+      <div>p5.js · November 2026 · Hermes Agent, neutral SOUL.md, Hermes Agent’s default skills</div>
+      <div class="small">The model’s file is unchanged. This page was made for the gallery.</div>
     </div>
-    <div class="seed-jump">
-      <input type="number" id="seed-input" placeholder="rejoindre un nº" min="0" aria-label="Numéro de variation">
-      <button onclick="jumpToSeed()">Aller</button>
-    </div>
-  </section>
+  </main>
 
-  <section id="params-section" aria-label="Paramètres du courant">
-    <div class="section-title">Matière du vent</div>
-    <div class="control-group">
-      <label for="count">Présence <span class="value" id="count-val">620</span></label>
-      <input type="range" id="count" min="200" max="1000" step="20" value="620" oninput="updateParam('count', +this.value)">
-    </div>
-    <div class="control-group">
-      <label for="scale">Échelle du courant <span class="value" id="scale-val">0.0032</span></label>
-      <input type="range" id="scale" min="0.0015" max="0.006" step="0.0001" value="0.0032" oninput="updateParam('scale', +this.value)">
-    </div>
-    <div class="control-group">
-      <label for="tension">Tension du vide <span class="value" id="tension-val">1.20</span></label>
-      <input type="range" id="tension" min="0.30" max="2" step="0.05" value="1.20" oninput="updateParam('tension', +this.value)">
-    </div>
-    <div class="control-group">
-      <label for="speed">Emportement <span class="value" id="speed-val">1.05</span></label>
-      <input type="range" id="speed" min="0.30" max="2.20" step="0.05" value="1.05" oninput="updateParam('speed', +this.value)">
-    </div>
-    <div class="control-group">
-      <label for="dissolution">Dissolution <span class="value" id="dissolution-val">0.014</span></label>
-      <input type="range" id="dissolution" min="0.004" max="0.050" step="0.001" value="0.014" oninput="updateParam('dissolution', +this.value)">
-    </div>
-  </section>
-
-  <section class="actions" aria-label="Actions">
-    <div class="section-title">Gestes</div>
-    <button class="primary" onclick="regenerate()">Recomposer</button>
-    <button id="pause-button" onclick="togglePause()">Suspendre le souffle</button>
-    <button onclick="resetDefaults()">Revenir au premier geste</button>
-    <button id="download-button" onclick="downloadPNG()">Garder une trace · PNG</button>
-  </section>
-
-  <footer class="colophon">
-    Sur la toile : déplace pour dévier,<br>clique pour laisser un souffle.<br>
-    <kbd>Espace</kbd> suspendre · <kbd>R</kbd> hasard · <kbd>S</kbd> garder
-  </footer>
-</aside>
-
-<main class="canvas-area" id="canvas-container" aria-label="Œuvre générative interactive">
-  <div class="canvas-label"><span class="pulse-dot"></span><span id="motion-state">pièce vivante</span></div>
-  <div class="canvas-note">Déplace le courant · clique pour souffler</div>
-  <div id="loading">L’encre se souvient du vent…</div>
-</main>
-
-<script>
-// ============================================================
-// CE QUI ME TRAVERSE
-// Des rubans d'encre contournent une absence. Leur mémoire s'efface.
-// ============================================================
-const DEFAULTS = {
-  seed: 1703,
-  count: 620,
-  scale: 0.0032,
-  speed: 1.05,
-  tension: 1.20,
-  dissolution: 0.014,
-  turbulence: 1.12
-};
-let PARAMS = { ...DEFAULTS };
-
-const PALETTE = [
-  [39, 35, 94],   // os
-  [8, 70, 88],    // corail
-  [188, 51, 73],  // cyan nocturne
-  [340, 43, 82],  // rose fané
-  [258, 37, 72],  // violet
-  [47, 57, 90]    // or pâle
-];
-
-let particles = [];
-let pulses = [];
-let motes = [];
-let bgLayer, trailLayer;
-let worldTime = 0;
-let center = { x: 0, y: 0 };
-let voidRadius = 100;
-let ready = false;
-let paused = false;
-let lastPulseAt = 0;
-let pointer = { x: 0, y: 0, active: false, force: 0 };
-
-// ---------- Navigation des variations ----------
-function changeSeed(delta) {
-  PARAMS.seed = Math.max(0, PARAMS.seed + delta);
-  syncUI();
-  regenerate();
-}
-function randomizeSeed() {
-  PARAMS.seed = Math.floor(Math.random() * 99999);
-  syncUI();
-  regenerate();
-}
-function jumpToSeed() {
-  const input = document.getElementById('seed-input');
-  const value = parseInt(input.value, 10);
-  if (!isNaN(value) && value >= 0) {
-    PARAMS.seed = value;
-    input.value = '';
-    syncUI();
-    regenerate();
-  }
-}
-function formatParam(name, value) {
-  if (name === 'scale') return value.toFixed(4);
-  if (name === 'dissolution') return value.toFixed(3);
-  if (name === 'tension' || name === 'speed') return value.toFixed(2);
-  return String(value);
-}
-function syncUI() {
-  document.getElementById('seed-display').textContent = PARAMS.seed;
-  for (const name of ['count', 'scale', 'speed', 'tension', 'dissolution']) {
-    const input = document.getElementById(name);
-    const value = document.getElementById(name + '-val');
-    if (input) input.value = PARAMS[name];
-    if (value) value.textContent = formatParam(name, PARAMS[name]);
-  }
-}
-function updateParam(name, value) {
-  PARAMS[name] = value;
-  const el = document.getElementById(name + '-val');
-  if (el) el.textContent = formatParam(name, value);
-  // Le rythme et l'oubli agissent sur la matière existante ;
-  // les autres réglages changent la structure même du courant.
-  if (name === 'speed' || name === 'dissolution') return;
-  regenerate();
-}
-function resetDefaults() {
-  PARAMS = { ...DEFAULTS };
-  syncUI();
-  regenerate();
-}
-function regenerate() {
-  if (!ready) return;
-  randomSeed(PARAMS.seed);
-  noiseSeed(PARAMS.seed);
-  noiseDetail(4, 0.52);
-  initializeArt();
-  if (!paused) loop();
-}
-function downloadPNG() {
-  saveCanvas('ce-qui-me-traverse-' + PARAMS.seed, 'png');
-}
-function togglePause() {
-  paused = !paused;
-  if (paused) noLoop(); else loop();
-  document.getElementById('pause-button').textContent = paused ? 'Rendre le souffle' : 'Suspendre le souffle';
-  document.getElementById('motion-state').textContent = paused ? 'instant suspendu' : 'pièce vivante';
-}
-
-// ---------- Construction ----------
-function setup() {
-  const container = document.getElementById('canvas-container');
-  const canvas = createCanvas(container.clientWidth, container.clientHeight);
-  canvas.parent('canvas-container');
-  pixelDensity(1);
-  colorMode(HSB, 360, 100, 100, 100);
-  frameRate(60);
-  strokeCap(ROUND);
-  randomSeed(PARAMS.seed);
-  noiseSeed(PARAMS.seed);
-  noiseDetail(4, 0.52);
-  ready = true;
-  syncUI();
-  initializeArt();
-  document.getElementById('loading').classList.add('gone');
-  window._p5Ready = true;
-}
-
-function makeBuffer() {
-  const buffer = createGraphics(width, height);
-  buffer.pixelDensity(1);
-  buffer.colorMode(HSB, 360, 100, 100, 100);
-  buffer.strokeCap(ROUND);
-  return buffer;
-}
-
-function initializeArt() {
-  worldTime = 0;
-  center = { x: width * 0.53, y: height * 0.48 };
-  voidRadius = Math.min(width, height) * 0.115;
-  pulses = [];
-  particles = [];
-  motes = [];
-  bgLayer = makeBuffer();
-  trailLayer = makeBuffer();
-  trailLayer.clear();
-  paintBackground();
-
-  for (let i = 0; i < PARAMS.count; i++) {
-    const p = {};
-    respawn(p, true);
-    p.life = random(20, p.maxLife);
-    particles.push(p);
-  }
-  for (let i = 0; i < 42; i++) {
-    motes.push({
-      phase: random(TWO_PI),
-      radius: random(1.07, 1.72),
-      speed: random(0.025, 0.11) * (random() < 0.5 ? -1 : 1),
-      size: random(0.45, 1.55),
-      band: random() < 0.72 ? 0 : 5
-    });
-  }
-  paintMemory();
-  renderFrame(1);
-}
-
-function respawn(p, initial = false) {
-  const a = random(TWO_PI);
-  const minR = voidRadius * random(1.18, 1.65);
-  const maxR = Math.max(width, height) * 0.69;
-  const r = initial ? random(minR, maxR) : (random() < 0.72 ? random(minR, voidRadius * 3.6) : maxR);
-  p.x = center.x + Math.cos(a) * r * random(0.95, 1.22);
-  p.y = center.y + Math.sin(a) * r * random(0.65, 0.92);
-  p.px = p.x;
-  p.py = p.y;
-  p.vx = 0;
-  p.vy = 0;
-  p.maxLife = random(210, 690);
-  p.life = p.maxLife;
-  p.tempo = random(0.52, 1.52);
-  p.weight = random() < 0.12 ? random(1.5, 2.5) : random(0.38, 1.25);
-  p.alpha = random(35, 88);
-  p.phase = random(100);
-  const pick = random();
-  p.band = pick < 0.25 ? 0 : pick < 0.46 ? 1 : pick < 0.66 ? 2 : pick < 0.80 ? 3 : pick < 0.93 ? 4 : 5;
-}
-
-// ---------- Champ : bruit déformé + rotation autour du vide ----------
-function flowAngle(x, y, time) {
-  const s = PARAMS.scale;
-  const warp = (noise(x * s * 0.43 + 17.3, y * s * 0.43 - 9.2, time * 0.19) - 0.5) * 210 * PARAMS.tension;
-  const n = noise((x + warp) * s, (y - warp * 0.7) * s, time * 0.23);
-  const angle = (n - 0.5) * Math.PI * 4.6 * PARAMS.turbulence + 0.22;
-  let vx = Math.cos(angle);
-  let vy = Math.sin(angle);
-
-  const dx = x - center.x;
-  const dy = (y - center.y) * 1.18;
-  const d = Math.sqrt(dx * dx + dy * dy) + 0.001;
-  const influence = Math.exp(-d / (voidRadius * 2.25)) * PARAMS.tension;
-  const tangent = Math.atan2(dy, dx) + Math.PI * 0.5;
-  const mix = Math.min(0.88, influence * 0.76);
-  vx = vx * (1 - mix) + Math.cos(tangent) * influence;
-  vy = vy * (1 - mix) + Math.sin(tangent) * influence;
-
-  // Le vide refuse les fils : force radiale douce mais certaine.
-  if (d < voidRadius * 1.24) {
-    const push = (1 - d / (voidRadius * 1.24)) * 4.2;
-    vx += dx / d * push;
-    vy += dy / d * push;
-  }
-
-  // Le pointeur est un second vent, local et tourbillonnant.
-  if (pointer.force > 0.005) {
-    const mx = x - pointer.x;
-    const my = y - pointer.y;
-    const md2 = mx * mx + my * my;
-    const radius = Math.min(width, height) * 0.27;
-    if (md2 < radius * radius) {
-      const md = Math.sqrt(md2) + 0.001;
-      const f = (1 - md / radius) * pointer.force;
-      vx += (-my / md * 1.4 + mx / md * 0.48) * f;
-      vy += ( mx / md * 1.4 + my / md * 0.48) * f;
-    }
-  }
-  return Math.atan2(vy, vx);
-}
-
-// ---------- Matière de fond : nuit, velours, fibres ----------
-function paintBackground() {
-  const ctx = bgLayer.drawingContext;
-  const linear = ctx.createLinearGradient(0, 0, width, height);
-  linear.addColorStop(0, '#080b18');
-  linear.addColorStop(0.42, '#151020');
-  linear.addColorStop(0.73, '#0b1721');
-  linear.addColorStop(1, '#070a12');
-  ctx.fillStyle = linear;
-  ctx.fillRect(0, 0, width, height);
-
-  let glow = ctx.createRadialGradient(width * 0.82, height * 0.16, 0, width * 0.82, height * 0.16, width * 0.64);
-  glow.addColorStop(0, 'rgba(32, 93, 105, .20)');
-  glow.addColorStop(1, 'rgba(4, 7, 15, 0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, width, height);
-  glow = ctx.createRadialGradient(width * 0.13, height * 0.84, 0, width * 0.13, height * 0.84, width * 0.55);
-  glow.addColorStop(0, 'rgba(115, 50, 77, .15)');
-  glow.addColorStop(1, 'rgba(4, 7, 15, 0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, width, height);
-
-  // Grain déterministe, discret : la surface doit avoir une peau.
-  bgLayer.noStroke();
-  for (let i = 0; i < Math.floor(width * height / 170); i++) {
-    const pale = random() < 0.48;
-    bgLayer.fill(pale ? 38 : 230, pale ? 16 : 25, pale ? 88 : 58, random(1.2, 5.0));
-    const r = random(0.25, 0.9);
-    bgLayer.circle(random(width), random(height), r);
-  }
-  bgLayer.strokeWeight(0.35);
-  for (let i = 0; i < 240; i++) {
-    const x = random(width), y = random(height);
-    bgLayer.stroke(35, 12, 80, random(1.2, 3.2));
-    bgLayer.line(x, y, x + random(4, 28), y + random(-1.5, 1.5));
-  }
-
-  // Traces de mesure, comme des cercles effacés sur une partition.
-  bgLayer.noFill();
-  for (let i = 0; i < 18; i++) {
-    const r = voidRadius * (1.35 + i * 0.18);
-    bgLayer.stroke(i % 3 === 0 ? 40 : 210, 24, 65, i % 3 === 0 ? 3.5 : 2.0);
-    bgLayer.strokeWeight(i % 4 === 0 ? 0.65 : 0.35);
-    const start = random(TWO_PI);
-    bgLayer.arc(center.x, center.y, r * 2.1, r * 1.55, start, start + random(0.3, 2.2));
-  }
-}
-
-// Longues calligraphies initiales : la première image a déjà une histoire.
-function paintMemory() {
-  const oldForce = pointer.force;
-  pointer.force = 0;
-  for (let i = 0; i < 128; i++) {
-    const a = random(TWO_PI);
-    const r = random(voidRadius * 1.25, Math.max(width, height) * 0.64);
-    let x = center.x + Math.cos(a) * r * 1.12;
-    let y = center.y + Math.sin(a) * r * 0.79;
-    const band = i % 11 === 0 ? 5 : i % 5 === 0 ? 1 : i % 3 === 0 ? 2 : 0;
-    const c = PALETTE[band];
-    const steps = Math.floor(random(55, 175));
-    const weight = i % 13 === 0 ? random(1.6, 2.8) : random(0.35, 1.1);
-    trailLayer.stroke(c[0], c[1], c[2], band === 0 ? 25 : 34);
-    trailLayer.strokeWeight(weight);
-    trailLayer.noFill();
-    trailLayer.beginShape();
-    trailLayer.vertex(x, y);
-    for (let j = 0; j < steps; j++) {
-      const angle = flowAngle(x, y, j * 0.0018 + i * 0.013);
-      const pace = 1.15 + 0.7 * Math.sin(j * 0.06 + i);
-      x += Math.cos(angle) * pace;
-      y += Math.sin(angle) * pace;
-      if (x < -20 || x > width + 20 || y < -20 || y > height + 20) break;
-      trailLayer.vertex(x, y);
-    }
-    trailLayer.endShape();
-  }
-  pointer.force = oldForce;
-}
-
-// ---------- Animation ----------
-function draw() {
-  const dt = Math.min(2, Math.max(0.25, deltaTime / 16.6667));
-  worldTime += 0.0052 * PARAMS.speed * dt;
-  pointer.x = mouseX;
-  pointer.y = mouseY;
-  pointer.active = mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height;
-  pointer.force += ((pointer.active ? 1 : 0) - pointer.force) * 0.075 * dt;
-  updateParticles(dt);
-  updatePulses(dt);
-  renderFrame(dt);
-}
-
-function fadeTrails() {
-  const ctx = trailLayer.drawingContext;
-  ctx.save();
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.fillStyle = `rgba(0,0,0,${PARAMS.dissolution})`;
-  ctx.fillRect(0, 0, width, height);
-  ctx.restore();
-}
-
-function updateParticles(dt) {
-  fadeTrails();
-  for (const p of particles) {
-    p.px = p.x;
-    p.py = p.y;
-    const angle = flowAngle(p.x, p.y, worldTime + p.phase * 0.002);
-    const speed = PARAMS.speed * p.tempo * 1.38;
-    const ease = Math.min(1, 0.115 * dt);
-    p.vx += (Math.cos(angle) * speed - p.vx) * ease;
-    p.vy += (Math.sin(angle) * speed - p.vy) * ease;
-
-    // Les souffles déplacent réellement l'encre, pas seulement les anneaux.
-    for (const pulse of pulses) {
-      const dx = p.x - pulse.x, dy = p.y - pulse.y;
-      const d2 = dx * dx + dy * dy;
-      if (d2 < pulse.reach * pulse.reach) {
-        const d = Math.sqrt(d2) + 0.001;
-        const f = (1 - d / pulse.reach) * pulse.life * 0.19 * dt;
-        p.vx += dx / d * f;
-        p.vy += dy / d * f;
-      }
-    }
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
-    p.life -= dt;
-
-    const fade = Math.min(1, (p.maxLife - p.life) / 28, p.life / 55);
-    const c = PALETTE[p.band];
-    if (p.weight > 1.45) {
-      trailLayer.stroke(c[0], c[1], c[2], p.alpha * fade * 0.13);
-      trailLayer.strokeWeight(p.weight * 4.2);
-      trailLayer.line(p.px, p.py, p.x, p.y);
-    }
-    trailLayer.stroke(c[0], c[1], c[2], p.alpha * fade);
-    trailLayer.strokeWeight(p.weight);
-    trailLayer.line(p.px, p.py, p.x, p.y);
-
-    if (p.life <= 0 || p.x < -30 || p.x > width + 30 || p.y < -30 || p.y > height + 30) {
-      respawn(p);
-    }
-  }
-}
-
-function updatePulses(dt) {
-  for (let i = pulses.length - 1; i >= 0; i--) {
-    const p = pulses[i];
-    p.radius += (3.2 + p.radius * 0.012) * dt;
-    p.life -= 0.014 * dt;
-    if (p.life <= 0) pulses.splice(i, 1);
-  }
-}
-
-function renderFrame(dt) {
-  clear();
-  image(bgLayer, 0, 0);
-  image(trailLayer, 0, 0);
-  drawVoid();
-  drawMotes();
-  drawPulses();
-  drawPointer();
-}
-
-function drawVoid() {
-  const breath = 1 + Math.sin(worldTime * 3.1) * 0.032;
-  const r = voidRadius * breath;
-  const ctx = drawingContext;
-  const gradient = ctx.createRadialGradient(center.x, center.y, r * 0.12, center.x, center.y, r * 1.72);
-  gradient.addColorStop(0, 'rgba(3,4,10,1)');
-  gradient.addColorStop(0.43, 'rgba(5,5,13,.985)');
-  gradient.addColorStop(0.61, 'rgba(8,7,17,.88)');
-  gradient.addColorStop(0.79, 'rgba(9,9,19,.38)');
-  gradient.addColorStop(1, 'rgba(9,9,19,0)');
-  ctx.save();
-  ctx.fillStyle = gradient;
-  ctx.fillRect(center.x - r * 1.75, center.y - r * 1.75, r * 3.5, r * 3.5);
-  ctx.restore();
-
-  noFill();
-  for (let i = 0; i < 5; i++) {
-    const rr = r * (1.02 + i * 0.072);
-    const start = worldTime * (i % 2 ? -0.31 : 0.22) + i * 1.67;
-    stroke(i === 2 ? 8 : 42, i === 2 ? 55 : 35, 90, 16 - i * 1.8);
-    strokeWeight(i === 0 ? 0.9 : 0.45);
-    arc(center.x, center.y, rr * 2.06, rr * 1.72, start, start + 0.48 + i * 0.17);
-  }
-}
-
-function drawMotes() {
-  noStroke();
-  for (const m of motes) {
-    const a = m.phase + worldTime * m.speed * 5;
-    const rr = voidRadius * m.radius;
-    const x = center.x + Math.cos(a) * rr;
-    const y = center.y + Math.sin(a) * rr * 0.84;
-    const shimmer = 22 + 35 * (0.5 + 0.5 * Math.sin(worldTime * 2 + m.phase * 4));
-    const c = PALETTE[m.band];
-    fill(c[0], c[1], c[2], shimmer);
-    circle(x, y, m.size);
-  }
-}
-
-function drawPulses() {
-  noFill();
-  for (const p of pulses) {
-    stroke(39, 35, 94, p.life * 48);
-    strokeWeight(0.75);
-    circle(p.x, p.y, p.radius * 2);
-    stroke(8, 70, 88, p.life * 25);
-    strokeWeight(2.8);
-    circle(p.x, p.y, p.radius * 1.88);
-  }
-}
-
-function drawPointer() {
-  if (!pointer.active || pointer.force < 0.1) return;
-  const r = 10 + Math.sin(worldTime * 4) * 1.5;
-  noFill();
-  stroke(39, 25, 95, 26 * pointer.force);
-  strokeWeight(0.55);
-  arc(pointer.x, pointer.y, r * 2, r * 2, worldTime, worldTime + PI * 1.35);
-  noStroke();
-  fill(8, 60, 90, 44 * pointer.force);
-  circle(pointer.x, pointer.y, 1.6);
-}
-
-// ---------- Gestes ----------
-function releasePulse(x, y) {
-  const now = performance.now();
-  if (now - lastPulseAt < 140) return;
-  lastPulseAt = now;
-  pulses.push({ x, y, radius: 4, life: 1, reach: Math.min(width, height) * 0.46 });
-  if (pulses.length > 7) pulses.shift();
-}
-function mousePressed(event) {
-  if (event && event.target && event.target.tagName !== 'CANVAS') return;
-  if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) releasePulse(mouseX, mouseY);
-}
-function touchStarted(event) {
-  if (event && event.target && event.target.tagName !== 'CANVAS') return true;
-  if (touches.length) releasePulse(touches[0].x, touches[0].y);
-  return false;
-}
-function keyPressed(event) {
-  if (event && event.target && ['INPUT', 'BUTTON'].includes(event.target.tagName)) return true;
-  if (key === ' ') togglePause();
-  if (key === 'r' || key === 'R') randomizeSeed();
-  if (key === 's' || key === 'S') downloadPNG();
-  if (key === 'g' || key === 'G') saveGif('ce-qui-me-traverse-' + PARAMS.seed, 5);
-  return false;
-}
-
-let resizeTimer;
-function windowResized() {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    const container = document.getElementById('canvas-container');
-    resizeCanvas(container.clientWidth, container.clientHeight);
-    randomSeed(PARAMS.seed);
-    noiseSeed(PARAMS.seed);
-    initializeArt();
-  }, 160);
-}
-
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) noLoop();
-  else if (!paused) loop();
-});
-
-// Petit contrat public pour vérifier et capturer la pièce sans la deviner.
-window.__art = {
-  getState: () => ({
-    seed: PARAMS.seed,
-    count: particles.length,
-    scale: PARAMS.scale,
-    speed: PARAMS.speed,
-    tension: PARAMS.tension,
-    dissolution: PARAMS.dissolution,
-    paused,
-    pulses: pulses.length,
-    worldTime,
-    canvas: [width, height],
-    ready: window._p5Ready === true
-  }),
-  pulse: (x, y) => releasePulse(x, y),
-  pause: () => { if (!paused) togglePause(); },
-  resume: () => { if (paused) togglePause(); }
-};
-</script>
 </body>
 </html>

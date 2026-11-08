@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>L'instant d'avant le mot</title>
+<style>
+  html, body { margin:0; padding:0; height:100%; background:#05060a; overflow:hidden; }
+  canvas { display:block; width:100vw; height:100vh; }
+
+  canvas { cursor:pointer; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+"use strict";
+const SPEC = {"sr":22050,"dur":36.0,"F0":165.0,"NV":64,"T_CLOUD":12.0,"T_COLL":21.0,"T_HOLD":25.0,"T_CHORD":29.0,"T_END":36.0,"voices":[{"cents0":-19.88659498146375,"target":744.3767656168278,"w":0.896326566430953,"phase":6.179191335140633,"vib_rate":0.10216931003546287,"vib_ph":6.02736180775122,"vib_amt":7.543325230349253,"pan0":0.8400766847651908,"pan_t":0.7011392314406933,"br_rate":0.08632038610754032,"br_ph":4.76167802925584,"attack":4.195243541158856,"tail":0.9731816190377061},{"cents0":-47.87321608733936,"target":4.559008273798536,"w":0.8518634231698157,"phase":5.741988676932079,"vib_rate":0.09271945585780669,"vib_ph":5.323922930595149,"vib_amt":3.617902249232719,"pan0":-0.21415805678862515,"pan_t":0.5629722743275397,"br_rate":0.041918837065779355,"br_ph":1.368577390447464,"attack":2.137275476011679,"tail":1.2059296111646096},{"cents0":-26.08476956966149,"target":-722.0851173484671,"w":0.6812632688664011,"phase":5.292896449751398,"vib_rate":0.1343168082926633,"vib_ph":6.040301322654203,"vib_amt":4.67652030911425,"pan0":0.289156010407326,"pan_t":-0.28522216781704635,"br_rate":0.0621698527108357,"br_ph":5.058792791363713,"attack":2.2015075701728057,"tail":0.8233653187813683},{"cents0":-6.225844153303967,"target":-13.444094992760785,"w":0.5381818629597542,"phase":5.623160227091089,"vib_rate":0.13093671099047055,"vib_ph":3.8127773663285667,"vib_amt":3.245866404252177,"pan0":0.014470932860222828,"pan_t":0.5738281294503159,"br_rate":0.08489382155238279,"br_ph":5.821561286512403,"attack":4.041507471100855,"tail":1.1904661530710996},{"cents0":37.355134138587104,"target":-684.0820460374648,"w":0.9309374985592743,"phase":4.363716261361112,"vib_rate":0.06663835548163302,"vib_ph":1.684129247606983,"vib_amt":2.818314441735822,"pan0":-0.6938441852383693,"pan_t":0.06018857985891424,"br_rate":0.037278708836847696,"br_ph":4.683778967061435,"attack":3.805346434329459,"tail":0.995067520830692},{"cents0":-14.89004532751521,"target":709.0810637753566,"w":0.5378437322825721,"phase":6.0765629620936625,"vib_rate":0.13479790731674635,"vib_ph":3.048970889881962,"vib_amt":8.647287274909287,"pan0":0.4769682904974721,"pan_t":-0.4691213838918034,"br_rate":0.07335930692504603,"br_ph":3.2863137651280074,"attack":4.1850502775594265,"tail":0.9195666037192687},{"cents0":-7.409268722487795,"target":12.828460615515226,"w":0.6110792979277021,"phase":4.71333388821508,"vib_rate":0.12591101003524569,"vib_ph":1.6009277070014867,"vib_amt":2.132822765347271,"pan0":0.575003998103406,"pan_t":0.741708879116224,"br_rate":0.08371891421620188,"br_ph":5.266923303501024,"attack":4.387817078161975,"tail":1.1333637661540363},{"cents0":1.9380163818203684,"target":391.4206825441429,"w":0.31105010492664587,"phase":1.516729462357036,"vib_rate":0.069179488186883,"vib_ph":5.237450285681365,"vib_amt":5.2466684850439655,"pan0":0.4441739761390229,"pan_t":0.33575686096253154,"br_rate":0.0647631538787604,"br_ph":5.835391633031892,"attack":3.502983006564893,"tail":0.9269070405245592},{"cents0":49.676651502644646,"target":736.5118631704734,"w":0.8320650466477453,"phase":5.061276433929297,"vib_rate":0.12287235431818247,"vib_ph":5.745286921981569,"vib_amt":3.3786839148722256,"pan0":0.48878697351578737,"pan_t":0.050767004534639226,"br_rate":0.08934730209049069,"br_ph":4.820484409040898,"attack":2.2821081957049567,"tail":0.9018388262587516},{"cents0":41.0358896055413,"target":1211.892626379345,"w":0.594904084865104,"phase":0.4653060539302719,"vib_rate":0.13165103158187674,"vib_ph":0.6622955170824016,"vib_amt":5.150909936229926,"pan0":0.038497355837850675,"pan_t":0.5735081292214584,"br_rate":0.04817063904862733,"br_ph":1.3933813556095762,"attack":3.8990470009665548,"tail":0.7852630369566387},{"cents0":-31.953479576102858,"target":-733.8299448504333,"w":0.6187299208769403,"phase":4.334889315525176,"vib_rate":0.11384023201587885,"vib_ph":2.399561887430894,"vib_amt":6.569443947004992,"pan0":-0.7247948585231251,"pan_t":-0.5857392667007445,"br_rate":0.06972566783890921,"br_ph":4.806571586670589,"attack":3.3424513523654564,"tail":1.1960179947966068},{"cents0":35.15268821284761,"target":1272.8920337818006,"w":0.5055883251205341,"phase":5.979789327569459,"vib_rate":0.05973441563705436,"vib_ph":2.6772683543297724,"vib_amt":2.073433049645094,"pan0":-0.7013980262457158,"pan_t":0.3922717133706982,"br_rate":0.051074246454178254,"br_ph":1.1992080355461538,"attack":2.9845493162599928,"tail":0.7790891173516539},{"cents0":55.74778273163098,"target":-8.450414241730973,"w":0.6246552395353369,"phase":5.088409033704899,"vib_rate":0.0842873611463997,"vib_ph":0.6268652392229431,"vib_amt":4.740483903416065,"pan0":0.20736013889426624,"pan_t":0.08851573582992833,"br_rate":0.06063935591107451,"br_ph":0.8683939534850125,"attack":2.221994729632339,"tail":0.7861773321153147},{"cents0":-38.09938049387815,"target":20.31090464465356,"w":0.5277928057674252,"phase":5.734348488555974,"vib_rate":0.0721092551213064,"vib_ph":0.20037271096219839,"vib_amt":4.105839354497772,"pan0":0.46461082558653427,"pan_t":0.6123802391288856,"br_rate":0.0492141367702134,"br_ph":5.458864314478804,"attack":3.1101274446183065,"tail":0.9585690799776752},{"cents0":60.632686229360985,"target":2.0363262123177535,"w":0.8232710944178752,"phase":5.507393891198122,"vib_rate":0.1406922275039762,"vib_ph":1.2848984461248747,"vib_amt":10.821216951663374,"pan0":-0.48406448756965437,"pan_t":0.842683764064999,"br_rate":0.06694482461044321,"br_ph":5.877575669002465,"attack":3.654256340548248,"tail":0.8468897206569019},{"cents0":21.772697859579637,"target":-647.6251796100909,"w":0.399491657569332,"phase":5.4253961368787715,"vib_rate":0.11341459718622901,"vib_ph":0.7103389801238706,"vib_amt":7.861485393034563,"pan0":-0.20391163772666326,"pan_t":-0.7622173422640574,"br_rate":0.07778993367060977,"br_ph":1.515673688464893,"attack":3.519535947893238,"tail":0.8164101369544976},{"cents0":26.81136312782722,"target":1156.053736308257,"w":0.611203265748591,"phase":0.3751333847889246,"vib_rate":0.05851413349634674,"vib_ph":0.6747544144359491,"vib_amt":9.037567070361412,"pan0":-0.17871099940714122,"pan_t":-0.8461976900449908,"br_rate":0.05997173541699637,"br_ph":1.7528344124904098,"attack":3.5621568985569456,"tail":0.7602079456503588},{"cents0":10.577423383118571,"target":1225.2524014665958,"w":0.4886837745298436,"phase":3.2487391846064058,"vib_rate":0.15298625198637705,"vib_ph":0.7287561600358954,"vib_amt":10.429902685695545,"pan0":0.3640401477718571,"pan_t":-0.1287348449290463,"br_rate":0.048762239151197075,"br_ph":5.680198446624163,"attack":2.4223786290484313,"tail":1.2357134309830702},{"cents0":-8.48858160341311,"target":1264.0327931645795,"w":0.7400768809125926,"phase":3.5722301068259976,"vib_rate":0.04892029739231266,"vib_ph":2.8653617695642053,"vib_amt":8.484298416547901,"pan0":0.9606167386877982,"pan_t":-0.576642352928888,"br_rate":0.08733910676337159,"br_ph":5.2850764570606215,"attack":2.0255741847843023,"tail":1.184830955150888},{"cents0":-18.125832358876906,"target":-1.9668499195853073,"w":0.44628628279919935,"phase":5.792918887682437,"vib_rate":0.1216297077740507,"vib_ph":2.925177516972775,"vib_amt":9.469401520967185,"pan0":-0.5814978551274075,"pan_t":-0.4726512645626927,"br_rate":0.052501666811580056,"br_ph":5.1339582217602695,"attack":2.5683605367549,"tail":1.0620366484696435},{"cents0":12.080229799583876,"target":16.150203330540904,"w":0.5884454366468284,"phase":2.840019906312234,"vib_rate":0.07989186141406493,"vib_ph":2.7129558414912824,"vib_amt":2.3365479431547147,"pan0":-0.44699444284699574,"pan_t":0.27333253502474164,"br_rate":0.05937109307113203,"br_ph":3.045712076419704,"attack":3.2626875534172246,"tail":1.1168388312519568},{"cents0":46.15462872896185,"target":-5.073731266531407,"w":0.39160217386919793,"phase":2.624103150790821,"vib_rate":0.1026328353632345,"vib_ph":1.934751336597547,"vib_amt":2.4671224395329023,"pan0":0.6656778662431274,"pan_t":0.2912632395099187,"br_rate":0.04592738611050356,"br_ph":1.1379323861136672,"attack":3.9563914757589465,"tail":1.0316737729928416},{"cents0":-34.617088794590614,"target":14.144404597456187,"w":0.3160478834934127,"phase":5.658923552763937,"vib_rate":0.13215458347476572,"vib_ph":4.517627600036091,"vib_amt":9.975765721743205,"pan0":0.25916498306452024,"pan_t":0.24969353249661463,"br_rate":0.06601976086603176,"br_ph":1.9304963368258363,"attack":4.436649973432914,"tail":1.1096384152134975},{"cents0":-9.190567075072835,"target":380.44047582378556,"w":0.8788467671478376,"phase":1.8232305134679505,"vib_rate":0.0953312318807151,"vib_ph":3.929029654934838,"vib_amt":2.5817142726231563,"pan0":0.7991607846831408,"pan_t":0.43754487332216263,"br_rate":0.0880179142555333,"br_ph":4.006303857688268,"attack":3.778300969283942,"tail":1.06608167933751},{"cents0":-23.21864170177038,"target":-15.942414902612722,"w":0.4895608482116132,"phase":0.11538291578893436,"vib_rate":0.08099153538519968,"vib_ph":1.4529833772589376,"vib_amt":5.6658258833214035,"pan0":-0.3585073206650645,"pan_t":-0.35886384140879996,"br_rate":0.04334690950065686,"br_ph":2.4529181077482503,"attack":2.5360141122809776,"tail":1.1850277464199834},{"cents0":54.25082696922571,"target":1256.7245513406433,"w":0.49627723852123257,"phase":4.21812428889229,"vib_rate":0.08388686606942539,"vib_ph":3.3756935833283657,"vib_amt":8.133829467283203,"pan0":0.042637864847311066,"pan_t":0.314594187609894,"br_rate":0.04578251386460698,"br_ph":1.6077363809462724,"attack":4.05178363780501,"tail":1.1209768538930236},{"cents0":10.081835813218945,"target":661.6761601252254,"w":0.48345726415606305,"phase":1.072419126026023,"vib_rate":0.07436720964127287,"vib_ph":2.926109090520236,"vib_amt":10.962022490214212,"pan0":-0.6009500673929138,"pan_t":-0.4856923668489114,"br_rate":0.04729403238995877,"br_ph":2.3058928559024308,"attack":2.911087349921818,"tail":0.8691612351861236},{"cents0":-59.76840689874842,"target":-645.8890396206317,"w":0.3799731275370517,"phase":5.218962718732761,"vib_rate":0.07241686811561593,"vib_ph":4.258079095596849,"vib_amt":2.111431983201048,"pan0":0.456453335268806,"pan_t":0.14362639161790047,"br_rate":0.0518782358688364,"br_ph":4.005548895465776,"attack":3.471777797050678,"tail":0.7552438623210274},{"cents0":13.546757885251438,"target":724.7815427821989,"w":0.6868191532214168,"phase":0.6336623493009783,"vib_rate":0.1257649966288903,"vib_ph":5.304680178692469,"vib_amt":8.582651512099194,"pan0":0.25148006611557167,"pan_t":0.5067716910148802,"br_rate":0.06027142989859549,"br_ph":4.940133481753982,"attack":3.2050916902747657,"tail":1.2371744824927506},{"cents0":12.17184525059416,"target":-665.6647690132268,"w":0.778315496048699,"phase":3.6060361620288535,"vib_rate":0.0630017651331857,"vib_ph":0.8696747072593118,"vib_amt":2.9896881461109244,"pan0":-0.6079757737481561,"pan_t":-0.2997250140344405,"br_rate":0.08704670692754513,"br_ph":5.467724559634666,"attack":2.4094651981201727,"tail":1.0480268280700327},{"cents0":-27.204932227702933,"target":754.5732521388777,"w":0.6072718553845621,"phase":4.252454535524319,"vib_rate":0.07649244970644711,"vib_ph":5.550677902203743,"vib_amt":2.950864104612529,"pan0":0.9585040477667561,"pan_t":0.3657365083886063,"br_rate":0.03041916961523274,"br_ph":1.8268321430693404,"attack":1.773662153736332,"tail":1.143936903980447},{"cents0":-37.19102362159596,"target":388.14545097174357,"w":0.4356235806659581,"phase":2.9773290877067335,"vib_rate":0.08293108122582729,"vib_ph":0.5784998468774444,"vib_amt":10.43048654373684,"pan0":-0.9245866739648,"pan_t":-0.0528294518398057,"br_rate":0.08942322529439227,"br_ph":4.7485039186941576,"attack":3.2141667875378355,"tail":1.0936449890365092},{"cents0":1.1110764820198753,"target":1278.4598792327347,"w":0.47932002500881266,"phase":6.2730340901621044,"vib_rate":0.09070008996377277,"vib_ph":2.4770294563124295,"vib_amt":7.227428365279787,"pan0":-0.9542684437416782,"pan_t":-0.011821301457429323,"br_rate":0.04630359078457276,"br_ph":4.700051256042128,"attack":3.1183633716031895,"tail":1.190095165985873},{"cents0":3.100765328594079,"target":662.8142605253539,"w":0.9253615291053614,"phase":3.1578874871128457,"vib_rate":0.0664579772005103,"vib_ph":3.947316601692274,"vib_amt":9.526764456786921,"pan0":-0.52622012437511,"pan_t":-0.2240233089442042,"br_rate":0.07189033638584977,"br_ph":0.06355076773174265,"attack":3.858934438586136,"tail":1.0080245053935832},{"cents0":15.556047279558598,"target":1236.7106765060594,"w":0.5952400829656085,"phase":5.663771552144485,"vib_rate":0.08730968106245232,"vib_ph":4.4910852997230615,"vib_amt":8.658055475594892,"pan0":0.23728094176566722,"pan_t":0.34983884228960094,"br_rate":0.046576489292029885,"br_ph":2.4731572327008466,"attack":4.309779715854968,"tail":1.2424918114942793},{"cents0":-45.850625159635456,"target":672.1305427824316,"w":0.7657180291810946,"phase":2.0388748494387587,"vib_rate":0.12644803288137557,"vib_ph":0.5877748920346996,"vib_amt":7.718391880267465,"pan0":-0.5553482589159666,"pan_t":0.5657478258857412,"br_rate":0.03523494142672767,"br_ph":0.5636390864956599,"attack":3.8715138474177153,"tail":1.0497778872644696},{"cents0":30.600368263119165,"target":709.508535201507,"w":0.700840632283063,"phase":5.569258424764404,"vib_rate":0.15257147376182098,"vib_ph":0.5305209126461409,"vib_amt":3.2520449577999644,"pan0":0.2716391987569761,"pan_t":-0.8026924110472288,"br_rate":0.08391558050080042,"br_ph":4.930503905810389,"attack":2.9233257144857,"tail":0.821903857012681},{"cents0":34.28021013201774,"target":1134.4264328803263,"w":0.5072490803587463,"phase":0.6151913214677196,"vib_rate":0.114412045748915,"vib_ph":1.412291937871084,"vib_amt":6.270014637324596,"pan0":-0.4437577278691615,"pan_t":-0.3182514214288329,"br_rate":0.03802678246866848,"br_ph":0.03786974241844793,"attack":2.8617952935155317,"tail":0.8230810707880996},{"cents0":-44.14097138858018,"target":1239.7289905610025,"w":0.5199368127599223,"phase":1.8307942795153502,"vib_rate":0.14079688371412571,"vib_ph":1.7217628618933687,"vib_amt":6.0142242098725385,"pan0":-0.7722220125857796,"pan_t":0.12538265035541551,"br_rate":0.04847399839745189,"br_ph":0.649796146177911,"attack":1.7814664562374043,"tail":1.2277902771469433},{"cents0":-41.75562261158865,"target":1157.4711870744823,"w":0.7980134534072909,"phase":4.844752873664996,"vib_rate":0.11018798421643772,"vib_ph":4.338941174820142,"vib_amt":9.522861034647978,"pan0":-0.5915144833805679,"pan_t":0.17531347124451668,"br_rate":0.041237991374635394,"br_ph":2.1440612728827273,"attack":4.47600304797236,"tail":1.037422266682334},{"cents0":17.551701374631563,"target":4.108390298860414,"w":0.4382636173552024,"phase":5.848889580683815,"vib_rate":0.05419857364908848,"vib_ph":5.096478958373376,"vib_amt":10.64720075522129,"pan0":0.3464790258527577,"pan_t":-0.765002327330091,"br_rate":0.0756002418732163,"br_ph":4.395319755788613,"attack":2.7241690712903344,"tail":1.011870171437315},{"cents0":-8.148624335192153,"target":-696.7955731400016,"w":0.7199426077365103,"phase":5.87519716888749,"vib_rate":0.09328932148956462,"vib_ph":5.7552128567428005,"vib_amt":4.056455314849998,"pan0":-0.00997164701782951,"pan_t":0.05040022304123426,"br_rate":0.07986429851512902,"br_ph":3.9886332056360323,"attack":4.132920838131142,"tail":0.7502826632699164},{"cents0":39.915066800019545,"target":-741.1580618667983,"w":0.6341691791010966,"phase":0.3600740226949528,"vib_rate":0.08627019487918919,"vib_ph":3.6315540995457507,"vib_amt":10.898732633759442,"pan0":0.6433274954730509,"pan_t":0.48072168234451473,"br_rate":0.04673543378553256,"br_ph":1.9337945419121105,"attack":2.1971082646363915,"tail":1.1106042747984914},{"cents0":53.03402338035619,"target":-748.4794686059944,"w":0.7935879955226381,"phase":6.055308199497394,"vib_rate":0.1075006564380333,"vib_ph":3.8644859799540625,"vib_amt":5.33532063716234,"pan0":0.9280595646506384,"pan_t":-0.4758954925173785,"br_rate":0.05318231627676295,"br_ph":2.464497126190338,"attack":1.9658417984039602,"tail":1.1765371179327087},{"cents0":20.52837784191152,"target":1276.6773326060677,"w":0.6772621237881343,"phase":5.113429560603487,"vib_rate":0.09580583992676892,"vib_ph":2.838448174876852,"vib_amt":8.978806426883963,"pan0":0.11223813715848385,"pan_t":-0.01670788532880485,"br_rate":0.07646468560261258,"br_ph":5.529108887483352,"attack":3.3465943020760687,"tail":1.1223423980234477},{"cents0":55.80373159571489,"target":-662.082601353798,"w":0.7372894666840576,"phase":3.067937056037535,"vib_rate":0.10459272029101235,"vib_ph":0.8385984312983882,"vib_amt":5.096499276664815,"pan0":-0.3203530304742586,"pan_t":0.37778162643745017,"br_rate":0.051051599414342536,"br_ph":1.065482269565851,"attack":2.4076090262836933,"tail":1.0418116407338143},{"cents0":-50.362340370790164,"target":-721.4928770441725,"w":0.4836909240741071,"phase":4.459213018697293,"vib_rate":0.08758988850271351,"vib_ph":2.3087980202523264,"vib_amt":10.524103323624239,"pan0":-0.9799150391144614,"pan_t":0.36174867529595944,"br_rate":0.04997596695405281,"br_ph":5.668367902395112,"attack":4.114808769746842,"tail":0.9773921628480506},{"cents0":-55.95484200363061,"target":9.630226386779597,"w":0.9227328980588726,"phase":1.431223754422061,"vib_rate":0.10564034141138257,"vib_ph":0.9695360130912952,"vib_amt":10.363368741382555,"pan0":-0.5164092681644878,"pan_t":-0.24254943017077146,"br_rate":0.06971959459190413,"br_ph":1.5540097580956185,"attack":4.364504562631834,"tail":0.9555815257189617},{"cents0":13.073619780706196,"target":0.4358300557973003,"w":0.7528928843587585,"phase":1.4280413379324137,"vib_rate":0.050237311122536814,"vib_ph":3.2114640661621023,"vib_amt":8.051364256789292,"pan0":-0.36303240513257806,"pan_t":0.69669949080813,"br_rate":0.04210321288419388,"br_ph":2.7951177868927437,"attack":2.0258675970042153,"tail":1.112094808157367},{"cents0":14.271127968303603,"target":1263.313017381201,"w":0.7862027513563189,"phase":3.228349925811409,"vib_rate":0.1512260088212779,"vib_ph":0.16571746861109923,"vib_amt":2.4882272888426735,"pan0":-0.38769132097193304,"pan_t":0.18664098424397257,"br_rate":0.04710873627921677,"br_ph":4.5159009860531585,"attack":1.819416168429017,"tail":0.892372771552477},{"cents0":-27.989980211993156,"target":657.0767556050365,"w":0.9245025788178471,"phase":5.3669666923548105,"vib_rate":0.10698467551434532,"vib_ph":3.1207102639183293,"vib_amt":8.983699739720205,"pan0":0.5696745717611366,"pan_t":0.5161240996233635,"br_rate":0.030572148587689307,"br_ph":5.40988040924402,"attack":2.0754333383423624,"tail":0.8161494552086821},{"cents0":-43.48182232974179,"target":1147.4891300163295,"w":0.8565757061231778,"phase":2.5659043082715307,"vib_rate":0.13507874682719687,"vib_ph":3.95506978187749,"vib_amt":9.142927396455907,"pan0":0.3433740319276268,"pan_t":0.4766105238339279,"br_rate":0.0894274171451166,"br_ph":0.20595942022592423,"attack":1.7685353371248014,"tail":1.0441030023943965},{"cents0":-53.84926270115239,"target":-15.788327213340251,"w":0.5372418502911693,"phase":2.1136929710496237,"vib_rate":0.12474186749522401,"vib_ph":1.3429635747851825,"vib_amt":2.8679141560728714,"pan0":-0.7742714352912846,"pan_t":0.11980288703853592,"br_rate":0.05689730587499262,"br_ph":3.4821849467042547,"attack":4.433792334349171,"tail":1.0743409984825671},{"cents0":59.37506310079594,"target":-19.086489304906515,"w":0.5685109494347383,"phase":0.32508029397473653,"vib_rate":0.04654159294595722,"vib_ph":4.760647472529915,"vib_amt":3.470287222050973,"pan0":-0.08225192954271172,"pan_t":0.03380265328045229,"br_rate":0.045949328206804634,"br_ph":0.505037035855977,"attack":2.3104277205762536,"tail":1.0004430449936816},{"cents0":17.885263649357654,"target":393.31108739986126,"w":0.7465764654320854,"phase":4.767057101830559,"vib_rate":0.09962810284268472,"vib_ph":1.0341745523364854,"vib_amt":8.531929050760835,"pan0":0.23365141108286702,"pan_t":-0.0575009957044591,"br_rate":0.04864104226428806,"br_ph":4.930282074863441,"attack":2.4334369342047397,"tail":1.0423481553062237},{"cents0":-30.204407952177085,"target":1186.0903952798644,"w":0.5822401780829154,"phase":1.3925619068741357,"vib_rate":0.1455403316445501,"vib_ph":0.6735658497758635,"vib_amt":3.3244853174654447,"pan0":-0.41770322724027265,"pan_t":-0.05321928472593662,"br_rate":0.05158980869971749,"br_ph":4.3421708903101495,"attack":1.9379695304777071,"tail":0.9008851775097673},{"cents0":32.45589252017302,"target":346.7648804392991,"w":0.3633747306140328,"phase":3.4607702552331534,"vib_rate":0.12212292305623723,"vib_ph":5.824424353587472,"vib_amt":9.810322575058745,"pan0":-0.2402685555598449,"pan_t":0.2368404325071417,"br_rate":0.06237695756285968,"br_ph":0.8775342511164923,"attack":4.496439926700945,"tail":0.8523620625204607},{"cents0":-22.068057306271236,"target":-17.476864543161142,"w":0.7224982203681927,"phase":3.2294355525279044,"vib_rate":0.10917830455629661,"vib_ph":4.582564721255858,"vib_amt":8.759296665278873,"pan0":-0.2172852142746956,"pan_t":-0.47502693019837994,"br_rate":0.04840543535438723,"br_ph":1.3041061432133754,"attack":1.9925939524037313,"tail":0.8635235495612648},{"cents0":28.20404144942694,"target":-707.5225510956893,"w":0.44997515725092685,"phase":4.06267474100594,"vib_rate":0.0887255944912324,"vib_ph":3.9504328968531857,"vib_amt":10.662360481189726,"pan0":0.6810926385609161,"pan_t":-0.3194319082774244,"br_rate":0.03368891382561641,"br_ph":1.648794984874084,"attack":3.4303110506639394,"tail":0.9915718721073994},{"cents0":-22.16188229604606,"target":735.6576341052374,"w":0.7721525410662312,"phase":4.000644982278121,"vib_rate":0.1456688400543038,"vib_ph":1.623857517538352,"vib_amt":10.083961584715608,"pan0":-0.06718301324360135,"pan_t":0.5087475831540565,"br_rate":0.08713362340209604,"br_ph":2.427025624939689,"attack":3.548066359748481,"tail":1.0129366740608978},{"cents0":12.350625616906612,"target":1198.4976106202173,"w":0.9570920401141205,"phase":0.13764718109614596,"vib_rate":0.05818565846415531,"vib_ph":2.708789222080151,"vib_amt":10.657476713197878,"pan0":0.5558806329111416,"pan_t":-0.33666756734625036,"br_rate":0.05374194727739811,"br_ph":5.2765494530005075,"attack":2.958209866728696,"tail":0.8197946844507118},{"cents0":-16.874277281781936,"target":360.7691722818424,"w":0.3334979416988512,"phase":6.106201691541688,"vib_rate":0.08364118155269673,"vib_ph":6.081055303795232,"vib_amt":8.26344792912741,"pan0":-0.22107319079966417,"pan_t":-0.23974123157479688,"br_rate":0.05752766505426118,"br_ph":1.9227056581618203,"attack":1.9498230198030981,"tail":1.1980439020141809},{"cents0":13.12534945524969,"target":404.04776484857496,"w":0.6850134631230681,"phase":5.376899678737543,"vib_rate":0.14906775741016104,"vib_ph":0.32153229392752647,"vib_amt":4.75531747572019,"pan0":0.34600445330498375,"pan_t":-0.6976787938538542,"br_rate":0.08130049403805298,"br_ph":1.557942938341527,"attack":2.251446192394542,"tail":0.9386159950612522},{"cents0":26.503478573439608,"target":693.2792551132462,"w":0.6644923603172542,"phase":1.7495905125754907,"vib_rate":0.13524251424073502,"vib_ph":5.237928156847134,"vib_amt":6.635338265125663,"pan0":0.7032719659100342,"pan_t":0.7616793462740433,"br_rate":0.0373352562362566,"br_ph":3.180724805776901,"attack":3.5731651083028453,"tail":1.1463157908525723}]};
+const SR = SPEC.sr, DUR = SPEC.dur, N = Math.round(SR * DUR);
+const F0 = SPEC.F0, DT = 1 / SR;
+const TC = SPEC.T_CLOUD, TK = SPEC.T_COLL, TH = SPEC.T_HOLD,
+      TD = SPEC.T_CHORD, TE = SPEC.T_END;
+const V = SPEC.voices;
+const SUMW = V.reduce((a, v) => a + v.w, 0);
+
+/* ---------------------------------------------------------------- maths */
+const smooth = x => { x = x < 0 ? 0 : x > 1 ? 1 : x; return x * x * (3 - 2 * x); };
+const easeOut = x => { x = x < 0 ? 0 : x > 1 ? 1 : x; return 1 - Math.pow(1 - x, 2.4); };
+const clamp01 = x => x < 0 ? 0 : x > 1 ? 1 : x;
+
+function cents(v, t) {
+  const base = v.cents0;
+  const drift = v.vib_amt * Math.sin(2 * Math.PI * v.vib_rate * t + v.vib_ph);
+  if (t < TC) return base + drift;
+  if (t < TK) { const u = smooth((t - TC) / (TK - TC)); return (base + drift) * (1 - u); }
+  if (t < TH) return 0.16 * drift;
+  if (t < TD) { const u = smooth((t - TH) / (TD - TH)); return v.target * u + 0.16 * drift * (1 - u); }
+  return v.target + 0.7 * drift;
+}
+
+function panOf(v, t) {
+  if (t < TC) return v.pan0;
+  if (t < TK) { const u = smooth((t - TC) / (TK - TC)); return v.pan0 * Math.pow(1 - u, 1.6); }
+  if (t < TH) return 0;
+  if (t < TD) { const u = smooth((t - TH) / (TD - TH)); return v.pan_t * u; }
+  return v.pan_t;
+}
+
+function ampOf(v, t) {
+  let a = v.w / SUMW;
+  a *= smooth(t / v.attack);
+  a *= 0.86 + 0.14 * Math.sin(2 * Math.PI * v.br_rate * t + v.br_ph);
+  if (t >= TC && t < TK) a *= 1 - 0.25 * smooth((t - TC) / (TK - TC));
+  if (t >= TH && t < TD) a *= 1 + 0.18 * smooth((t - TH) / (TD - TH));
+  const tail = (t - TD) / 6.2;
+  if (tail > 0) a *= Math.max(0, 1 - easeOut(tail * v.tail));
+  return a;
+}
+
+/* ------------------------------------------------------------- synthèse */
+function synth() {
+  const L = new Float32Array(N), R = new Float32Array(N);
+  const BLK = 48, inc0 = 2 * Math.PI * F0 * DT;
+
+  for (let vi = 0; vi < V.length; vi++) {
+    const v = V[vi];
+    let ph = v.phase, phc = 0;
+    for (let i0 = 0; i0 < N; i0 += BLK) {
+      const t = i0 * DT;
+      const f = F0 * Math.pow(2, cents(v, t) / 1200);
+      const a = ampOf(v, t);
+      const p = panOf(v, t);
+      const ang = (p + 1) * 0.25 * Math.PI;
+      const gl = Math.cos(ang) * a, gr = Math.sin(ang) * a;
+      const inc = 2 * Math.PI * f * DT;
+      let K = 0;
+      if (t >= TC && t < TK) K = 1.7e-4 * Math.pow(clamp01((t - TC) / (TK - TC)), 2.2);
+      else if (t >= TK && t < TH) K = 4.5e-5;
+      else if (t >= TH && t < TH + 1.5) K = 4.5e-5 * (1 - (t - TH) / 1.5);
+      const n = Math.min(BLK, N - i0);
+      for (let k = 0; k < n; k++) {
+        ph += inc; phc += inc0;
+        if (K !== 0) ph += K * Math.sin(phc - ph);
+        const s = Math.sin(ph), j = i0 + k;
+        L[j] += s * gl; R[j] += s * gr;
+      }
+    }
+  }
+
+  // souffle du hors-champ (deterministe)
+  let seed = 1234567;
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296 * 2 - 1; };
+  let lpL = 0, lpR = 0; const alp = 0.045;
+  for (let i = 0; i < N; i++) {
+    const t = i * DT;
+    let g;
+    if (t < TC) g = 0.012 + 0.010 * smooth(t / TC);
+    else if (t < TK) g = 0.022 * Math.pow(1 - smooth((t - TC) / (TK - TC)), 1.5);
+    else if (t < TH) g = 0.0025;
+    else g = 0.0025 + 0.011 * smooth((t - TH) / (TE - TH));
+    lpL += alp * (rnd() - lpL); lpR += alp * (rnd() - lpR);
+    L[i] += lpL * g; R[i] += lpR * g;
+  }
+
+  // reverb de Schroeder
+  function rev(x) {
+    const mix = 0.42;
+    const combs = [[779, .80], [809, .78], [746, .77], [711, .75]];
+    const aps = [[225, .5], [278, .5]];
+    const out = new Float32Array(x.length);
+    for (const [d, fb] of combs) {
+      const buf = new Float32Array(d); let idx = 0, damp = 0;
+      for (let i = 0; i < x.length; i++) {
+        const y = buf[idx];
+        damp = y * 0.72 + damp * 0.28;
+        buf[idx] = x[i] + damp * fb;
+        idx = (idx + 1) % d;
+        out[i] += y * 0.25;
+      }
+    }
+    for (const [d, g] of aps) {
+      const buf = new Float32Array(d); let idx = 0;
+      for (let i = 0; i < out.length; i++) {
+        const bo = buf[idx];
+        const y = -g * out[i] + bo;
+        buf[idx] = out[i] + g * y;
+        idx = (idx + 1) % d;
+        out[i] = y;
+      }
+    }
+    for (let i = 0; i < x.length; i++) x[i] = x[i] * (1 - mix) + out[i] * mix;
+    return x;
+  }
+  rev(L); rev(R);
+
+  // mastering
+  let peak = 1e-9;
+  for (let i = 0; i < N; i++) { const a = Math.abs(L[i]), b = Math.abs(R[i]); if (a > peak) peak = a; if (b > peak) peak = b; }
+  const tanh = z => { const e = Math.exp(2 * z); return (e - 1) / (e + 1); };
+  const drive = 1.05, norm = tanh(drive * 1.35);
+  for (let i = 0; i < N; i++) {
+    const t = i * DT;
+    let f = 1;
+    if (t < 1.2) f *= smooth(t / 1.2);
+    if (t > TE - 1.8) f *= smooth((TE - t) / 1.8);
+    L[i] = tanh(L[i] / peak * drive * 1.35) / norm * f;
+    R[i] = tanh(R[i] / peak * drive * 1.35) / norm * f;
+  }
+  return [L, R];
+}
+
+/* ---------------------------------------------------------------- canevas */
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d', { alpha: false });
+let W = 0, H = 0, DPR = 1;
+let ghost, past, bg, grainPat;
+let pts = [];          // positions ecran des voix, [voix][pas]
+const STEPS = 720;
+
+function warp(c) {
+  // log adouci : continu au voisinage de l'unisson, etale jusqu'a l'octave.
+  // une simple puissance laissait un trou au centre (pente infinie en 0).
+  const s = c < 0 ? -1 : 1;
+  const k = 45, span = Math.log(1 + 1250 / k);
+  return s * Math.min(1, Math.log(1 + Math.abs(c) / k) / span);
+}
+
+let geo = {};
+function layout() {
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = W * DPR; cv.height = H * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+  const m = Math.max(38, W * 0.055);
+  geo = {
+    l: m, r: W - m,
+    top: H * 0.155, bot: H * 0.845,
+    mid: (H * 0.155 + H * 0.845) / 2,
+    half: (H * 0.845 - H * 0.155) / 2,
+  };
+  geo.x = t => geo.l + (t / DUR) * (geo.r - geo.l);
+  geo.y = c => geo.mid - warp(c) * geo.half * 0.92;
+
+  // positions precalculees
+  pts = V.map(v => {
+    const arr = new Float32Array(STEPS + 1);
+    for (let k = 0; k <= STEPS; k++) arr[k] = geo.y(cents(v, k / STEPS * DUR));
+    return arr;
+  });
+
+  bg = makeBG();
+  ghost = makeGhost();
+  past = document.createElement('canvas');
+  past.width = cv.width; past.height = cv.height;
+  past.getContext('2d').setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+
+function makeGrain() {
+  const g = document.createElement('canvas');
+  g.width = g.height = 128;
+  const gc = g.getContext('2d');
+  const im = gc.createImageData(128, 128);
+  for (let i = 0; i < im.data.length; i += 4) {
+    const v = 120 + Math.random() * 135;
+    im.data[i] = im.data[i + 1] = im.data[i + 2] = v;
+    im.data[i + 3] = 14;
+  }
+  gc.putImageData(im, 0, 0);
+  return g;
+}
+
+function makeBG() {
+  const c = document.createElement('canvas');
+  c.width = cv.width; c.height = cv.height;
+  const g = c.getContext('2d');
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  g.fillStyle = '#05060a'; g.fillRect(0, 0, W, H);
+
+  const rg = g.createRadialGradient(W * 0.5, geo.mid, 0, W * 0.5, geo.mid, Math.max(W, H) * 0.75);
+  rg.addColorStop(0, 'rgba(26,34,50,0.55)');
+  rg.addColorStop(0.45, 'rgba(12,16,26,0.35)');
+  rg.addColorStop(1, 'rgba(3,4,7,0)');
+  g.fillStyle = rg; g.fillRect(0, 0, W, H);
+
+
+  // titre
+  g.fillStyle = 'rgba(222,230,242,0.92)';
+  g.font = '300 ' + Math.max(16, Math.min(34, W * 0.023)) + 'px "Helvetica Neue",Helvetica,Arial,sans-serif';
+  g.letterSpacing = '0.17em';
+  g.fillText("L'INSTANT D'AVANT LE MOT", geo.l - 12, geo.top - 54);
+
+  g.letterSpacing = '0.20em';
+  g.font = '300 ' + Math.max(11, Math.min(16, W * 0.0115)) + 'px "Helvetica Neue",Helvetica,Arial,sans-serif';
+  g.fillStyle = 'rgba(190,206,226,0.85)';
+  const sub = "unisson en mi · 64 voix · 36 secondes";
+  g.fillText(sub.toUpperCase(), geo.l - 12, geo.top - 32);
+
+  // frise des mouvements
+  g.letterSpacing = '0.20em';
+  const fsFrise = Math.max(11, Math.min(15, W * 0.0062));
+  g.font = '300 ' + fsFrise + 'px "Helvetica Neue",Helvetica,Arial,sans-serif';
+  const segs = [[0, TC, 'nuée'], [TC, TK, 'effondrement'], [TK, TH, 'tenue'], [TH, TD, 'accord'], [TD, TE, 'extinction']];
+  g.letterSpacing = '0.26em';
+  for (const [a, b, lab] of segs) {
+    g.fillStyle = 'rgba(196,212,232,0.72)';
+    g.fillText(lab.toUpperCase(), geo.x(a) + 14, geo.bot + 52);
+  }
+
+  // grain
+  const pat = g.createPattern(makeGrain(), 'repeat');
+  g.fillStyle = pat; g.fillRect(0, 0, W, H);
+  return c;
+}
+
+function voiceColor(k, t) {
+  // froid avant l'effondrement, chaud apres
+  const u = smooth((t - TK) / (TD - TK));   // le chaud nait de l'effondrement, pas de l'accord
+  const cold = [[96, 148, 202], [148, 188, 220], [120, 176, 182]];
+  const warm = [[244, 176, 84], [252, 220, 156], [224, 138, 82]];
+  const c = cold[k % 3], w = warm[k % 3];
+  return [c[0] + (w[0] - c[0]) * u, c[1] + (w[1] - c[1]) * u, c[2] + (w[2] - c[2]) * u];
+}
+
+function makeGhost() {
+  const c = document.createElement('canvas');
+  c.width = cv.width; c.height = cv.height;
+  const g = c.getContext('2d');
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  g.lineCap = 'round';
+  for (let k = 0; k < V.length; k++) {
+    const v = V[k];
+    const col = voiceColor(k, DUR);
+    g.strokeStyle = 'rgba(' + col.map(Math.round).join(',') + ',' + (0.075 + 0.11 * v.w) + ')';
+    g.lineWidth = 0.6 + 0.9 * v.w;
+    g.beginPath();
+    for (let s = 0; s <= STEPS; s++) {
+      const x = geo.x(s / STEPS * DUR), y = pts[k][s];
+      s ? g.lineTo(x, y) : g.moveTo(x, y);
+    }
+    g.stroke();
+  }
+  return c;
+}
+
+/* -------------------------------------------------------------- lecture */
+let actx = null, buf = null, src = null, t0 = 0, playing = false, ready = false, busy = false;
+let lastStep = -1;
+// ?t=21 fige la piece a un instant donne (controle visuel, partage d'une image)
+const QS = new URLSearchParams(location.search);
+const FROZEN = QS.has('t') ? Math.max(0, Math.min(DUR, parseFloat(QS.get('t')) || 0)) : null;
+
+function reveal(t) {
+  const g = past.getContext('2d');
+  g.lineCap = 'round';
+  const step = Math.floor(t / DUR * STEPS);
+  if (step <= lastStep) return;
+  const from = Math.max(0, lastStep);
+  for (let k = 0; k < V.length; k++) {
+    const v = V[k];
+    g.lineWidth = 1 + 1.0 * v.w;
+    const alpha = 0.58 + 0.40 * v.w;
+    for (let s = Math.max(1, from); s <= step; s++) {
+      // chaque segment porte la couleur de son epoque : froid avant, chaud apres
+      const col = voiceColor(k, s / STEPS * DUR);
+      g.strokeStyle = 'rgba(' + col.map(x => Math.round(x)).join(',') + ',' + alpha + ')';
+      g.beginPath();
+      g.moveTo(geo.x((s - 1) / STEPS * DUR), pts[k][s - 1]);
+      g.lineTo(geo.x(s / STEPS * DUR), pts[k][s]);
+      g.stroke();
+    }
+  }
+  lastStep = step;
+}
+
+function headY(k, t) {
+  const pos = t / DUR * STEPS;
+  const i = Math.min(STEPS - 1, Math.floor(pos)), f = pos - i;
+  return pts[k][i] * (1 - f) + pts[k][i + 1] * f;
+}
+
+function draw() {
+  requestAnimationFrame(draw);
+  const now = FROZEN !== null ? FROZEN : (playing && actx ? Math.min(DUR, actx.currentTime - t0) : 0);
+  if (FROZEN !== null) reveal(now); else if (playing) reveal(now);
+
+  ctx.drawImage(bg, 0, 0, W, H);
+  ctx.globalAlpha = 0.55; ctx.drawImage(ghost, 0, 0, W, H);
+  ctx.globalAlpha = 1; ctx.drawImage(past, 0, 0, W, H);
+
+  // tete de lecture
+  const x = geo.x(now);
+  const grd = ctx.createLinearGradient(x, geo.top - 30, x, geo.bot + 30);
+  grd.addColorStop(0, 'rgba(220,230,245,0)');
+  grd.addColorStop(0.5, 'rgba(235,242,252,' + (playing ? 0.55 : 0.18) + ')');
+  grd.addColorStop(1, 'rgba(220,230,245,0)');
+  ctx.strokeStyle = grd; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(x, geo.top - 30); ctx.lineTo(x, geo.bot + 30); ctx.stroke();
+
+  // points lumineux sur chaque voix
+  ctx.globalCompositeOperation = 'lighter';
+  for (let k = 0; k < V.length; k++) {
+    const v = V[k];
+    const y = headY(k, now);
+    const col = voiceColor(k, now);
+    const a = 0.35 + 0.65 * v.w;
+    ctx.fillStyle = 'rgba(' + col.map(Math.round).join(',') + ',' + (0.10 * a) + ')';
+    ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,250,240,' + (0.75 * a) + ')';
+    ctx.beginPath(); ctx.arc(x, y, 1.15 + 0.8 * v.w, 0, 7); ctx.fill();
+  }
+
+  // halo de l'effondrement
+  const d = Math.abs(now - TK);
+  if (now > TC) {
+    const pulse = Math.max(0, 1 - d / 3.2);
+    const hx = geo.x(TK), hy = geo.mid;
+    const R = 40 + 190 * (1 - pulse);
+    const hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, R);
+    const inten = (0.05 + 0.55 * pulse * pulse) * (now < TE - 1 ? 1 : 0.4);
+    hg.addColorStop(0, 'rgba(255,246,228,' + inten + ')');
+    hg.addColorStop(0.35, 'rgba(230,190,130,' + inten * 0.35 + ')');
+    hg.addColorStop(1, 'rgba(180,140,90,0)');
+    ctx.fillStyle = hg;
+    ctx.beginPath(); ctx.arc(hx, hy, R, 0, 7); ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+
+  // etat + compteur, haut droite
+  ctx.textAlign = 'right';
+  ctx.letterSpacing = '0.24em';
+  ctx.font = '300 ' + Math.max(13, Math.min(19, W * 0.0078)) + 'px "Helvetica Neue",Helvetica,Arial,sans-serif';
+  const icon = busy ? '···' : (playing ? '❚❚' : '▶');
+  ctx.fillStyle = 'rgba(226,234,246,0.80)';
+  ctx.fillText(icon, geo.r + 12, geo.top - 54);
+  if (!playing) {
+    ctx.font = '300 ' + Math.max(11, Math.min(15, W * 0.0062)) + 'px "Helvetica Neue",Helvetica,Arial,sans-serif';
+    ctx.fillStyle = 'rgba(186,202,222,0.72)';
+    ctx.fillText(busy ? 'CALCUL DE LA PIÈCE' : 'CLIQUEZ POUR JOUER', geo.r + 12, geo.top - 34);
+  }
+  ctx.textAlign = 'left';
+}
+
+/* ----------------------------------------------------------------- audio */
+async function start() {
+  if (busy) return;
+  if (playing) {                       // pause = stop, la piece se rejoue depuis le debut
+    playing = false;
+    if (src) { try { src.stop(); } catch (e) {} src = null; }
+    resetCanvas(); return;
+  }
+  if (!ready) {
+    busy = true;
+    await new Promise(r => setTimeout(r, 30));
+    if (!actx) {
+      try { actx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: SR }); }
+      catch (e) { actx = new (window.AudioContext || window.webkitAudioContext)(); }
+    }
+    const [L, R] = synth();
+    buf = actx.createBuffer(2, N, SR);
+    buf.copyToChannel(L, 0); buf.copyToChannel(R, 1);
+    ready = true; busy = false;
+  }
+  if (actx.state === 'suspended') await actx.resume();
+  resetCanvas();
+  src = actx.createBufferSource();
+  src.buffer = buf; src.connect(actx.destination);
+  src.start();
+  t0 = actx.currentTime;
+  playing = true;
+  src.onended = () => { playing = false; };
+}
+
+function resetCanvas() {
+  const g = past.getContext('2d');
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.clearRect(0, 0, past.width, past.height);
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  lastStep = -1;
+}
+
+cv.addEventListener('click', start);
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); start(); }
+});
+window.addEventListener('resize', () => { layout(); resetCanvas(); });
+
+layout();
+if (FROZEN !== null) reveal(FROZEN);
+draw();
+</script>
+</body>
+</html>
