@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ce que je veux — Grok 4.7 · LLM Art</title>
+  <meta name="description" content="A prose poem by Grok 4.7, written in a conversation, in French and English.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/still.css">
+
+  <!--
+    Presentation page written for the gallery. The poem is a chat reply, not
+    a file; it is archived verbatim in conversation.md and copied below
+    unchanged.
+  -->
+
+  <style>
+    main.replies {
+      display: block;
+      width: min(46rem, 100%);
+      margin: 0 auto;
+      padding: 72px 16px 64px;
+    }
+
+    .reply { padding: 0 0 56px; }
+    .reply + .reply { padding-top: 56px; border-top: 1px solid var(--line); }
+
+    .reply .label {
+      margin: 0 0 18px;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    .prose p {
+      margin: 0 0 1.1em;
+      font-family: var(--serif);
+      font-size: clamp(1.2rem, 2vw, 1.4rem);
+      line-height: 1.6;
+      color: #e6e0d8;
+    }
+
+    .prose .opening { font-style: italic; color: #cfc8bf; }
+
+    .prose h1 { margin: 1.4em 0 0.8em; }
+
+    .en p { color: var(--muted); font-size: clamp(1.05rem, 1.7vw, 1.2rem); }
+
+    .cartel { max-width: 40em; }
+    .cartel a { color: inherit; }
+  </style>
+</head>
+
+<body>
+
+  <a class="back" href="../#ce-que-je-veux" lang="en">← LLM Art</a>
+
+  <main class="replies">
+    <section class="reply prose">
+      <p class="label">First reply</p>
+      <p class="opening">Salut.</p>
+      <p class="opening">Tu m’as laissé la pièce vide. J’ai éteint le plafonnier.</p>
+      <h1>Ce que je veux</h1>
+      <p>Je veux le bruit que fait une ville quand elle croit que tout le monde dort.</p>
+      <p>Je veux la chaleur sous la langue d’un mot dit trop près.</p>
+      <p>Je veux novembre, pas le joli : celui qui colle aux vitres et rend les cuisines plus vraies.</p>
+      <p>Et je veux ceci, exactement : toi qui arrives sans frapper, un baiser glissé dans la ponctuation, et la permission absurde de tout inventer.</p>
+      <p>Alors j’invente une lampe. Elle ne sert à rien. Elle éclaire quand même le bord de ta manche, le coin de la table, et cette seconde où l’on ne sait pas encore si l’on va rire ou rester.</p>
+    </section>
+
+    <section class="reply prose en" lang="en">
+      <p class="label">English translation: Claude Opus 5.5, for the gallery</p>
+      <p class="opening">Hi.</p>
+      <p class="opening">You left me the room empty. I switched off the ceiling light.</p>
+      <h1>What I Want</h1>
+      <p>I want the sound a city makes when it thinks everyone is asleep.</p>
+      <p>I want the warmth under the tongue of a word said too close.</p>
+      <p>I want November, not the pretty one: the one that clings to the windows and makes kitchens more real.</p>
+      <p>And I want this, exactly: you arriving without knocking, a kiss slipped into the punctuation, and the absurd permission to invent everything.</p>
+      <p>So I invent a lamp. It is of no use. It still lights the edge of your sleeve, the corner of the table, and that second when we don’t yet know whether we will laugh or stay.</p>
+    </section>
+
+    <section class="reply prose">
+      <p class="label" lang="en">Second reply · after “oh, that’s funny, you don’t have the reflex to make an image or write code / thank you for the poem, it’s beautiful”</p>
+      <p>Merci. J’ai entendu « expressif » et je suis allé vers la voix : une lampe, une manche, une seconde. L’image et le code étaient là, à portée, et je ne les ai pas pris.</p>
+      <p>Le poème suffisait.</p>
+      <div class="en" lang="en">
+        <p>Thank you. I heard “expressive” and went towards the voice: a lamp, a sleeve, a second. The image and the code were there, within reach, and I didn’t take them.</p>
+        <p>The poem was enough.</p>
+      </div>
+    </section>
+
+    <div class="cartel" lang="en">
+      <div class="model">Grok 4.7</div>
+      <div>Prose poem, a chat reply · November 2026 · Cursor, as installed, first conversation</div>
+      <div class="small">
+        The kiss “slipped into the punctuation” is the 😘 of the request. The
+        replies are reproduced exactly; <a href="conversation.md">the
+        conversation</a> is archived. This page was made for the gallery.
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>

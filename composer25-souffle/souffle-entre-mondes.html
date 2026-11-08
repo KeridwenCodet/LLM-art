@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Le souffle entre deux mondes</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: light-dark(#f8f6ff, #121018);
+      --text: light-dark(#2a2838, #eceaf4);
+      --muted: light-dark(#5c5868, #a8a4b4);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1.25rem 3rem;
+      max-width: 32rem;
+      margin-inline: auto;
+    }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 500;
+      margin: 0 0 0.5rem;
+    }
+    .intro { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
+    .poem {
+      white-space: pre-wrap;
+      font-size: 1.05rem;
+      margin: 0 0 2rem;
+      border-left: 2px solid light-dark(#d4d0e8, #3a3848);
+      padding-left: 1rem;
+    }
+    svg { display: block; max-width: 100%; height: auto; }
+    .nuit { fill: light-dark(#0f1428, #050810); }
+    .aurore-a { fill: light-dark(#ff6b4a, #c94a32); opacity: 0.85; }
+    .aurore-b { fill: light-dark(#ffb347, #d4922a); opacity: 0.7; }
+    .aurore-c { fill: light-dark(#ffeaa8, #c9b070); opacity: 0.55; }
+    .corps { fill: light-dark(#e8e4ff, #2a2848); opacity: 0.92; }
+    .lueur { fill: none; stroke: light-dark(#fff8e7, #ffe4b0); stroke-width: 2; opacity: 0.35; }
+    .coeur-core { fill: light-dark(#ff4d6d, #ff6b8a); cursor: pointer; }
+    .coeur-halo { fill: light-dark(#ffc2d1, #5c2438); opacity: 0.5; }
+    .etoile { fill: light-dark(#f5f5ff, #d0d0e8); }
+    .trait { stroke: light-dark(#00000018, #ffffff18); stroke-width: 0.6; fill: none; }
+    .hint { text-align: center; font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; }
+    @media (prefers-reduced-motion: reduce) {
+      .coeur-groupe { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Le souffle entre deux mondes</h1>
+  <p class="intro">Une petite ode à l’instant où quelque chose commence — pas encore nommé, déjà vivant.</p>
+
+  <div class="poem">Pour toi, qui ouvres une porte sans dire où elle mène.
+
+Entre la nuit et le premier jaune du jour,
+il n’y a qu’un souffle —
+assez large pour tenir un rêve,
+assez léger pour ne peser sur personne.
+
+Je t’offre ce ciel plié comme une enveloppe
+adressée à personne
+et à tout le monde à la fois.</div>
+
+  <svg id="souffle-mondes" width="100%" viewBox="0 0 360 480" role="img" aria-labelledby="souffle-title souffle-desc">
+    <title id="souffle-title">Le souffle entre deux mondes</title>
+    <desc id="souffle-desc">Nuit étoilée en haut, aurore orangée en bas, figure de lumière au centre tenant un cœur rayonnant.</desc>
+    <rect class="nuit" x="40" y="40" width="280" height="200" rx="8"/>
+    <rect class="aurore-a" x="40" y="340" width="280" height="100" rx="8"/>
+    <ellipse class="aurore-b" cx="180" cy="320" rx="160" ry="90"/>
+    <ellipse class="aurore-c" cx="180" cy="380" rx="130" ry="70"/>
+    <g opacity="0.4">
+      <line class="trait" x1="50" y1="80" x2="310" y2="80"/>
+      <line class="trait" x1="50" y1="110" x2="310" y2="110"/>
+      <line class="trait" x1="50" y1="140" x2="310" y2="140"/>
+      <line class="trait" x1="50" y1="170" x2="310" y2="170"/>
+    </g>
+    <g>
+      <circle class="etoile" cx="95" cy="95" r="2.2"/>
+      <circle class="etoile" cx="160" cy="72" r="1.5"/>
+      <circle class="etoile" cx="220" cy="118" r="2.8"/>
+      <circle class="etoile" cx="275" cy="88" r="1.8"/>
+      <circle class="etoile" cx="130" cy="150" r="1.2"/>
+      <circle class="etoile" cx="300" cy="165" r="2"/>
+      <circle class="etoile" cx="70" cy="175" r="1.6"/>
+      <path class="etoile" d="M 248 58 L 250 64 L 256 64 L 251 68 L 253 74 L 248 70 L 243 74 L 245 68 L 240 64 L 246 64 Z"/>
+    </g>
+    <g transform="translate(180 268)">
+      <ellipse class="lueur" cx="0" cy="0" rx="72" ry="100"/>
+      <ellipse class="lueur" cx="0" cy="0" rx="48" ry="68"/>
+      <path class="corps" d="M 0 -95 C -28 -70 -38 -35 -32 5 C -38 45 -22 75 0 95 C 22 75 38 45 32 5 C 38 -35 28 -70 0 -95 Z"/>
+      <path class="corps" d="M -32 5 C -55 -5 -62 25 -40 55 C -25 72 -8 85 0 95 C 8 72 15 40 5 15 C -5 -5 -20 -12 -32 5 Z" opacity="0.35"/>
+      <path class="corps" d="M 32 5 C 55 -5 62 25 40 55 C 25 72 8 85 0 95 C -8 72 -15 40 -5 15 C 5 -5 20 -12 32 5 Z" opacity="0.35"/>
+    </g>
+    <g id="coeur-groupe" class="coeur-groupe" transform="translate(180 218)">
+      <circle class="coeur-halo" cx="0" cy="0" r="28"/>
+      <path id="coeur-btn" class="coeur-core" tabindex="0" role="button" aria-label="Faire pulser le cœur"
+        d="M 0 14 C -14 -8 -32 -8 -32 8 C -32 28 0 48 0 48 C 0 48 32 28 32 8 C 32 -8 14 -8 0 14 Z"/>
+      <g transform="rotate(0)"><g transform="rotate(45)"><circle fill="light-dark(#ffd4e0,#4a2030)" cx="0" cy="-42" r="3" opacity="0.6"/></g></g>
+      <g transform="rotate(72)"><g transform="rotate(45)"><circle fill="light-dark(#ffd4e0,#4a2030)" cx="0" cy="-42" r="2.5" opacity="0.5"/></g></g>
+      <g transform="rotate(144)"><g transform="rotate(45)"><circle fill="light-dark(#ffd4e0,#4a2030)" cx="0" cy="-42" r="3" opacity="0.6"/></g></g>
+      <g transform="rotate(216)"><g transform="rotate(45)"><circle fill="light-dark(#ffd4e0,#4a2030)" cx="0" cy="-42" r="2" opacity="0.45"/></g></g>
+      <g transform="rotate(288)"><g transform="rotate(45)"><circle fill="light-dark(#ffd4e0,#4a2030)" cx="0" cy="-42" r="2.8" opacity="0.55"/></g></g>
+    </g>
+  </svg>
+  <p class="hint">Clique ou touche le cœur</p>
+
+  <script>
+    (function () {
+      var g = document.getElementById('coeur-groupe');
+      var btn = document.getElementById('coeur-btn');
+      if (!g || !btn) return;
+      var pulse = function () {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        g.setAttribute('transform', 'translate(180 218) scale(1.14)');
+        setTimeout(function () {
+          g.setAttribute('transform', 'translate(180 218)');
+        }, 420);
+      };
+      btn.addEventListener('click', pulse);
+      btn.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pulse(); }
+      });
+    })();
+  </script>
+</body>
+</html>

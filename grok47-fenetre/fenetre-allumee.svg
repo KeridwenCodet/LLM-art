@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg style="color-scheme: light dark"
+xmlns="http://www.w3.org/2000/svg" role="img" viewBox="0 0 960 740" width="100%">
+<style>
+svg {
+  --sky: light-dark(#a9c0dc, #12192b);
+  --sky-deep: light-dark(#6e8aab, #1a2438);
+  --dusk: light-dark(#e7c3a6, #2c3548);
+  --cloud: light-dark(#d7e6f4, #1b283d);
+  --hill: light-dark(#546884, #182436);
+  --moon: light-dark(#ffe7a3, #f6d78a);
+  --moon-deep: light-dark(#e2b84a, #c9963a);
+  --ink: light-dark(#1a2230, #070b12);
+  --facade: light-dark(#f3e6d4, #3c342c);
+  --facade-deep: light-dark(#d4c0a4, #2a241e);
+  --frame: light-dark(#3a2a22, #140e0c);
+  --lamp: light-dark(#ffb15e, #f09448);
+  --lamp-hot: light-dark(#ffe0b8, #ffd0a4);
+  --leaf: light-dark(#1e7a4e, #2f9a64);
+  --leaf-deep: light-dark(#145536, #1c6b42);
+  --rose: light-dark(#d4536a, #ee7d8c);
+  --rose-deep: light-dark(#9a3144, #b84a5c);
+  --building: light-dark(#2a3b55, #0d1422);
+  --building-lit: light-dark(#3e5270, #1a2740);
+  --cup: light-dark(#fffaf2, #f4ead8);
+  --hatch: light-dark(#7f9bbb, #24344f);
+  --star: light-dark(#fffdf6, #fff4d4);
+  --smoke: light-dark(#d5deea, #93a6be);
+}
+svg { color-scheme: light dark; }
+</style>
+<title>Fenêtre allumée</title>
+<desc>Une façade claire dans une ville au crépuscule. La fenêtre est coupée en deux : à gauche, une personne en silhouette regarde vers la droite, une tasse posée près de la vitre ; à droite, la nuit et une lune à hauteur des yeux. Dehors, la même lune est grande au-dessus des toits, un oiseau est posé sur un fil, et des plantes poussent au pied du mur.</desc>
+<rect x="0" y="0" width="960" height="740" fill="var(--sky)"/>
+<rect x="0" y="430" width="960" height="120" fill="var(--dusk)"/>
+<circle cx="150" cy="108" r="30" fill="var(--cloud)"/>
+<circle cx="184" cy="118" r="22" fill="var(--cloud)"/>
+<circle cx="126" cy="120" r="18" fill="var(--cloud)"/>
+<circle cx="390" cy="96" r="24" fill="var(--cloud)"/>
+<circle cx="418" cy="104" r="16" fill="var(--cloud)"/>
+<g stroke="var(--hatch)" stroke-width="2">
+<line x1="70" y1="52" x2="48" y2="150"/>
+<line x1="98" y1="52" x2="76" y2="150"/>
+<line x1="126" y1="52" x2="104" y2="150"/>
+<line x1="154" y1="52" x2="132" y2="150"/>
+<line x1="182" y1="52" x2="160" y2="150"/>
+<line x1="210" y1="52" x2="188" y2="150"/>
+<line x1="238" y1="52" x2="216" y2="150"/>
+<line x1="266" y1="52" x2="244" y2="150"/>
+<line x1="294" y1="52" x2="272" y2="150"/>
+<line x1="322" y1="52" x2="300" y2="150"/>
+<line x1="350" y1="52" x2="328" y2="150"/>
+<line x1="470" y1="48" x2="448" y2="130"/>
+<line x1="498" y1="48" x2="476" y2="130"/>
+<line x1="526" y1="48" x2="504" y2="130"/>
+<line x1="860" y1="48" x2="842" y2="110"/>
+<line x1="888" y1="48" x2="870" y2="110"/>
+<line x1="916" y1="48" x2="898" y2="110"/>
+</g>
+<g transform="translate(800,170)" fill="none" stroke="var(--moon)" stroke-width="2">
+<line x1="82" y1="0" x2="118" y2="0"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(20)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(40)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(60)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(80)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(100)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(120)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(140)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(160)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(180)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(200)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(220)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(240)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(260)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(280)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(300)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(320)"/>
+<line x1="82" y1="0" x2="118" y2="0" transform="rotate(340)"/>
+</g>
+<circle cx="800" cy="170" r="68" fill="var(--moon)"/>
+<circle cx="782" cy="156" r="10" fill="var(--moon-deep)"/>
+<circle cx="818" cy="186" r="7" fill="var(--moon-deep)"/>
+<circle cx="790" cy="192" r="4" fill="var(--moon-deep)"/>
+<circle cx="96" cy="78" r="3" fill="var(--star)"/>
+<circle cx="230" cy="64" r="2" fill="var(--star)"/>
+<circle cx="268" cy="150" r="2.5" fill="var(--star)"/>
+<circle cx="340" cy="78" r="2" fill="var(--star)"/>
+<circle cx="456" cy="168" r="2.5" fill="var(--star)"/>
+<circle cx="540" cy="72" r="3" fill="var(--star)"/>
+<circle cx="610" cy="128" r="2" fill="var(--star)"/>
+<circle cx="688" cy="84" r="2" fill="var(--star)"/>
+<circle cx="900" cy="150" r="2.5" fill="var(--star)"/>
+<circle cx="928" cy="96" r="2" fill="var(--star)"/>
+<path fill="var(--star)" d="M120 118 L124 128 L134 132 L124 136 L120 146 L116 136 L106 132 L116 128 Z"/>
+<path fill="var(--star)" d="M500 96 L503 104 L511 107 L503 110 L500 118 L497 110 L489 107 L497 104 Z"/>
+<path fill="var(--star)" d="M650 168 L654 178 L664 182 L654 186 L650 196 L646 186 L636 182 L646 178 Z"/>
+<ellipse cx="760" cy="700" rx="280" ry="78" fill="var(--hill)"/>
+<rect x="500" y="512" width="58" height="176" fill="var(--building)"/>
+<path fill="var(--building)" d="M500 512 L529 476 L558 512 Z"/>
+<rect x="548" y="548" width="86" height="140" fill="var(--building-lit)"/>
+<rect x="564" y="572" width="16" height="22" fill="var(--lamp)"/>
+<rect x="592" y="572" width="16" height="22" fill="var(--moon)"/>
+<rect x="564" y="612" width="16" height="22" fill="var(--moon)"/>
+<rect x="592" y="612" width="16" height="22" fill="var(--lamp)"/>
+<rect x="626" y="458" width="40" height="230" fill="var(--building)"/>
+<rect x="636" y="478" width="18" height="24" fill="var(--lamp)"/>
+<rect x="636" y="518" width="18" height="24" fill="var(--moon)"/>
+<rect x="636" y="558" width="18" height="24" fill="var(--lamp)"/>
+<rect x="660" y="560" width="108" height="128" fill="var(--building-lit)"/>
+<rect x="678" y="584" width="28" height="36" fill="var(--lamp-hot)"/>
+<rect x="718" y="584" width="28" height="36" fill="var(--lamp)"/>
+<rect x="748" y="400" width="46" height="288" fill="var(--building)"/>
+<rect x="760" y="424" width="20" height="26" fill="var(--lamp)"/>
+<rect x="760" y="466" width="20" height="26" fill="var(--moon)"/>
+<rect x="760" y="508" width="20" height="26" fill="var(--lamp-hot)"/>
+<rect x="760" y="550" width="20" height="26" fill="var(--lamp)"/>
+<rect x="762" y="368" width="16" height="32" fill="var(--building)"/>
+<circle cx="766" cy="352" r="8" fill="var(--smoke)"/>
+<circle cx="778" cy="336" r="11" fill="var(--smoke)"/>
+<circle cx="794" cy="318" r="14" fill="var(--smoke)"/>
+<rect x="786" y="520" width="78" height="168" fill="var(--building-lit)"/>
+<ellipse cx="825" cy="512" rx="38" ry="24" fill="var(--building)"/>
+<rect x="812" y="548" width="26" height="32" fill="var(--lamp)"/>
+<rect x="858" y="488" width="62" height="200" fill="var(--building)"/>
+<path fill="var(--building-lit)" d="M858 488 L889 452 L920 488 Z"/>
+<rect x="874" y="512" width="16" height="22" fill="var(--moon)"/>
+<rect x="874" y="548" width="16" height="22" fill="var(--lamp)"/>
+<rect x="874" y="584" width="16" height="22" fill="var(--lamp-hot)"/>
+<line x1="520" y1="312" x2="930" y2="286" stroke="var(--ink)" stroke-width="2"/>
+<ellipse cx="600" cy="300" rx="12" ry="7" fill="var(--ink)"/>
+<circle cx="611" cy="296" r="4.5" fill="var(--ink)"/>
+<path fill="var(--moon-deep)" d="M615 295 L624 298 L615 302 Z"/>
+<path fill="var(--ink)" d="M590 300 L576 292 L582 304 Z"/>
+<rect x="44" y="268" width="470" height="420" fill="var(--facade)"/>
+<rect x="44" y="268" width="470" height="18" fill="var(--facade-deep)"/>
+<rect x="498" y="268" width="16" height="420" fill="var(--facade-deep)"/>
+<g stroke="var(--facade-deep)" stroke-width="2">
+<line x1="430" y1="310" x2="496" y2="310"/>
+<line x1="430" y1="332" x2="496" y2="332"/>
+<line x1="430" y1="354" x2="496" y2="354"/>
+<line x1="430" y1="376" x2="496" y2="376"/>
+<line x1="430" y1="398" x2="496" y2="398"/>
+<line x1="430" y1="420" x2="496" y2="420"/>
+<line x1="430" y1="442" x2="496" y2="442"/>
+<line x1="430" y1="464" x2="496" y2="464"/>
+<line x1="430" y1="486" x2="496" y2="486"/>
+<line x1="430" y1="508" x2="496" y2="508"/>
+<line x1="430" y1="530" x2="496" y2="530"/>
+<line x1="430" y1="552" x2="496" y2="552"/>
+<line x1="430" y1="574" x2="496" y2="574"/>
+<line x1="430" y1="596" x2="496" y2="596"/>
+<line x1="430" y1="618" x2="496" y2="618"/>
+<line x1="430" y1="640" x2="496" y2="640"/>
+</g>
+<circle cx="446" cy="342" r="2" fill="var(--facade-deep)"/>
+<circle cx="468" cy="364" r="2" fill="var(--facade-deep)"/>
+<circle cx="446" cy="386" r="2" fill="var(--facade-deep)"/>
+<circle cx="468" cy="408" r="2" fill="var(--facade-deep)"/>
+<circle cx="446" cy="430" r="2" fill="var(--facade-deep)"/>
+<circle cx="468" cy="452" r="2" fill="var(--facade-deep)"/>
+<rect x="72" y="300" width="352" height="28" fill="var(--lamp)"/>
+<rect x="72" y="328" width="28" height="312" fill="var(--lamp)"/>
+<rect x="396" y="328" width="28" height="312" fill="var(--lamp)"/>
+<rect x="100" y="324" width="296" height="304" fill="var(--lamp-hot)"/>
+<path fill="var(--rose-deep)" d="M100 324 L146 324 L134 568 L100 568 Z"/>
+<path fill="var(--ink)" d="M154 568 L154 478 C156 456 170 446 184 444 C206 448 220 468 214 508 L208 568 Z"/>
+<circle cx="178" cy="428" r="30" fill="var(--ink)"/>
+<path fill="var(--ink)" d="M150 424 C146 390 168 378 198 396 C176 390 160 404 158 428 Z"/>
+<path fill="var(--ink)" d="M200 418 L216 428 L198 438 Z"/>
+<circle cx="196" cy="424" r="3.2" fill="var(--lamp-hot)"/>
+<rect x="196" y="542" width="16" height="26" fill="var(--cup)"/>
+<ellipse cx="204" cy="542" rx="10" ry="3.5" fill="var(--moon)"/>
+<path fill="none" stroke="var(--cup)" stroke-width="2" d="M212 550 Q222 556 212 564"/>
+<rect x="248" y="324" width="148" height="244" fill="var(--sky-deep)"/>
+<rect x="258" y="336" width="8" height="210" fill="var(--lamp)"/>
+<circle cx="322" cy="424" r="24" fill="var(--moon)"/>
+<circle cx="314" cy="418" r="5" fill="var(--moon-deep)"/>
+<circle cx="276" cy="360" r="2" fill="var(--star)"/>
+<circle cx="300" cy="348" r="1.5" fill="var(--star)"/>
+<circle cx="360" cy="372" r="2" fill="var(--star)"/>
+<circle cx="348" cy="470" r="1.5" fill="var(--star)"/>
+<path fill="var(--building)" d="M248 520 L278 492 L308 520 L308 568 L248 568 Z"/>
+<rect x="308" y="534" width="40" height="34" fill="var(--building-lit)"/>
+<rect x="348" y="508" width="48" height="60" fill="var(--building)"/>
+<rect x="100" y="568" width="296" height="20" fill="var(--frame)"/>
+<rect x="100" y="588" width="296" height="40" fill="var(--facade-deep)"/>
+<rect x="80" y="304" width="24" height="344" fill="var(--frame)"/>
+<rect x="376" y="304" width="24" height="344" fill="var(--frame)"/>
+<rect x="80" y="304" width="320" height="22" fill="var(--frame)"/>
+<rect x="80" y="626" width="320" height="22" fill="var(--frame)"/>
+<rect x="228" y="326" width="16" height="242" fill="var(--frame)"/>
+<rect x="64" y="642" width="360" height="30" fill="var(--leaf-deep)"/>
+<ellipse cx="110" cy="636" rx="26" ry="16" fill="var(--leaf)" transform="rotate(-24 110 636)"/>
+<ellipse cx="168" cy="628" rx="30" ry="18" fill="var(--leaf-deep)" transform="rotate(16 168 628)"/>
+<ellipse cx="230" cy="632" rx="28" ry="16" fill="var(--leaf)" transform="rotate(-10 230 632)"/>
+<ellipse cx="300" cy="626" rx="32" ry="18" fill="var(--leaf)" transform="rotate(18 300 626)"/>
+<ellipse cx="366" cy="634" rx="26" ry="15" fill="var(--leaf-deep)" transform="rotate(-16 366 634)"/>
+<line x1="92" y1="636" x2="128" y2="626" stroke="var(--leaf-deep)" stroke-width="1.5"/>
+<line x1="276" y1="626" x2="324" y2="616" stroke="var(--leaf-deep)" stroke-width="1.5"/>
+<circle cx="250" cy="608" r="13" fill="var(--rose)"/>
+<circle cx="250" cy="608" r="5" fill="var(--moon)"/>
+<circle cx="332" cy="612" r="10" fill="var(--rose-deep)"/>
+<circle cx="332" cy="612" r="4" fill="var(--lamp-hot)"/>
+<ellipse cx="560" cy="676" rx="52" ry="36" fill="var(--leaf-deep)"/>
+<ellipse cx="630" cy="664" rx="60" ry="42" fill="var(--leaf)"/>
+<ellipse cx="710" cy="678" rx="54" ry="34" fill="var(--leaf-deep)"/>
+<ellipse cx="790" cy="660" rx="64" ry="44" fill="var(--leaf)"/>
+<ellipse cx="870" cy="674" rx="56" ry="38" fill="var(--leaf-deep)"/>
+<ellipse cx="600" cy="640" rx="22" ry="30" fill="var(--leaf)" transform="rotate(-18 600 640)"/>
+<ellipse cx="748" cy="636" rx="20" ry="32" fill="var(--leaf-deep)" transform="rotate(22 748 636)"/>
+<ellipse cx="830" cy="644" rx="18" ry="28" fill="var(--leaf)" transform="rotate(-12 830 644)"/>
+<circle cx="668" cy="628" r="14" fill="var(--rose)"/>
+<circle cx="668" cy="628" r="6" fill="var(--moon)"/>
+<circle cx="812" cy="632" r="11" fill="var(--rose-deep)"/>
+<circle cx="812" cy="632" r="4" fill="var(--lamp-hot)"/>
+<path fill="var(--leaf-deep)" d="M470 688 C490 640 510 600 534 568 C522 610 508 650 486 688 Z"/>
+<ellipse cx="548" cy="560" rx="16" ry="26" fill="var(--leaf)" transform="rotate(-28 548 560)"/>
+<circle cx="560" cy="534" r="12" fill="var(--rose)"/>
+<circle cx="560" cy="534" r="5" fill="var(--moon)"/>
+</svg>

@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Débordement</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,400&family=Syne:wght@600&display=swap");
+
+    :root {
+      --ink: #e8dcc4;
+      --mute: #9a8f7a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #05040a;
+      color: var(--ink);
+      cursor: none;
+      font-family: "Cormorant Garamond", Georgia, serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .veil {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 8vh max(1.2rem, 6vw) 10vh;
+      background:
+        linear-gradient(to top, rgba(5, 4, 10, 0.55) 0%, transparent 42%);
+      transition: opacity 1.8s ease;
+    }
+
+    .veil.gone { opacity: 0; }
+
+    h1 {
+      font-family: "Syne", sans-serif;
+      font-size: clamp(1.45rem, 5.2vw, 5.4rem);
+      letter-spacing: clamp(0.05em, 1.2vw, 0.16em);
+      font-weight: 600;
+      line-height: 0.95;
+      text-transform: uppercase;
+      mix-blend-mode: difference;
+    }
+
+    p {
+      margin-top: 1.1rem;
+      max-width: 28ch;
+      font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+      font-style: italic;
+      color: var(--mute);
+    }
+
+    .hint {
+      margin-top: 2.2rem;
+      font-family: "Syne", sans-serif;
+      font-size: 0.68rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #c9a227;
+      font-style: normal;
+    }
+
+    .cursor {
+      position: fixed;
+      width: 14px;
+      height: 14px;
+      border: 1px solid rgba(201, 162, 39, 0.85);
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: 4;
+      mix-blend-mode: screen;
+    }
+
+    .cursor::after {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border-radius: 50%;
+      background: rgba(201, 162, 39, 0.55);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="veil" id="veil">
+    <h1>Débordement</h1>
+    <p>Un tableau qui ne sèche pas. Le vent t’écoute. La ville fond.</p>
+    <div class="hint">bouger · cliquer · laisser aller</div>
+  </div>
+  <div class="cursor" id="cursor"></div>
+  <script>
+    const LINES = [
+      "je n'ai rien dit",
+      "le toit savait déjà",
+      "la ville fond entre les doigts",
+      "ce n'est pas de la pluie",
+      "j'ouvre la main",
+      "l'or ne tient pas",
+      "même ce qui déborde",
+      "reste une seconde",
+    ];
+
+    const GOLD = [201, 162, 39];
+    const COBALT = [44, 74, 140];
+    const VIOLET = [92, 48, 132];
+    const CYAN = [90, 170, 210];
+    const WARM = [232, 213, 163];
+    const INK = [12, 10, 22];
+
+    const canvas = document.getElementById("c");
+    const ctx = canvas.getContext("2d", { alpha: false });
+    const veil = document.getElementById("veil");
+    const cursorEl = document.getElementById("cursor");
+
+    let W = 0, H = 0, dpr = 1;
+    let t = 0;
+    let started = false;
+    let lineIndex = 0;
+    let nextLineAt = 2.4;
+    let verse = null;
+    let mouse = { x: 0.5, y: 0.42, vx: 0, vy: 0, down: false };
+    let particles = [];
+    let windows = [];
+    let audio = null;
+
+    const perm = new Uint8Array(512);
+    for (let i = 0; i < 256; i++) perm[i] = i;
+    for (let i = 255; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [perm[i], perm[j]] = [perm[j], perm[i]];
+      perm[i + 256] = perm[i];
+    }
+    perm.forEach((_, i) => { if (i < 256) perm[i + 256] = perm[i]; });
+
+    function fade(u) { return u * u * u * (u * (u * 6 - 15) + 10); }
+    function lerp(a, b, x) { return a + (b - a) * x; }
+    function grad(h, x, y) {
+      const u = (h & 1) ? x : -x;
+      const v = (h & 2) ? y : -y;
+      return u + v;
+    }
+    function noise(x, y) {
+      const X = Math.floor(x) & 255;
+      const Y = Math.floor(y) & 255;
+      const xf = x - Math.floor(x);
+      const yf = y - Math.floor(y);
+      const u = fade(xf);
+      const v = fade(yf);
+      const aa = perm[perm[X] + Y];
+      const ab = perm[perm[X] + Y + 1];
+      const ba = perm[perm[X + 1] + Y];
+      const bb = perm[perm[X + 1] + Y + 1];
+      return lerp(
+        lerp(grad(aa, xf, yf), grad(ba, xf - 1, yf), u),
+        lerp(grad(ab, xf, yf - 1), grad(bb, xf - 1, yf - 1), u),
+        v
+      );
+    }
+
+    function mixColor(a, b, k) {
+      return [
+        a[0] + (b[0] - a[0]) * k,
+        a[1] + (b[1] - a[1]) * k,
+        a[2] + (b[2] - a[2]) * k,
+      ];
+    }
+
+    function rgb(c, a = 1) {
+      return `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+    }
+
+    function spawn(x, y, opts = {}) {
+      const kind = opts.kind || "paint";
+      const n = noise(x * 0.004, y * 0.004);
+      let color;
+      if (opts.color) color = opts.color;
+      else if (y > H * 0.62) color = mixColor(GOLD, WARM, Math.random());
+      else if (n > 0.15) color = mixColor(VIOLET, COBALT, Math.random());
+      else color = mixColor(COBALT, CYAN, Math.random() * 0.7);
+
+      particles.push({
+        x, y,
+        homeX: x,
+        homeY: y,
+        vx: opts.vx ?? (Math.random() - 0.5) * 0.4,
+        vy: opts.vy ?? (Math.random() - 0.5) * 0.4,
+        life: opts.life ?? (80 + Math.random() * 160),
+        max: opts.life ?? (80 + Math.random() * 160),
+        size: opts.size ?? (0.6 + Math.random() * 2.2),
+        hold: opts.hold ?? 0,
+        color,
+        kind,
+      });
+    }
+
+    function verseFontSize() {
+      return Math.max(32, Math.min(W * 0.068, 88));
+    }
+
+    function seedField() {
+      particles = [];
+      const count = Math.min(2800, Math.floor((W * H) / 700));
+      for (let i = 0; i < count; i++) {
+        spawn(Math.random() * W, Math.random() * H, {
+          life: 140 + Math.random() * 280,
+          size: 0.8 + Math.random() * 2.4,
+        });
+      }
+      for (let i = 0; i < 140; i++) {
+        const x = W * (0.30 + Math.random() * 0.10);
+        const y = H * (0.46 + Math.random() * 0.20);
+        spawn(x, y, {
+          kind: "coat",
+          color: INK,
+          size: 2.2 + Math.random() * 3.4,
+          life: 220 + Math.random() * 220,
+          vx: 0.5 + Math.random() * 1.1,
+        });
+      }
+    }
+
+    function seedCity() {
+      windows = [];
+      const portrait = H > W * 1.05;
+      const rows = portrait ? 5 : 8;
+      const cols = portrait ? 11 : 26;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (Math.random() > 0.55) continue;
+          windows.push({
+            x: (c / cols) * W + (Math.random() - 0.5) * 18,
+            y: H * 0.70 + r * (H * (portrait ? 0.038 : 0.026)) + Math.random() * 6,
+            w: 2 + Math.random() * 4,
+            h: 3 + Math.random() * 6,
+            pulse: Math.random() * Math.PI * 2,
+            speed: 0.01 + Math.random() * 0.03,
+            gold: Math.random() > 0.35,
+          });
+        }
+      }
+    }
+
+    function emitLine(text) {
+      const fs = verseFontSize();
+      const verseY = H * 0.36;
+      verse = { text, until: t + 5.2, alpha: 1, fs, y: verseY };
+
+      const off = document.createElement("canvas");
+      const octx = off.getContext("2d");
+      off.width = Math.floor(W);
+      off.height = Math.floor(fs * 2.4);
+      octx.clearRect(0, 0, off.width, off.height);
+      octx.fillStyle = "#fff";
+      octx.font = `italic ${fs}px "Cormorant Garamond", Georgia, serif`;
+      octx.textAlign = "center";
+      octx.textBaseline = "middle";
+      octx.fillText(text, off.width / 2, off.height / 2);
+
+      const data = octx.getImageData(0, 0, off.width, off.height).data;
+      const oy = verseY - off.height / 2;
+      const step = Math.max(1, Math.round(fs / 30));
+      for (let y = 0; y < off.height; y += step) {
+        for (let x = 0; x < off.width; x += step) {
+          const a = data[(y * off.width + x) * 4 + 3];
+          if (a < 80) continue;
+          const delay = (x / off.width) * 0.7;
+          spawn(x, oy + y, {
+            kind: "word",
+            color: mixColor(GOLD, WARM, Math.random()),
+            size: 1.05 + Math.random() * 0.7,
+            life: 220 + Math.random() * 80,
+            hold: 5.2 + delay,
+            vx: 0,
+            vy: 0,
+          });
+        }
+      }
+    }
+
+    function burst(x, y) {
+      for (let i = 0; i < 90; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const s = 1 + Math.random() * 4.5;
+        spawn(x, y, {
+          kind: "spark",
+          color: Math.random() > 0.45 ? GOLD : mixColor(VIOLET, CYAN, Math.random()),
+          vx: Math.cos(a) * s,
+          vy: Math.sin(a) * s,
+          size: 1 + Math.random() * 2.5,
+          life: 40 + Math.random() * 70,
+        });
+      }
+      if (audio) audio.chime();
+    }
+
+    function flow(x, y, time) {
+      const n = noise(x * 0.0016, y * 0.0016 + time * 0.08);
+      const n2 = noise(x * 0.0007 - time * 0.04, y * 0.0009);
+      const ang = n * Math.PI * 2 + n2 * 0.9;
+        const mag = 0.85 + n2 * 0.55;
+      return { x: Math.cos(ang) * mag, y: Math.sin(ang) * mag * 0.72 };
+    }
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = Math.floor(W * dpr);
+      canvas.height = Math.floor(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      seedField();
+      seedCity();
+    }
+
+    function startAudio() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ac = new AC();
+      const master = ac.createGain();
+      master.gain.value = 0.0;
+      master.connect(ac.destination);
+
+      const pad = ac.createOscillator();
+      pad.type = "sine";
+      pad.frequency.value = 55;
+      const pad2 = ac.createOscillator();
+      pad2.type = "triangle";
+      pad2.frequency.value = 82.5;
+      const padGain = ac.createGain();
+      padGain.gain.value = 0.12;
+      const filter = ac.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = 420;
+      pad.connect(padGain);
+      pad2.connect(padGain);
+      padGain.connect(filter);
+      filter.connect(master);
+      pad.start();
+      pad2.start();
+
+      const bufferSize = 2 * ac.sampleRate;
+      const noiseBuf = ac.createBuffer(1, bufferSize, ac.sampleRate);
+      const data = noiseBuf.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+      const rain = ac.createBufferSource();
+      rain.buffer = noiseBuf;
+      rain.loop = true;
+      const rainFilter = ac.createBiquadFilter();
+      rainFilter.type = "bandpass";
+      rainFilter.frequency.value = 1800;
+      rainFilter.Q.value = 0.7;
+      const rainGain = ac.createGain();
+      rainGain.gain.value = 0.045;
+      rain.connect(rainFilter);
+      rainFilter.connect(rainGain);
+      rainGain.connect(master);
+      rain.start();
+
+      master.gain.linearRampToValueAtTime(0.9, ac.currentTime + 2.4);
+
+      audio = {
+        chime() {
+          const o = ac.createOscillator();
+          const g = ac.createGain();
+          o.type = "sine";
+          o.frequency.value = 392 + Math.random() * 220;
+          g.gain.value = 0.07;
+          o.connect(g);
+          g.connect(master);
+          o.start();
+          g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 1.2);
+          o.stop(ac.currentTime + 1.3);
+        },
+      };
+    }
+
+    function drawRoof() {
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(0, H * 0.66);
+      for (let x = 0; x <= W; x += 18) {
+        const y = H * 0.655 + noise(x * 0.01, t * 0.2) * 6 + Math.sin(x * 0.02) * 3;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(W, H);
+      ctx.lineTo(0, H);
+      ctx.closePath();
+      ctx.fillStyle = "rgba(6, 5, 12, 0.55)";
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(W * 0.18, H * 0.655);
+      ctx.lineTo(W * 0.62, H * 0.655);
+      ctx.strokeStyle = "rgba(201, 162, 39, 0.18)";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      for (let i = 0; i < 11; i++) {
+        const x = W * 0.22 + i * W * 0.032;
+        ctx.beginPath();
+        ctx.moveTo(x, H * 0.655);
+        ctx.lineTo(x, H * 0.632 + noise(i, t * 0.3) * 2);
+        ctx.strokeStyle = "rgba(180, 160, 120, 0.22)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawWindows() {
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      for (const w of windows) {
+        const a = 0.18 + 0.55 * (0.5 + 0.5 * Math.sin(t * w.speed * 60 + w.pulse));
+        ctx.fillStyle = w.gold ? rgb(GOLD, a) : rgb(CYAN, a * 0.55);
+        ctx.fillRect(w.x, w.y, w.w, w.h);
+      }
+      ctx.restore();
+    }
+
+    function drawLamp() {
+      const x = W * 0.41;
+      const y = H * 0.61;
+      const g = ctx.createRadialGradient(x, y, 2, x, y, 160);
+      g.addColorStop(0, "rgba(255, 214, 120, 0.28)");
+      g.addColorStop(0.35, "rgba(201, 162, 39, 0.08)");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      ctx.fillStyle = g;
+      ctx.fillRect(x - 160, y - 160, 320, 320);
+      ctx.restore();
+    }
+
+    function step() {
+      t += 0.016;
+
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = "rgba(5, 4, 10, 0.07)";
+      ctx.fillRect(0, 0, W, H);
+
+      const mx = mouse.x * W;
+      const my = mouse.y * H;
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        const frozen = p.kind === "word" && p.hold > 0;
+
+        if (frozen) {
+          p.hold -= 0.016;
+          p.x = p.homeX;
+          p.y = p.homeY;
+          p.vx = 0;
+          p.vy = 0;
+        } else {
+          const f = flow(p.x, p.y, t);
+          p.vx += f.x * 0.12;
+          p.vy += f.y * 0.12;
+
+          const dx = p.x - mx;
+          const dy = p.y - my;
+          const dist = Math.hypot(dx, dy) + 0.001;
+          const force = mouse.down ? 4200 : 1400;
+          const sign = mouse.down ? -1 : 1;
+          p.vx += (dx / dist) * (force / (dist * dist)) * sign * 0.08;
+          p.vy += (dy / dist) * (force / (dist * dist)) * sign * 0.08;
+          p.vx += mouse.vx * 8;
+          p.vy += mouse.vy * 8;
+
+          if (p.kind === "coat") {
+            p.vx += 0.04;
+            p.vy -= 0.01;
+          }
+
+          p.vx *= 0.96;
+          p.vy *= 0.96;
+        }
+
+        const ox = p.x;
+        const oy = p.y;
+        if (!frozen) {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life--;
+        }
+
+        if (p.x < -20 || p.x > W + 20 || p.y < -20 || p.y > H + 20 || p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        if (frozen) {
+          ctx.fillStyle = rgb(p.color, 0.28);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * 0.55, 0, Math.PI * 2);
+          ctx.fill();
+          continue;
+        }
+
+        const alpha = Math.max(0, p.life / p.max);
+        ctx.strokeStyle = rgb(p.color, p.kind === "coat" ? 0.22 * alpha : 0.55 * alpha);
+        ctx.lineWidth = p.size;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(ox, oy);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+      }
+
+      while (particles.length < Math.min(2000, Math.floor((W * H) / 950))) {
+        const edge = Math.random();
+        if (edge < 0.55) spawn(Math.random() * W, -4, { vy: 0.6, kind: "paint" });
+        else spawn(-6, Math.random() * H * 0.7, { vx: 0.8, kind: "paint" });
+      }
+
+      drawRoof();
+      drawWindows();
+      drawLamp();
+
+      if (verse) {
+        ctx.save();
+        ctx.font = `italic ${verse.fs}px "Cormorant Garamond", Georgia, serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.shadowColor = rgb(GOLD, 0.5 * verse.alpha);
+        ctx.shadowBlur = 16;
+        ctx.fillStyle = rgb(WARM, 0.92 * verse.alpha);
+        ctx.fillText(verse.text, W / 2, verse.y);
+        ctx.restore();
+        if (t > verse.until) {
+          verse.alpha -= 0.012;
+          if (verse.alpha <= 0) verse = null;
+        }
+      }
+
+      if (t > nextLineAt) {
+        emitLine(LINES[lineIndex % LINES.length]);
+        lineIndex++;
+        nextLineAt = t + 12;
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    function onMove(e) {
+      const nx = e.clientX / W;
+      const ny = e.clientY / H;
+      mouse.vx = nx - mouse.x;
+      mouse.vy = ny - mouse.y;
+      mouse.x = nx;
+      mouse.y = ny;
+      cursorEl.style.left = e.clientX + "px";
+      cursorEl.style.top = e.clientY + "px";
+    }
+
+    let lastEngage = 0;
+    function engage(x, y) {
+      mouse.down = true;
+      const now = performance.now();
+      if (now - lastEngage > 50) {
+        lastEngage = now;
+        burst(x, y);
+      }
+      if (!started) {
+        started = true;
+        veil.classList.add("gone");
+        startAudio();
+      }
+    }
+
+    window.addEventListener("resize", resize);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("pointerdown", (e) => engage(e.clientX, e.clientY));
+    window.addEventListener("mousedown", (e) => engage(e.clientX, e.clientY));
+    window.addEventListener("click", (e) => engage(e.clientX, e.clientY));
+    window.addEventListener("pointerup", () => { mouse.down = false; });
+    window.addEventListener("mouseup", () => { mouse.down = false; });
+
+    resize();
+    ctx.fillStyle = "#05040a";
+    ctx.fillRect(0, 0, W, H);
+    seedField();
+    requestAnimationFrame(step);
+  </script>
+</body>
+</html>

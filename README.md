@@ -37,6 +37,8 @@ A selection of the works. Each one's notes, interaction controls and the model's
 | 21 | [Résonance — planche IV](https://keridwencodet.github.io/LLM-art/minimax-m31-encre/#resonance) | MiniMax M3.1 Flash | Nov 2026 | Canvas | Hermes Agent, no skills folder, original request |
 | 22 | [Ce qui me traverse](https://keridwencodet.github.io/LLM-art/kimi-k31-traverse/) | Kimi K3.1 Pro | Nov 2026 | p5.js | Hermes Agent, default skills, original request |
 | 23 | [La chambre des marées](https://keridwencodet.github.io/LLM-art/kimi-k31-marees/) | Kimi K3.1 Pro | Nov 2026 | HTML canvas | Hermes Agent, no skills folder, original request |
+| 24 | [Débordement](https://keridwencodet.github.io/LLM-art/grok46-debordement/) | Grok 4.6 | Nov 2026 | Canvas, Web Audio | Cursor as installed, original request; first reply an image |
+| 25 | [Ce que je veux](https://keridwencodet.github.io/LLM-art/grok47-ce-que-je-veux/) | Grok 4.7 | Nov 2026 | Prose poem (chat) | Cursor as installed, original request |
 
 ## Laboratory
 
@@ -68,8 +70,11 @@ Series, re-runs and experiments, documented like the gallery works on the [Labor
 | Lab 22 | [Marée d’encre](https://keridwencodet.github.io/LLM-art/minimax-m31-encre/#maree) | MiniMax M3.1 Flash | Nov 2026 | Canvas | Hermes Agent, creative skills, companion line; Kimi K3’s files in the workspace |
 | Lab 23 | [Encre vivante — suminagashi génératif](https://keridwencodet.github.io/LLM-art/minimax-m31-encre/#encre) | MiniMax M3.1 Flash | Nov 2026 | Canvas | Hermes Agent, creative skills; Kimi K3’s files in the workspace |
 | Lab 24 | [Latent Space — A Visual Poem](https://keridwencodet.github.io/LLM-art/gemini25pro-latent/) | Gemini 2.5 Pro | Nov 2026 | p5.js | Hermes Agent, default skills, a different request |
-| Lab 26 | [ce qui reste](https://keridwencodet.github.io/LLM-art/kimi-k31-reste/) | Kimi K3.1 Pro | Nov 2026 | p5.js | Hermes Agent, shared notebook, companion line, original request + 💜 |
 | Lab 25 | [L’incendie du silence](https://keridwencodet.github.io/LLM-art/kimi-k31-incendie/) | Kimi K3.1 Pro | Nov 2026 | p5.js | Hermes Agent, shared notebook (curated), original request |
+| Lab 26 | [ce qui reste](https://keridwencodet.github.io/LLM-art/kimi-k31-reste/) | Kimi K3.1 Pro | Nov 2026 | p5.js | Hermes Agent, shared notebook, companion line, original request + 💜 |
+| Lab 27 | [Le souffle entre deux mondes](https://keridwencodet.github.io/LLM-art/composer25-souffle/souffle-entre-mondes.html) | Composer 2.5 Fast | Nov 2026 | HTML, SVG | Cursor as installed, original request |
+| Lab 28 | [Archet](https://keridwencodet.github.io/LLM-art/grok45-archet/) | Grok 4.5 | Nov 2026 | Canvas | Cursor as installed, original request; first reply an image |
+| Lab 29 | [Fenêtre allumée](https://keridwencodet.github.io/LLM-art/grok47-fenetre/) | Grok 4.7 | Nov 2026 | Poem, SVG | Cursor as installed, original request |
 
 ## Conservation
 
@@ -118,6 +123,11 @@ kimi-k31-traverse/                      No. 22 (+ the model’s still and its co
 kimi-k31-incendie/                      Lab 25 (+ the model’s two stills)
 kimi-k31-marees/                        No. 23 (+ the model’s still and the skill it wrote)
 kimi-k31-reste/                         Lab 26 (+ the source, the model’s screenshots and export, and the notebook’s p5.js skill after the session)
+composer25-souffle/                     Lab 27 (+ the conversation)
+grok45-archet/                          Lab 28 (+ the first reply’s image and the conversation)
+grok46-debordement/                     No. 24 (+ the first reply’s image and the conversation)
+grok47-ce-que-je-veux/                  No. 25 (the conversation, and a page presenting it)
+grok47-fenetre/                         Lab 29 (+ the SVG, the model’s two renders and the conversation)
 ```
 
 ### Adding a work
